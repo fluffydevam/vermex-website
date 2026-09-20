@@ -53,6 +53,23 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
+    // 4. Job Orders / Dispatch Table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS job_orders (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            client_name VARCHAR(150) NOT NULL,
+            location VARCHAR(255) NOT NULL,
+            service_type VARCHAR(100) NOT NULL,
+            assigned_tech VARCHAR(100) NOT NULL,
+            service_window VARCHAR(50) NOT NULL,
+            priority ENUM('Standard', 'High', 'Urgent') DEFAULT 'Standard',
+            route_status ENUM('Scheduled', 'En route', 'On site', 'Completed', 'Delayed') DEFAULT 'Scheduled',
+            payment_cleared TINYINT(1) DEFAULT 0,
+            scheduled_date DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
     // Seed default Admin user if none exists
     $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
     if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);

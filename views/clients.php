@@ -102,64 +102,7 @@ if (empty($records)) {
 <body class="bg-gray-100 font-sans antialiased text-gray-800 flex h-screen overflow-hidden">
 
     <!-- SIDEBAR -->
-    <aside class="w-64 custom-sidebar text-white flex flex-col justify-between p-4 flex-shrink-0">
-        <div>
-            <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-emerald-900">
-                <div class="bg-emerald-600 p-2 rounded-lg text-white">
-                    <i data-lucide="shield-check" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-sm tracking-wider uppercase text-emerald-100">VERMEX</h1>
-                    <p class="text-[10px] text-emerald-400 font-medium tracking-tight">PEST SOLUTIONS</p>
-                </div>
-            </div>
-
-            <div class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wider mb-2 px-3">Workspace</div>
-            <nav class="space-y-1">
-                <a href="dashboard.php" class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 hover:text-white rounded-lg transition">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                    Dashboard
-                </a>
-                <a href="clients.php" class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-100 active-nav font-medium">
-                    <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
-                    Clients & Contracts
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 hover:text-white rounded-lg transition">
-                    <i data-lucide="map-pin" class="w-4 h-4"></i>
-                    Dispatch & Field Jobs
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 hover:text-white rounded-lg transition">
-                    <i data-lucide="receipt" class="w-4 h-4"></i>
-                    Billing & Payments
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 hover:text-white rounded-lg transition">
-                    <i data-lucide="flask-conical" class="w-4 h-4"></i>
-                    Chemical Inventory
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-900/50 hover:text-white rounded-lg transition">
-                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
-                    Reports & Audits
-                </a>
-            </nav>
-        </div>
-
-        <div>
-            <div class="flex items-center justify-between pt-3 border-t border-emerald-900">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-sm text-white">
-                        <?= strtoupper(substr($userFullName, 0, 1)) ?>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-xs font-semibold truncate text-emerald-100"><?= htmlspecialchars($userFullName) ?></p>
-                        <p class="text-[10px] text-emerald-400 truncate"><?= htmlspecialchars($userRole) ?></p>
-                    </div>
-                </div>
-                <a href="../auth/logout.php" title="Logout" class="text-emerald-400 hover:text-red-400 transition p-1">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                </a>
-            </div>
-        </div>
-    </aside>
+    <?php include 'components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT AREA -->
     <main class="flex-1 flex flex-col overflow-y-auto">
