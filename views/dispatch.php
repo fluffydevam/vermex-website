@@ -86,6 +86,7 @@ if (empty($jobs)) {
     <title>Dispatch & Field Jobs - Vermex Pest Solutions</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
         .custom-sidebar { background-color: #0b2219; }
         .active-nav { background-color: #14382a; border-radius: 0.5rem; }

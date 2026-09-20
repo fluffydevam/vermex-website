@@ -13,12 +13,14 @@ $navItems = [
     ['label' => 'Pest Operations', 'file' => 'pest-operations.php', 'icon' => 'bug'],
     ['label' => 'Inventory', 'file' => 'inventory.php', 'icon' => 'flask-conical'],
     ['label' => 'Reports & Analytics', 'file' => 'reports.php', 'icon' => 'bar-chart-3'],
+    ['label' => 'User Management', 'file' => 'users.php', 'icon' => 'shield-check'],
+    ['label' => 'Settings', 'file' => 'settings.php', 'icon' => 'settings'],
 ];
 ?>
 
 <!-- FIXED-WIDTH SIDEBAR CONTAINER -->
 <aside class="w-64 min-w-[16rem] max-w-[16rem] bg-[#0b2219] text-white flex flex-col justify-between p-4 flex-shrink-0 h-screen select-none">
-    
+
     <div>
         <!-- Brand Header (Fixed height & padding) -->
         <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-emerald-900/60 h-14">
@@ -35,16 +37,16 @@ $navItems = [
         <div class="text-[11px] font-semibold text-emerald-500 uppercase tracking-wider mb-2 px-3">Workspace</div>
         <nav class="space-y-1">
             <?php foreach ($navItems as $item): ?>
-                <?php 
-                    // Check if current loop item matches active page
-                    $isActive = ($currentPage === $item['file']);
-                    
-                    // Enforce identical padding, height, and border radius across all links
-                    $baseClasses = "flex items-center gap-3 px-3 py-2.5 text-xs font-medium rounded-lg transition-colors duration-150 w-full";
-                    $activeClasses = $isActive 
-                        ? "bg-[#14382a] text-white shadow-sm" 
-                        : "text-emerald-300 hover:bg-emerald-900/40 hover:text-white";
-                    $iconColor = $isActive ? "text-emerald-400" : "text-emerald-400/70";
+                <?php
+                // Check if current loop item matches active page
+                $isActive = ($currentPage === $item['file']);
+
+                // Enforce identical padding, height, and border radius across all links
+                $baseClasses = "flex items-center gap-3 px-3 py-2.5 text-xs font-medium rounded-lg transition-colors duration-150 w-full";
+                $activeClasses = $isActive
+                    ? "bg-[#14382a] text-white shadow-sm"
+                    : "text-emerald-300 hover:bg-emerald-900/40 hover:text-white";
+                $iconColor = $isActive ? "text-emerald-400" : "text-emerald-400/70";
                 ?>
                 <a href="<?= $item['file'] ?>" class="<?= $baseClasses ?> <?= $activeClasses ?>">
                     <i data-lucide="<?= $item['icon'] ?>" class="w-4 h-4 flex-shrink-0 <?= $iconColor ?>"></i>
@@ -59,9 +61,9 @@ $navItems = [
         <div class="bg-emerald-900/30 p-3 rounded-lg border border-emerald-800/40">
             <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-1">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                Live Operations
+                System Access
             </div>
-            <p class="text-[11px] text-emerald-200/80 leading-snug">Field techs active across Davao City.</p>
+            <p class="text-[11px] text-emerald-200/80 leading-snug">18 Accounts secured • MFA ready</p>
         </div>
 
         <div class="flex items-center justify-between pt-3 border-t border-emerald-900/60">
@@ -79,4 +81,5 @@ $navItems = [
             </a>
         </div>
     </div>
+
 </aside>

@@ -10,15 +10,20 @@ try {
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbname`");
 
-    // 1. Users Table
+    // 1. Users Table (Updated with sector, email, phone, and status)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(50) NOT NULL UNIQUE,
+            email VARCHAR(150) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
             full_name VARCHAR(100) NOT NULL,
+            phone VARCHAR(30) NULL,
             role ENUM('Admin', 'Billing Officer', 'Field Technician', 'Chemical Custodian') NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            sector_region VARCHAR(100) DEFAULT 'Davao Head Office',
+            status ENUM('active', 'disabled') NOT NULL DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_active TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
@@ -74,14 +79,17 @@ try {
     $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
     if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
         $insertAdmin =$pdo->prepare("
-            INSERT INTO users (username, password, full_name, role) 
-            VALUES (:username, :password, :full_name, :role)
+            INSERT INTO users (username, email, password, full_name, phone, role, sector_region, status)
+            VALUES (:username, :email, :password, :full_name, :phone, :role, :sector_region, 'active')
         ");
         $insertAdmin->execute([
-            'username' => 'admin',
-            'password' => $defaultPassword,
-            'full_name' => 'Paolo M. Cremat',
-            'role' => 'Admin'
+            'username'      => 'admin',
+            'email'         => 'admin@vermexpest.com',
+            'password'      => $defaultPassword,
+            'full_name'     => 'Paolo M. Cremat',
+            'phone'         => '+63 900 000 0000',
+            'role'          => 'Admin',
+            'sector_region' => 'Davao Head Office'
         ]);
     }
 

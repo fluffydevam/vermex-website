@@ -17,20 +17,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($username) || empty($password)) {
         $error = "Please fill in all fields.";
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+        // Fetch user by username or email
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username OR email = :username");
         $stmt->execute(['username' => $username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
-            session_regenerate_id(true);
+            
+            // Check if user account status is active
+            if (isset($user['status']) && strtolower($user['status']) !== 'active') {
+                $error = "Your account is currently disabled. Please contact an administrator.";
+            } else {
+                session_regenerate_id(true);
 
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['full_name'] = $user['full_name'];
-            $_SESSION['role'] = $user['role'];
+                $_SESSION['user_id']   = $user['id'];
+                $_SESSION['username']  = $user['username'];
+                $_SESSION['full_name'] = $user['full_name'];
+                $_SESSION['role']      = $user['role'];
 
-            header("Location: ../views/dashboard.php");
-            exit();
+                // Update last_active timestamp
+                $updateStmt = $pdo->prepare("UPDATE users SET last_active = NOW() WHERE id = ?");
+                $updateStmt->execute([$user['id']]);
+
+                header("Location: ../views/dashboard.php");
+                exit();
+            }
+
         } else {
             $error = "Invalid username or password.";
         }
