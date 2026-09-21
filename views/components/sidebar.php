@@ -12,6 +12,7 @@ $userInitial = !empty($firstName) ? strtoupper(substr($firstName, 0, 1)) : 'O';
 $navItems = [
     ['label' => 'Overview', 'file' => 'dashboard.php', 'icon' => 'layout-dashboard'],
     ['label' => 'Dispatch & Field Jobs', 'file' => 'dispatch.php', 'icon' => 'calendar'],
+    ['label' => 'Inspections', 'file' => 'inspections.php', 'icon' => 'clipboard-check'],
     ['label' => 'Clients & Contracts', 'file' => 'clients.php', 'icon' => 'users'],
     ['label' => 'Pest Operations', 'file' => 'pest-operations.php', 'icon' => 'bug'],
     ['label' => 'Inventory', 'file' => 'inventory.php', 'icon' => 'flask-conical'],

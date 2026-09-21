@@ -12,7 +12,7 @@ $query = "SELECT * FROM clients WHERE 1=1";
 $params = [];
 
 if (!empty($search)) {
-    $query .= " AND (company_name LIKE :search OR first_name LIKE :search OR last_name LIKE :search OR email LIKE :search OR phone LIKE :search)";
+    $query .= " AND (client_name LIKE :search OR first_name LIKE :search OR last_name LIKE :search OR email LIKE :search OR phone_number LIKE :search OR street_address LIKE :search OR barangay LIKE :search)";
     $params['search'] = "%{$search}%";
 }
 
@@ -194,7 +194,7 @@ foreach ($clients as $c) {
                                 <i data-lucide="file-plus" class="w-3.5 h-3.5"></i> Client Account Onboarding
                             </div>
                             <h2 class="text-base font-semibold text-slate-900 mt-0.5">Register New Client & Service Contract</h2>
-                            <p class="text-[11px] text-slate-400">Configure client business profile, service location, and billing details.</p>
+                            <p class="text-[11px] text-slate-400">Configure client business profile, standardized service location, and billing details.</p>
                         </div>
                         <button type="button" onclick="toggleClientForm()" class="text-slate-400 hover:text-slate-700 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
@@ -206,11 +206,11 @@ foreach ($clients as $c) {
                                 <input type="text" name="company_name" required placeholder="e.g. Marco Polo Hotel Davao" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
                             </div>
                             <div>
-                                <label class="block text-slate-600 font-medium mb-1">First Name *</label>
+                                <label class="block text-slate-600 font-medium mb-1">Contact First Name *</label>
                                 <input type="text" name="first_name" required placeholder="First Name" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
                             </div>
                             <div>
-                                <label class="block text-slate-600 font-medium mb-1">Last Name *</label>
+                                <label class="block text-slate-600 font-medium mb-1">Contact Last Name *</label>
                                 <input type="text" name="last_name" required placeholder="Last Name" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
                             </div>
                         </div>
@@ -233,9 +233,20 @@ foreach ($clients as $c) {
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-slate-600 font-medium mb-1">Complete Service Address *</label>
-                            <input type="text" name="address" required placeholder="Street address, Bldg, Barangay, City" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                        <!-- Standardized Address Fields -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-slate-600 font-medium mb-1">Street Address *</label>
+                                <input type="text" name="street_address" required placeholder="e.g. Door 4, Prieto Bldg" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                            </div>
+                            <div>
+                                <label class="block text-slate-600 font-medium mb-1">Barangay *</label>
+                                <input type="text" name="barangay" required placeholder="e.g. Brgy. 27-C" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                            </div>
+                            <div>
+                                <label class="block text-slate-600 font-medium mb-1">City *</label>
+                                <input type="text" name="city" required value="Davao City" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end gap-3 pt-2">
@@ -260,7 +271,7 @@ foreach ($clients as $c) {
                     <div class="flex items-center gap-2">
                         <div class="relative flex-1 sm:w-64">
                             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search name, company, email..." class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-[#007a55] transition">
+                            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search name, company, email, street..." class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-[#007a55] transition">
                         </div>
                         <select name="type" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#007a55] transition font-medium">
                             <option value="">Type: All</option>
@@ -275,13 +286,13 @@ foreach ($clients as $c) {
                     </div>
                 </form>
 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto overflow-y-auto max-h-[400px]">
                     <table class="w-full text-left text-xs">
                         <thead>
                             <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100">
                                 <th class="pb-2 font-semibold">Client Name & Contact</th>
                                 <th class="pb-2 font-semibold">Type</th>
-                                <th class="pb-2 font-semibold">Service Address</th>
+                                <th class="pb-2 font-semibold">Standardized Address</th>
                                 <th class="pb-2 font-semibold">Contract Status</th>
                                 <th class="pb-2 font-semibold">Account Status</th>
                                 <th class="pb-2 font-semibold text-right">Actions</th>
@@ -304,7 +315,7 @@ foreach ($clients as $c) {
                                     if (($client['contract_status'] ?? '') === 'expiring_soon') {
                                         $contractStatusBadge = '<span class="bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Expiring Soon</span>';
                                     } elseif (($client['contract_status'] ?? '') === 'cancelled') {
-                                        $contractStatusBadge = '<span class="bg-purple-50 text-purple-700 border border-purple-200/60 px-2 py-0.5 rounded text-[10px] font-semibold" title="' . htmlspecialchars($client['final_balance_notes'] ?? '') . '">Cancelled (Pending Payout)</span>';
+                                        $contractStatusBadge = '<span class="bg-purple-50 text-purple-700 border border-purple-200/60 px-2 py-0.5 rounded text-[10px] font-semibold" title="' . htmlspecialchars($client['final_balance_notes'] ?? '') . '">Cancelled</span>';
                                     } elseif (($client['contract_status'] ?? '') === 'expired') {
                                         $contractStatusBadge = '<span class="bg-rose-50 text-rose-700 border border-rose-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Expired</span>';
                                     }
@@ -312,58 +323,62 @@ foreach ($clients as $c) {
                                     $statusBadge = ($client['status'] ?? 'active') === 'active'
                                         ? '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>'
                                         : '<span class="bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">Disabled</span>';
+                                    
+                                    $fullAddress = trim(($client['street_address'] ?? '') . ', ' . ($client['barangay'] ?? '') . ', ' . ($client['city'] ?? 'Davao City'));
                                     ?>
-                                    <td class="py-3 px-1">
-                                        <div>
-                                            <button onclick='openViewModal(<?= json_encode($client) ?>)' class="font-semibold text-slate-900 text-xs hover:text-[#007a55] hover:underline text-left transition">
-                                                <?= htmlspecialchars($client['client_name']) ?>
-                                            </button>
-                                            <div class="text-[11px] text-slate-500 font-medium mt-0.5">
-                                                <?= htmlspecialchars(($client['last_name'] ?? '') . ', ' . ($client['first_name'] ?? '')) ?> • <span class="font-mono text-slate-400"><?= htmlspecialchars($client['phone_number'] ?? '') ?></span>
-                                            </div>
-                                            <div class="text-[10px] text-slate-400 font-mono">
-                                                <?= htmlspecialchars($client['email'] ?? '') ?>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="py-3">
-                                        <span class="<?= $typeClass ?> border px-2 py-0.5 rounded text-[10px] font-medium">
-                                            <?= htmlspecialchars($client['client_type'] ?? 'Commercial') ?>
-                                        </span>
-                                    </td>
-                                    <td class="py-3">
-                                        <div class="text-[11px] text-slate-600 truncate max-w-xs"><?= htmlspecialchars($client['address'] ?? 'Davao City') ?></div>
-                                    </td>
-                                    <td class="py-3"><?= $contractStatusBadge ?></td>
-                                    <td class="py-3"><?= $statusBadge ?></td>
-                                    <td class="py-3 text-right relative">
-                                        <button onclick="toggleActionMenu(<?= $client['id'] ?>)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition">
-                                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                                        </button>
-
-                                        <!-- Dropdown Menu -->
-                                        <div id="action-menu-<?= $client['id'] ?>" class="hidden absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 text-left">
-                                            <button onclick='openEditModal(<?= json_encode($client) ?>)' class="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition font-medium">
-                                                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-[#007a55]"></i> Edit Client Info
-                                            </button>
-
-                                            <button onclick='openContractModal(<?= $client["id"] ?>, <?= json_encode($client["client_name"]) ?>)' class="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition font-medium">
-                                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-600"></i> Manage Contract
-                                            </button>
-
-                                            <div class="border-t border-slate-100 my-1"></div>
-
-                                            <form action="../controllers/toggleClientStatus.php" method="POST" onsubmit="return confirm('Change client status?');">
-                                                <input type="hidden" name="client_id" value="<?= $client['id'] ?>">
-                                                <input type="hidden" name="current_status" value="<?= $client['status'] ?? 'active' ?>">
-                                                <button type="submit" class="w-full px-3 py-2 text-xs flex items-center gap-2 transition font-medium <?= ($client['status'] ?? 'active') === 'active' ? 'text-rose-600 hover:bg-rose-50' : 'text-[#007a55] hover:bg-emerald-50' ?>">
-                                                    <i data-lucide="<?= ($client['status'] ?? 'active') === 'active' ? 'slash' : 'check-circle' ?>" class="w-3.5 h-3.5"></i>
-                                                    <?= ($client['status'] ?? 'active') === 'active' ? 'Deactivate Account' : 'Activate Account' ?>
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-3 px-1">
+                                            <div>
+                                                <button onclick='openViewModal(<?= json_encode($client) ?>)' class="font-semibold text-slate-900 text-xs hover:text-[#007a55] hover:underline text-left transition">
+                                                    <?= htmlspecialchars($client['client_name']) ?>
                                                 </button>
-                                            </form>
+                                                <div class="text-[11px] text-slate-500 font-medium mt-0.5">
+                                                    <?= htmlspecialchars(($client['last_name'] ?? '') . ', ' . ($client['first_name'] ?? '')) ?> • <span class="font-mono text-slate-400"><?= htmlspecialchars($client['phone_number'] ?? '') ?></span>
+                                                </div>
+                                                <div class="text-[10px] text-slate-400 font-mono">
+                                                    <?= htmlspecialchars($client['email'] ?? '') ?>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3">
+                                            <span class="<?= $typeClass ?> border px-2 py-0.5 rounded text-[10px] font-medium">
+                                                <?= htmlspecialchars($client['client_type'] ?? 'Commercial') ?>
+                                            </span>
+                                        </td>
+                                        <td class="py-3">
+                                            <div class="text-[11px] text-slate-700 font-medium truncate max-w-xs"><?= htmlspecialchars($fullAddress) ?></div>
+                                            <div class="text-[10px] text-slate-400"><?= htmlspecialchars($client['barangay'] ?? '') ?>, <?= htmlspecialchars($client['city'] ?? 'Davao City') ?></div>
+                                        </td>
+                                        <td class="py-3"><?= $contractStatusBadge ?></td>
+                                        <td class="py-3"><?= $statusBadge ?></td>
+                                        <td class="py-3 text-right relative">
+                                            <button onclick="toggleActionMenu(<?= $client['id'] ?>)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition">
+                                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                                            </button>
 
-                                        </div>
-                                    </td>
+                                            <!-- Dropdown Menu -->
+                                            <div id="action-menu-<?= $client['id'] ?>" class="hidden absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 text-left">
+                                                <button onclick='openEditModal(<?= json_encode($client) ?>)' class="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition font-medium">
+                                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 text-[#007a55]"></i> Edit Client Info
+                                                </button>
+
+                                                <button onclick='openContractModal(<?= $client["id"] ?>, <?= json_encode($client["client_name"]) ?>)' class="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition font-medium">
+                                                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-600"></i> Manage Contract
+                                                </button>
+
+                                                <div class="border-t border-slate-100 my-1"></div>
+
+                                                <form action="../controllers/toggleClientStatus.php" method="POST" onsubmit="return confirm('Change client status?');">
+                                                    <input type="hidden" name="client_id" value="<?= $client['id'] ?>">
+                                                    <input type="hidden" name="current_status" value="<?= $client['status'] ?? 'active' ?>">
+                                                    <button type="submit" class="w-full px-3 py-2 text-xs flex items-center gap-2 transition font-medium <?= ($client['status'] ?? 'active') === 'active' ? 'text-rose-600 hover:bg-rose-50' : 'text-[#007a55] hover:bg-emerald-50' ?>">
+                                                        <i data-lucide="<?= ($client['status'] ?? 'active') === 'active' ? 'slash' : 'check-circle' ?>" class="w-3.5 h-3.5"></i>
+                                                        <?= ($client['status'] ?? 'active') === 'active' ? 'Deactivate Account' : 'Activate Account' ?>
+                                                    </button>
+                                                </form>
+
+                                            </div>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -384,7 +399,7 @@ foreach ($clients as $c) {
                     <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 text-lg">&times;</button>
                 </div>
 
-                <form action="../controllers/updateClient.php" method="POST" class="space-y-4 text-xs">
+                <form action="../controllers/updateClient.php" method="POST" class="space-y-3.5 text-xs">
                     <input type="hidden" id="edit_client_id" name="client_id">
 
                     <div>
@@ -394,11 +409,11 @@ foreach ($clients as $c) {
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-slate-600 font-medium mb-1">First Name *</label>
+                            <label class="block text-slate-600 font-medium mb-1">Contact First Name *</label>
                             <input type="text" id="edit_first_name" name="first_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
                         </div>
                         <div>
-                            <label class="block text-slate-600 font-medium mb-1">Last Name *</label>
+                            <label class="block text-slate-600 font-medium mb-1">Contact Last Name *</label>
                             <input type="text" id="edit_last_name" name="last_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
                         </div>
                     </div>
@@ -414,9 +429,20 @@ foreach ($clients as $c) {
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-slate-600 font-medium mb-1">Address *</label>
-                        <input type="text" id="edit_address" name="address" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                    <!-- Standardized Address Fields for Edit -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Street Address *</label>
+                            <input type="text" id="edit_street_address" name="street_address" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Barangay *</label>
+                            <input type="text" id="edit_barangay" name="barangay" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">City *</label>
+                            <input type="text" id="edit_city" name="city" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                        </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
@@ -487,7 +513,7 @@ foreach ($clients as $c) {
                             </div>
 
                             <div>
-                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Service Property Address</span>
+                                <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Standardized Service Property Address</span>
                                 <p id="view_address" class="text-slate-800 font-medium mt-0.5"></p>
                             </div>
                         </div>
@@ -520,7 +546,7 @@ foreach ($clients as $c) {
                                 </div>
                             </div>
 
-                            <!-- Cancellation Notice Box (Shows up dynamically if cancelled) -->
+                            <!-- Cancellation Notice Box -->
                             <div id="view_balance_container" class="hidden bg-purple-50 border border-purple-200 rounded-xl p-3 space-y-1">
                                 <span class="text-[10px] uppercase font-bold text-purple-700 tracking-wider flex items-center gap-1">
                                     <i data-lucide="alert-circle" class="w-3 h-3"></i> Cancellation & Payout Terms
@@ -656,56 +682,60 @@ foreach ($clients as $c) {
             document.getElementById('edit_last_name').value = client.last_name || '';
             document.getElementById('edit_email').value = client.email || '';
             document.getElementById('edit_phone').value = client.phone_number || '';
-            document.getElementById('edit_address').value = client.property_address || '';
+            document.getElementById('edit_street_address').value = client.street_address || '';
+            document.getElementById('edit_barangay').value = client.barangay || '';
+            document.getElementById('edit_city').value = client.city || 'Davao City';
             document.getElementById('editModal').classList.remove('hidden');
         }
 
         let currentClientId = null;
-    let currentClientName = '';
+        let currentClientName = '';
 
-    function openViewModal(client) {
-        currentClientId = client.id;
-        currentClientName = client.client_name;
+        function openViewModal(client) {
+            currentClientId = client.id;
+            currentClientName = client.client_name;
 
-        document.getElementById('view_client_id').innerText = '#' + client.id;
-        document.getElementById('view_company_name').innerText = client.client_name || 'N/A';
-        document.getElementById('view_contact_person').innerText = (client.last_name || '') + ', ' + (client.first_name || '');
-        document.getElementById('view_client_type').innerText = client.client_type || 'Commercial';
-        document.getElementById('view_email').innerText = client.email || 'N/A';
-        document.getElementById('view_phone').innerText = client.phone_number || 'N/A';
-        document.getElementById('view_address').innerText = client.property_address || 'N/A';
-        
-        document.getElementById('view_contract_status_text').innerText = client.contract_status || 'active';
-        document.getElementById('view_account_status').innerText = client.status || 'active';
-        document.getElementById('view_start_date').innerText = client.contract_start_date || 'Not set';
-        document.getElementById('view_end_date').innerText = client.contract_end_date || 'Not set';
-        document.getElementById('view_created_at').innerText = client.created_at || 'N/A';
+            document.getElementById('view_client_id').innerText = '#' + client.id;
+            document.getElementById('view_company_name').innerText = client.client_name || 'N/A';
+            document.getElementById('view_contact_person').innerText = (client.last_name || '') + ', ' + (client.first_name || '');
+            document.getElementById('view_client_type').innerText = client.client_type || 'Commercial';
+            document.getElementById('view_email').innerText = client.email || 'N/A';
+            document.getElementById('view_phone').innerText = client.phone_number || 'N/A';
+            
+            const fullAddr = [client.street_address, client.barangay, client.city].filter(Boolean).join(', ');
+            document.getElementById('view_address').innerText = fullAddr || 'N/A';
+            
+            document.getElementById('view_contract_status_text').innerText = client.contract_status || 'active';
+            document.getElementById('view_account_status').innerText = client.status || 'active';
+            document.getElementById('view_start_date').innerText = client.contract_start_date || 'Not set';
+            document.getElementById('view_end_date').innerText = client.contract_end_date || 'Not set';
+            document.getElementById('view_created_at').innerText = client.created_at || 'N/A';
 
-        // Header Badge Styling based on status
-        const badge = document.getElementById('header_contract_badge');
-        if (client.contract_status === 'cancelled') {
-            badge.className = 'px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200';
-            badge.innerText = 'CANCELLED (PENDING PAYOUT)';
-        } else if (client.contract_status === 'expiring_soon') {
-            badge.className = 'px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200';
-            badge.innerText = 'EXPIRING SOON';
-        } else {
-            badge.className = 'px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200';
-            badge.innerText = 'ACTIVE CONTRACT';
+            // Header Badge Styling based on status
+            const badge = document.getElementById('header_contract_badge');
+            if (client.contract_status === 'cancelled') {
+                badge.className = 'px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200';
+                badge.innerText = 'CANCELLED';
+            } else if (client.contract_status === 'expiring_soon') {
+                badge.className = 'px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200';
+                badge.innerText = 'EXPIRING SOON';
+            } else {
+                badge.className = 'px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200';
+                badge.innerText = 'ACTIVE CONTRACT';
+            }
+
+            // Final balance note display for cancelled accounts
+            const balanceContainer = document.getElementById('view_balance_container');
+            if (client.contract_status === 'cancelled' && client.final_balance_notes) {
+                document.getElementById('view_final_balance').innerText = client.final_balance_notes;
+                balanceContainer.classList.remove('hidden');
+            } else {
+                balanceContainer.classList.add('hidden');
+            }
+
+            document.getElementById('viewContractModal').classList.remove('hidden');
+            lucide.createIcons();
         }
-
-        // Final balance note display for cancelled accounts
-        const balanceContainer = document.getElementById('view_balance_container');
-        if (client.contract_status === 'cancelled' && client.final_balance_notes) {
-            document.getElementById('view_final_balance').innerText = client.final_balance_notes;
-            balanceContainer.classList.remove('hidden');
-        } else {
-            balanceContainer.classList.add('hidden');
-        }
-
-        document.getElementById('viewContractModal').classList.remove('hidden');
-        lucide.createIcons();
-    }
 
         function closeViewModal() {
             document.getElementById('viewContractModal').classList.add('hidden');

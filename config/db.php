@@ -28,16 +28,24 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 2. Clients Table
+    // 2. Clients Table (Updated with standardized address fields)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS clients (
             id INT AUTO_INCREMENT PRIMARY KEY,
             client_name VARCHAR(150) NOT NULL,
-            contact_person VARCHAR(100) NOT NULL,
+            first_name VARCHAR(100) NOT NULL,
+            last_name VARCHAR(100) NOT NULL,
             phone_number VARCHAR(20) NOT NULL,
             email VARCHAR(100) NULL,
-            property_address TEXT NOT NULL,
+            street_address VARCHAR(255) NOT NULL,
+            barangay VARCHAR(100) NOT NULL,
+            city VARCHAR(100) NOT NULL DEFAULT 'Davao City',
             client_type ENUM('Residential', 'Commercial') NOT NULL DEFAULT 'Residential',
+            status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+            contract_status ENUM('active', 'expiring_soon', 'cancelled', 'expired') NOT NULL DEFAULT 'active',
+            contract_start_date DATE NULL,
+            contract_end_date DATE NULL,
+            final_balance_notes TEXT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
