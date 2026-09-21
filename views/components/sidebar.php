@@ -2,8 +2,11 @@
 // Detect current page file name automatically
 $currentPage = basename($_SERVER['PHP_SELF']);
 
-$userFullName = $_SESSION['full_name'] ?? 'Operations Manager';
-$userRole = $_SESSION['role'] ?? 'Admin';
+$firstName = $_SESSION['first_name'] ?? 'Operations';
+$lastName  = $_SESSION['last_name'] ?? 'Manager';
+$userFullName = trim($firstName . ' ' . $lastName);
+$userRole  = $_SESSION['role'] ?? 'Admin';
+$userInitial = !empty($firstName) ? strtoupper(substr($firstName, 0, 1)) : 'O';
 
 // Centralized Navigation Items
 $navItems = [
@@ -67,19 +70,19 @@ $navItems = [
         </div>
 
         <div class="flex items-center justify-between pt-3 border-t border-emerald-900/60">
-            <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs text-white flex-shrink-0">
-                    <?= strtoupper(substr($userFullName, 0, 1)) ?>
-                </div>
-                <div class="truncate">
-                    <p class="text-xs font-semibold text-emerald-100 truncate leading-tight"><?= htmlspecialchars($userFullName) ?></p>
-                    <p class="text-[10px] text-emerald-400 truncate"><?= htmlspecialchars($userRole) ?></p>
-                </div>
-            </div>
-            <a href="../auth/logout.php" title="Logout" class="text-emerald-400 hover:text-red-400 transition p-1.5 flex-shrink-0">
-                <i data-lucide="log-out" class="w-4 h-4"></i>
-            </a>
+    <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs text-white flex-shrink-0">
+            <?= $userInitial ?>
         </div>
+        <div class="truncate">
+            <p class="text-xs font-semibold text-emerald-100 truncate leading-tight"><?= htmlspecialchars($userFullName) ?></p>
+            <p class="text-[10px] text-emerald-400 truncate"><?= htmlspecialchars($userRole) ?></p>
+        </div>
+    </div>
+    <a href="../auth/logout.php" title="Logout" class="text-emerald-400 hover:text-red-400 transition p-1.5 flex-shrink-0">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+    </a>
+</div>
     </div>
 
 </aside>

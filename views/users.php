@@ -65,13 +65,16 @@ foreach ($users as $u) {
             width: 6px;
             height: 6px;
         }
+
         ::-webkit-scrollbar-track {
             background: #f1f5f9;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
@@ -193,14 +196,23 @@ foreach ($users as $u) {
                     </div>
 
                     <form action="../controllers/createUser.php" method="POST" class="space-y-3.5 text-xs">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <!-- Row 1: First Name & Last Name -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-slate-600 font-medium mb-1">Username *</label>
-                                <input type="text" name="username" required placeholder="e.g. jdoe" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <label class="block text-slate-600 font-medium mb-1">First Name *</label>
+                                <input type="text" name="first_name" required placeholder="e.g. John" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
                             </div>
                             <div>
-                                <label class="block text-slate-600 font-medium mb-1">Full Name *</label>
-                                <input type="text" name="full_name" required placeholder="Enter full name" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <label class="block text-slate-600 font-medium mb-1">Last Name *</label>
+                                <input type="text" name="last_name" required placeholder="e.g. Doe" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Username & Email Address -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-slate-600 font-medium mb-1">Username *</label>
+                                <input type="text" name="username" required placeholder="e.g. jdoe" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 font-mono rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
                             </div>
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">Email Address *</label>
@@ -208,6 +220,7 @@ foreach ($users as $u) {
                             </div>
                         </div>
 
+                        <!-- Row 3: Contact Number, Assigned Role, & Sector/Station -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">Contact Number</label>
@@ -233,6 +246,7 @@ foreach ($users as $u) {
                             </div>
                         </div>
 
+                        <!-- Temporary Password -->
                         <div>
                             <div class="flex items-center justify-between mb-1">
                                 <label class="text-slate-600 font-medium">Temporary Password *</label>
@@ -243,6 +257,7 @@ foreach ($users as $u) {
                             </div>
                         </div>
 
+                        <!-- Actions Footer -->
                         <div class="flex items-center justify-end gap-3 pt-2">
                             <button type="button" onclick="toggleUserForm()" class="bg-white hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-lg border border-slate-200 transition font-medium">Cancel</button>
                             <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
@@ -303,8 +318,7 @@ foreach ($users as $u) {
                                 <?php foreach ($users as $user): ?>
                                     <?php
                                     // Initials
-                                    $initials = strtoupper(substr($user['full_name'], 0, 2));
-
+                                    $initials = strtoupper(substr($user['first_name'] ?? '', 0, 1) . substr($user['last_name'] ?? '', 0, 1));
                                     // Role badge style
                                     $roleBadgeClass = "bg-emerald-50 text-[#007a55] border-emerald-200/60";
                                     if ($user['role'] === 'Field Technician') {
@@ -330,7 +344,7 @@ foreach ($users as $u) {
                                                 <div>
                                                     <!-- Name & Username Tag -->
                                                     <div class="flex items-center gap-2">
-                                                        <span class="font-semibold text-slate-800 text-xs"><?= htmlspecialchars($user['full_name']) ?></span>
+                                                        <span class="font-semibold text-slate-800 text-xs"><?= htmlspecialchars(trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''))) ?></span>
                                                         <?php if (!empty($user['username'])): ?>
                                                             <span class="text-[10px] font-mono text-[#007a55] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 font-medium">
                                                                 @<?= htmlspecialchars($user['username']) ?>
@@ -368,8 +382,8 @@ foreach ($users as $u) {
                                                 </button>
 
                                                 <!-- Reset Password -->
-                                                <button onclick='openResetModal(<?= $user["id"] ?>, "<?= htmlspecialchars($user["full_name"], ENT_QUOTES) ?>")' class="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition font-medium">
-                                                    <i data-lucide="key-round" class="w-3.5 h-3.5 text-amber-500"></i> Reset Password
+                                                <button onclick='openResetModal(<?= $user["id"] ?>, "<?= htmlspecialchars(trim(($user["first_name"] ?? "") . " " . ($user["last_name"] ?? "")), ENT_QUOTES) ?>")' class="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition font-medium">
+                                                    <i data-lucide="key-round" class="w-3.5 h-3.5 text-amber-400"></i> Reset Password
                                                 </button>
 
                                                 <div class="border-t border-slate-100 my-1"></div>
@@ -398,7 +412,7 @@ foreach ($users as $u) {
         <!-- 1. Edit User Modal -->
         <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto">
             <div class="bg-white border border-slate-200 rounded-xl p-6 max-w-lg w-full space-y-4 shadow-xl relative">
-                
+
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -411,48 +425,57 @@ foreach ($users as $u) {
                 <form action="../controllers/updateUser.php" method="POST" class="space-y-4 text-xs">
                     <input type="hidden" id="edit_user_id" name="user_id">
 
-                    <!-- Row 1: Full Name & Username -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-600 font-medium mb-1">Full Name *</label>
-                            <input type="text" id="edit_full_name" name="full_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                    <!-- Edit User Form Fields -->
+                    <div class="space-y-4">
+                        <!-- Row 1: First Name & Last Name -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">First Name *</label>
+                                <input type="text" id="edit_first_name" name="first_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                            </div>
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Last Name *</label>
+                                <input type="text" id="edit_last_name" name="last_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-slate-600 font-medium mb-1">Username *</label>
-                            <input type="text" id="edit_username" name="username" placeholder="e.g. admin" required class="w-full bg-white border border-slate-200 text-slate-800 font-mono rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
-                        </div>
-                    </div>
 
-                    <!-- Row 2: Email & Phone -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-600 font-medium mb-1">Email Address *</label>
-                            <input type="email" id="edit_email" name="email" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                        <!-- Row 2: Username & Email Address -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Username *</label>
+                                <input type="text" id="edit_username" name="username" required class="w-full bg-white border border-slate-200 text-slate-800 font-mono rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                            </div>
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Email Address *</label>
+                                <input type="email" id="edit_email" name="email" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-slate-600 font-medium mb-1">Phone Number</label>
-                            <input type="text" id="edit_phone" name="phone" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
-                        </div>
-                    </div>
 
-                    <!-- Row 3: System Role & Station -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-600 font-medium mb-1">System Role *</label>
-                            <select id="edit_role" name="role" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
-                                <option value="Admin">Admin</option>
-                                <option value="Field Technician">Field Technician</option>
-                                <option value="Billing Officer">Billing Officer</option>
-                                <option value="Chemical Custodian">Chemical Custodian</option>
-                            </select>
+                        <!-- Row 3: Phone Number & System Role -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Phone Number</label>
+                                <input type="text" id="edit_phone" name="phone" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                            </div>
+                            <div>
+                                <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">System Role *</label>
+                                <select id="edit_role" name="role" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                                    <option value="Admin">Admin</option>
+                                    <option value="Billing Officer">Billing Officer</option>
+                                    <option value="Field Technician">Field Technician</option>
+                                    <option value="Chemical Custodian">Chemical Custodian</option>
+                                </select>
+                            </div>
                         </div>
+
+                        <!-- Row 4: Station / Region -->
                         <div>
-                            <label class="block text-slate-600 font-medium mb-1">Station / Region</label>
-                            <select id="edit_sector_region" name="sector_region" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                            <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Station / Region *</label>
+                            <select id="edit_sector_region" name="sector_region" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
                                 <option value="Davao Head Office">Davao Head Office</option>
-                                <option value="Sector 01 - Industrial Zone">Sector 01 - Industrial Zone</option>
-                                <option value="Sector 02 - Downtown Davao">Sector 02 - Downtown Davao</option>
-                                <option value="Sector 04 - Roxas, Davao City">Sector 04 - Roxas, Davao City</option>
+                                <option value="Tagum Branch">Tagum Branch</option>
+                                <option value="Panabo Station">Panabo Station</option>
+                                <option value="Digos Branch">Digos Branch</option>
                             </select>
                         </div>
                     </div>
@@ -532,7 +555,8 @@ foreach ($users as $u) {
         // Edit Modal Handlers
         function openEditModal(user) {
             document.getElementById('edit_user_id').value = user.id;
-            document.getElementById('edit_full_name').value = user.full_name || '';
+            document.getElementById('edit_first_name').value = user.first_name || '';
+            document.getElementById('edit_last_name').value = user.last_name || '';
             document.getElementById('edit_username').value = user.username || '';
             document.getElementById('edit_email').value = user.email || '';
             document.getElementById('edit_phone').value = user.phone || '';

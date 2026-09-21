@@ -5,13 +5,15 @@ require_once __DIR__ . '/../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId       = (int)($_POST['user_id'] ?? 0);
-    $fullName     = trim($_POST['full_name'] ?? '');
+    $firstName    = trim($_POST['first_name'] ?? '');
+    $lastName     = trim($_POST['last_name'] ?? '');
+    $username     = trim($_POST['username'] ?? '');
     $email        = trim($_POST['email'] ?? '');
     $phone        = trim($_POST['phone'] ?? '');
     $role         = trim($_POST['role'] ?? '');
     $sectorRegion = trim($_POST['sector_region'] ?? 'Davao Head Office');
 
-    if ($userId <= 0 || empty($fullName) || empty($email) || empty($role)) {
+    if ($userId <= 0 || empty($firstName) || empty($lastName) || empty($username) || empty($email) || empty($role)) {
         $_SESSION['error'] = "Please fill in all required fields.";
         header('Location: ../views/users.php');
         exit;
@@ -27,12 +29,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        // Check for duplicate username (excluding current user)
+        $userCheckStmt = $pdo->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+        $userCheckStmt->execute([$username, $userId]);
+        if ($userCheckStmt->fetch()) {
+            $_SESSION['error'] = "Another account is already using this username.";
+            header('Location: ../views/users.php');
+            exit;
+        }
+
+        // Update user record with first_name and last_name
         $stmt = $pdo->prepare("
             UPDATE users 
-            SET full_name = ?, email = ?, phone = ?, role = ?, sector_region = ?
+            SET first_name = ?, last_name = ?, username = ?, email = ?, phone = ?, role = ?, sector_region = ?
             WHERE id = ?
         ");
-        $stmt->execute([$fullName, $email, $phone, $role, $sectorRegion, $userId]);
+        $stmt->execute([$firstName, $lastName, $username, $email, $phone, $role, $sectorRegion, $userId]);
 
         $_SESSION['success'] = "User account updated successfully!";
     } catch (PDOException $e) {

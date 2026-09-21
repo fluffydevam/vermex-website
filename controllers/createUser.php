@@ -12,7 +12,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. Sanitize & Collect Input Data
     $username     = trim($_POST['username'] ?? '');
-    $fullName     = trim($_POST['full_name'] ?? '');
+    $firstName    = trim($_POST['first_name'] ?? '');
+    $lastName     = trim($_POST['last_name'] ?? '');
     $email        = trim($_POST['email'] ?? '');
     $phone        = trim($_POST['phone'] ?? '');
     $role         = trim($_POST['role'] ?? 'Field Technician');
@@ -25,8 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 2. Validate Required Fields
-    if (empty($username) || empty($fullName) || empty($email) || empty($rawPassword)) {
-        $_SESSION['error'] = "Please fill in all required fields (Username, Full Name, Email, Password).";
+    if (empty($username) || empty($firstName) || empty($lastName) || empty($email) || empty($rawPassword)) {
+        $_SESSION['error'] = "Please fill in all required fields (Username, First Name, Last Name, Email, Password).";
         header('Location: ../views/users.php');
         exit;
     }
@@ -50,15 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 4. Securely Hash Password
         $passwordHash = password_hash($rawPassword, PASSWORD_BCRYPT);
 
-        // 5. Insert New User into Database
+        // 5. Insert New User into Database with separate first_name and last_name
         $insertStmt = $pdo->prepare("
-            INSERT INTO users (username, full_name, email, phone, role, sector_region, password, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
+            INSERT INTO users (username, first_name, last_name, email, phone, role, sector_region, password, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
         ");
         
         $insertStmt->execute([
             $username,
-            $fullName,
+            $firstName,
+            $lastName,
             $email,
             $phone,
             $role,
@@ -66,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $passwordHash
         ]);
 
-        $_SESSION['success'] = "User account for {$fullName} (@{$username}) successfully created!";
+        $_SESSION['success'] = "User account for {$firstName} {$lastName} (@{$username}) successfully created!";
         header('Location: ../views/users.php');
         exit;
 
