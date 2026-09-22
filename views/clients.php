@@ -49,6 +49,29 @@ foreach ($clients as $c) {
         $commercialCount++;
     }
 }
+
+// --- ADD STEP 1 HANDLER HERE ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_inspection_from_client'])) {
+    try {
+        $clientName = trim($_POST['client_name'] ?? '');
+        $clientEmail = trim($_POST['client_email'] ?? '');
+        $accountType = trim($_POST['account_type'] ?? 'Residential');
+        $serviceAddress = trim($_POST['service_address'] ?? '');
+
+        // Insert into site_inspections table as 'Pending Visit'
+        $stmt = $pdo->prepare("
+            INSERT INTO site_inspections (client_name, client_email, account_type, service_address, inspection_status) 
+            VALUES (?, ?, ?, ?, 'Pending Visit')
+        ");
+        $stmt->execute([$clientName, $clientEmail, $accountType, $serviceAddress]);
+
+        header("Location: inspections.php?success=inspection_created");
+        exit;
+    } catch (Exception $e) {
+        $errorMessage = "Failed to create site inspection: " . $e->getMessage();
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -323,7 +346,7 @@ foreach ($clients as $c) {
                                     $statusBadge = ($client['status'] ?? 'active') === 'active'
                                         ? '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>'
                                         : '<span class="bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">Disabled</span>';
-                                    
+
                                     $fullAddress = trim(($client['street_address'] ?? '') . ', ' . ($client['barangay'] ?? '') . ', ' . ($client['city'] ?? 'Davao City'));
                                     ?>
                                     <tr class="hover:bg-slate-50/80 transition">
@@ -456,7 +479,7 @@ foreach ($clients as $c) {
         <!-- Client & Contract Profile Modal (Figma Style) -->
         <div id="viewContractModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
             <div class="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
-                
+
                 <!-- Modal Header -->
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div class="flex items-center gap-3">
@@ -478,16 +501,16 @@ foreach ($clients as $c) {
 
                 <!-- Modal Body Content -->
                 <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
-                    
+
                     <!-- Grid Row 1: Client Details & Contract Summary -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
+
                         <!-- Client Details Card -->
                         <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm">
                             <div class="flex items-center gap-2 text-slate-800 font-bold border-b border-slate-100 pb-2">
                                 <i data-lucide="building-2" class="w-4 h-4 text-blue-600"></i> Client Details
                             </div>
-                            
+
                             <div>
                                 <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Company / Account Name</span>
                                 <div class="flex items-center justify-between mt-0.5">
@@ -594,63 +617,132 @@ foreach ($clients as $c) {
                         Close
                     </button>
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="openContractModal(currentClientId, currentClientName)" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-xl transition font-semibold text-xs flex items-center gap-1.5">
-                            <i data-lucide="file-edit" class="w-3.5 h-3.5"></i> Manage Contract & Cancellation
+                        <!-- NEW BUTTON: Create Pre-Contract Site Inspection -->
+                        <form method="POST" action="clients.php" class="inline">
+                            <input type="hidden" name="create_inspection_from_client" value="1">
+                            <input type="hidden" name="client_name" id="modalClientNameInput" value="">
+                            <input type="hidden" name="client_email" id="modalClientEmailInput" value="">
+                            <input type="hidden" name="account_type" id="modalAccountTypeInput" value="">
+                            <input type="hidden" name="service_address" id="modalServiceAddressInput" value="">
+                            <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition shadow-sm flex items-center gap-1.5">
+                                <i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i> Create Pre-Contract Inspection
+                            </button>
+                        </form>
+                        <!-- NEW HISTORY LOG BUTTON -->
+                        <button onclick="openInspectionHistoryModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition">
+                            <i data-lucide="history" class="w-4 h-4"></i> Inspection History Logsheet
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="openContractModal(currentClientId, currentClientName)" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-xl transition font-semibold text-xs flex items-center gap-1.5">
+                                <i data-lucide="file-edit" class="w-3.5 h-3.5"></i> Manage Contract & Cancellation
+                            </button>
+                        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- INSPECTION HISTORY LOGSHEET MODAL -->
+            <div id="inspectionHistoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-xl max-w-3xl w-full p-6 shadow-xl border border-slate-100 max-h-[90vh] flex flex-col">
+
+                    <!-- Modal Header -->
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#007a55] flex items-center justify-center">
+                                <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-base">Inspection History Logsheet</h3>
+                                <p class="text-xs text-slate-500">Past service and visit records for <span id="historyClientName" class="font-semibold text-slate-800">Client</span></p>
+                            </div>
+                        </div>
+                        <button onclick="closeInspectionHistoryModal()" class="text-slate-400 hover:text-slate-600">
+                            <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
                     </div>
+
+                    <!-- Logsheet Table Content -->
+                    <div class="overflow-y-auto flex-1 mb-4">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50">
+                                    <th class="py-3 px-3">Date & Time</th>
+                                    <th class="py-3 px-3">Inspection Type</th>
+                                    <th class="py-3 px-3">Findings / Pests</th>
+                                    <th class="py-3 px-3">Assigned Tech</th>
+                                    <th class="py-3 px-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientHistoryTableBody" class="divide-y divide-slate-100 text-xs text-slate-700">
+                                <!-- Dynamic rows will inject here -->
+                                <tr>
+                                    <td colspan="5" class="py-6 text-center text-slate-400 italic">No inspection history records found for this client.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="flex justify-end pt-3 border-t border-slate-100">
+                        <button onclick="closeInspectionHistoryModal()" class="px-4 py-2 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+                            Close Logsheet
+                        </button>
+                    </div>
+
                 </div>
-
             </div>
-        </div>
+            <!-- Manage Contract Modal -->
+            <div id="contractModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+                <div class="bg-white border border-slate-200 rounded-xl p-5 max-w-md w-full space-y-4 shadow-xl">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="file-check" class="w-4 h-4 text-blue-600"></i> Contract & SLA Settings
+                        </h3>
+                        <button onclick="closeContractModal()" class="text-slate-400 hover:text-slate-700 text-lg">&times;</button>
+                    </div>
 
-        <!-- Manage Contract Modal -->
-        <div id="contractModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-            <div class="bg-white border border-slate-200 rounded-xl p-5 max-w-md w-full space-y-4 shadow-xl">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        <i data-lucide="file-check" class="w-4 h-4 text-blue-600"></i> Contract & SLA Settings
-                    </h3>
-                    <button onclick="closeContractModal()" class="text-slate-400 hover:text-slate-700 text-lg">&times;</button>
+                    <form action="../controllers/updateContract.php" method="POST" class="space-y-3 text-xs">
+                        <input type="hidden" id="contract_client_id" name="client_id">
+
+                        <p class="text-slate-500">Update agreement terms for <span id="contract_client_name" class="font-bold text-slate-800"></span>.</p>
+
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Contract Status</label>
+                            <select name="contract_status" id="contract_status_select" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <option value="active">Active Service</option>
+                                <option value="expiring_soon">Expiring Soon (Renewal Pending)</option>
+                                <option value="cancelled">Cancelled (Client Terminated - Payout Required)</option>
+                                <option value="expired">Expired / Terminated</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-slate-600 font-medium mb-1">Start Date</label>
+                                <input type="date" name="start_date" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                            </div>
+                            <div>
+                                <label class="block text-slate-600 font-medium mb-1">Expiry Date / Cancellation Date</label>
+                                <input type="date" name="end_date" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Final Balance / Payment Remarks</label>
+                            <input type="text" name="final_balance_notes" placeholder="e.g. Pending final treatment collection: ₱1,500" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                            <button type="button" onclick="closeContractModal()" class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition font-medium">Cancel</button>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition shadow-sm">Update Contract</button>
+                        </div>
+
+                    </form>
                 </div>
-
-                <form action="../controllers/updateContract.php" method="POST" class="space-y-3 text-xs">
-                    <input type="hidden" id="contract_client_id" name="client_id">
-
-                    <p class="text-slate-500">Update agreement terms for <span id="contract_client_name" class="font-bold text-slate-800"></span>.</p>
-
-                    <div>
-                        <label class="block text-slate-600 font-medium mb-1">Contract Status</label>
-                        <select name="contract_status" id="contract_status_select" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
-                            <option value="active">Active Service</option>
-                            <option value="expiring_soon">Expiring Soon (Renewal Pending)</option>
-                            <option value="cancelled">Cancelled (Client Terminated - Payout Required)</option>
-                            <option value="expired">Expired / Terminated</option>
-                        </select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-600 font-medium mb-1">Start Date</label>
-                            <input type="date" name="start_date" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
-                        </div>
-                        <div>
-                            <label class="block text-slate-600 font-medium mb-1">Expiry Date / Cancellation Date</label>
-                            <input type="date" name="end_date" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-600 font-medium mb-1">Final Balance / Payment Remarks</label>
-                        <input type="text" name="final_balance_notes" placeholder="e.g. Pending final treatment collection: ₱1,500" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
-                    </div>
-
-                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                        <button type="button" onclick="closeContractModal()" class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition font-medium">Cancel</button>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition shadow-sm">Update Contract</button>
-                    </div>
-                </form>
             </div>
-        </div>
     </main>
 
     <!-- Helper Scripts -->
@@ -688,6 +780,7 @@ foreach ($clients as $c) {
             document.getElementById('editModal').classList.remove('hidden');
         }
 
+
         let currentClientId = null;
         let currentClientName = '';
 
@@ -701,10 +794,10 @@ foreach ($clients as $c) {
             document.getElementById('view_client_type').innerText = client.client_type || 'Commercial';
             document.getElementById('view_email').innerText = client.email || 'N/A';
             document.getElementById('view_phone').innerText = client.phone_number || 'N/A';
-            
+
             const fullAddr = [client.street_address, client.barangay, client.city].filter(Boolean).join(', ');
             document.getElementById('view_address').innerText = fullAddr || 'N/A';
-            
+
             document.getElementById('view_contract_status_text').innerText = client.contract_status || 'active';
             document.getElementById('view_account_status').innerText = client.status || 'active';
             document.getElementById('view_start_date').innerText = client.contract_start_date || 'Not set';
@@ -753,6 +846,94 @@ foreach ($clients as $c) {
 
         function closeContractModal() {
             document.getElementById('contractModal').classList.add('hidden');
+        }
+
+        function openViewModal(client) {
+            currentClientId = client.id;
+            currentClientName = client.client_name;
+
+            document.getElementById('view_client_id').innerText = '#' + client.id;
+            document.getElementById('view_company_name').innerText = client.client_name || 'N/A';
+            document.getElementById('view_contact_person').innerText = (client.last_name || '') + ', ' + (client.first_name || '');
+            document.getElementById('view_client_type').innerText = client.client_type || 'Commercial';
+            document.getElementById('view_email').innerText = client.email || 'N/A';
+            document.getElementById('view_phone').innerText = client.phone_number || 'N/A';
+
+            const fullAddr = [client.street_address, client.barangay, client.city].filter(Boolean).join(', ');
+            document.getElementById('view_address').innerText = fullAddr || 'N/A';
+
+            // ==========================================
+            // STEP 3: POPULATE HIDDEN INPUTS FOR INSPECTION
+            // ==========================================
+            document.getElementById('modalClientNameInput').value = client.client_name || '';
+            document.getElementById('modalClientEmailInput').value = client.email || '';
+            document.getElementById('modalAccountTypeInput').value = client.client_type || 'Commercial';
+            document.getElementById('modalServiceAddressInput').value = fullAddr || '';
+            // ==========================================
+
+            document.getElementById('view_contract_status_text').innerText = client.contract_status || 'active';
+            document.getElementById('view_account_status').innerText = client.status || 'active';
+            document.getElementById('view_start_date').innerText = client.contract_start_date || 'Not set';
+            document.getElementById('view_end_date').innerText = client.contract_end_date || 'Not set';
+            document.getElementById('view_created_at').innerText = client.created_at || 'N/A';
+
+            // ... (rest of your modal badge and balance logic) ...
+
+            document.getElementById('viewContractModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        let currentClientEmail = ''; // Track email globally for lookup
+
+        // Inside your existing openViewModal(client) function, add:
+        // currentClientEmail = client.email || '';
+
+        function openInspectionHistoryModal() {
+            document.getElementById('historyClientName').innerText = currentClientName || 'Client';
+
+            const tbody = document.getElementById('clientHistoryTableBody');
+            tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 italic">Loading inspection history...</td></tr>`;
+
+            // Fetch history from backend
+            fetch(`../controllers/getInspectionHistory.php?client_name=${encodeURIComponent(currentClientName)}&client_email=${encodeURIComponent(currentClientEmail)}`)
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success && res.data.length > 0) {
+                        let rows = '';
+                        res.data.forEach(item => {
+                            // Determine status or type badge color safely
+                            let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">${item.inspection_status || 'Pending Visit'}</span>`;
+
+                            rows += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-3 font-mono text-slate-600">${item.created_at || 'N/A'}</td>
+                            <td class="py-3 px-3">${statusBadge}</td>
+                            <td class="py-3 px-3 text-slate-800 font-medium">${item.findings || item.service_address || 'Standard Site Inspection'}</td>
+                            <td class="py-3 px-3 text-slate-600">${item.assigned_technician || 'Unassigned'}</td>
+                            <td class="py-3 px-3 text-right">
+                                <a href="inspections.php?id=${item.id}" class="text-[#007a55] hover:underline font-semibold text-[11px]">View</a>
+                            </td>
+                        </tr>
+                    `;
+                        });
+                        tbody.innerHTML = rows;
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 italic">No inspection history records found for this client.</td></tr>`;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching history:', err);
+                    tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-rose-500">Failed to load history records.</td></tr>`;
+                });
+
+            document.getElementById('inspectionHistoryModal').classList.remove('hidden');
+            document.getElementById('inspectionHistoryModal').classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeInspectionHistoryModal() {
+            document.getElementById('inspectionHistoryModal').classList.remove('flex');
+            document.getElementById('inspectionHistoryModal').classList.add('hidden');
         }
     </script>
 </body>

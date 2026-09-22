@@ -5,7 +5,8 @@ $pass = "";
 $dbname = "vermex_pest_solutions";
 
 try {
-    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbname`");
@@ -85,9 +86,10 @@ try {
     ");
 
     // Seed default Admin user if none exists (using first_name and last_name)
-    $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
-        $insertAdmin =$pdo->prepare("
+    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
+    if ($stmt->fetchColumn() == 0) {
+        $defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
+        $insertAdmin = $pdo->prepare("
             INSERT INTO users (username, email, password, first_name, last_name, phone, role, sector_region, status)
             VALUES (:username, :email, :password, :first_name, :last_name, :phone, :role, :sector_region, 'active')
         ");
@@ -103,7 +105,35 @@ try {
         ]);
     }
 
+    // 5. Site Inspections Table (Combined with Findings JSON)
+$pdo->exec("
+CREATE TABLE IF NOT EXISTS site_inspections (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_name VARCHAR(255) NOT NULL,
+    client_email VARCHAR(255),
+    account_type VARCHAR(100),
+    service_address TEXT,
+    inspection_status VARCHAR(100) DEFAULT 'Pending Visit',
+    technician_name VARCHAR(255),
+    inspection_date DATE,
+    time_in TIME,
+    time_out TIME,
+    ilt_qty INT DEFAULT 0,
+    ilt_remarks VARCHAR(255),
+    rat_cage_qty INT DEFAULT 0,
+    rat_cage_remarks VARCHAR(255),
+    rat_bait_qty INT DEFAULT 0,
+    rat_bait_remarks VARCHAR(255),
+    glue_trap_qty INT DEFAULT 0,
+    glue_trap_remarks VARCHAR(255),
+    vermex_representative VARCHAR(255),
+    client_representative VARCHAR(255),
+    conditions_json TEXT,
+    findings_json TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+");
+
 } catch (PDOException $e) {
     die("Database Initialization Failed: " . $e->getMessage());
 }
-?>
