@@ -22,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO clients (client_name, first_name, last_name, client_type, email, phone_number, street_address, barangay, city, status, contract_status, created_at) 
-            VALUES (:client_name, :first_name, :last_name, :client_type, :email, :phone, :street_address, :barangay, :city, 'active', 'active', NOW())
-        ");
+    INSERT INTO clients (client_name, first_name, last_name, client_type, email, phone_number, street_address, barangay, city, status, contract_status, created_at) 
+    VALUES (:client_name, :first_name, :last_name, :client_type, :email, :phone, :street_address, :barangay, :city, 'active', 'to_be_contracted', NOW())
+");
         
         $stmt->execute([
             'client_name'    => $company_name,
