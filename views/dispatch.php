@@ -388,6 +388,18 @@ if (empty($jobs)) {
 
     <script>
         lucide.createIcons();
+        document.getElementById('createJobOrderBtn').addEventListener('click', function() {
+    // Grab client info from the open modal elements
+    const clientName = document.querySelector('.company-account-name-field')?.innerText || '';
+    const clientAddress = document.querySelector('.client-address-field')?.innerText || '';
+
+    // Redirect or trigger modal for job order creation, passing client data
+    // Example: Redirecting to dispatch page with query parameters
+    const encodedName = encodeURIComponent(clientName);
+    const encodedAddress = encodeURIComponent(clientAddress);
+    
+    window.location.href = `dispatch.php?client=${encodedName}&location=${encodedAddress}`;
+});
     </script>
 </body>
 </html>

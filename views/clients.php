@@ -632,11 +632,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_inspection_fro
 
                 <!-- Modal Footer Buttons -->
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                    <button type="button" onclick="closeViewModal()" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl transition font-medium text-xs">
-                        Close
-                    </button>
                     <div class="flex items-center gap-2">
-                        <!-- NEW BUTTON: Create Pre-Contract Site Inspection -->
+                        <!-- Create Pre-Contract Site Inspection Form -->
                         <form method="POST" action="clients.php" class="inline">
                             <input type="hidden" name="create_inspection_from_client" value="1">
                             <input type="hidden" name="client_name" id="modalClientNameInput" value="">
@@ -645,12 +642,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_inspection_fro
                             <input type="hidden" name="service_address" id="modalServiceAddressInput" value="">
                             <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition shadow-sm flex items-center gap-1.5">
                                 <i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i> Create Pre-Contract Inspection
-                            </button>
+                            </button>                           
                         </form>
-                        <!-- NEW HISTORY LOG BUTTON -->
+                        
+                        <!-- Create Job Order Button with Error Logic -->
+                        <button type="button" id="createJobOrderBtn" class="bg-[#007a55] hover:bg-[#006344] text-white px-4 py-2 rounded-lg text-xs font-medium transition shadow-sm flex items-center gap-1.5">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Create Job Order
+                        </button>
+
+                        <!-- Inspection History Log Button -->
                         <button onclick="openInspectionHistoryModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition">
                             <i data-lucide="history" class="w-4 h-4"></i> Inspection History Logsheet
                         </button>
+
                         <div class="flex items-center gap-2">
                             <button type="button" onclick='openContractModal(currentClientObject)' class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-2 rounded-xl transition font-semibold text-xs flex items-center gap-1.5">
                                 <i data-lucide="file-edit" class="w-3.5 h-3.5"></i> Manage Contract & Cancellation
@@ -694,7 +698,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_inspection_fro
                             </tr>
                         </thead>
                         <tbody id="clientHistoryTableBody" class="divide-y divide-slate-100 text-xs text-slate-700">
-                            <!-- Dynamic rows will inject here -->
                             <tr>
                                 <td colspan="5" class="py-6 text-center text-slate-400 italic">No inspection history records found for this client.</td>
                             </tr>
@@ -869,18 +872,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_inspection_fro
             document.getElementById('editModal').classList.add('hidden');
         }
 
-        // Updated openContractModal to accept the full client object for field pre-selection
         function openContractModal(client) {
             document.getElementById('contract_client_id').value = client.id;
             document.getElementById('contract_client_name').innerText = client.client_name || 'Client';
 
-            // Pre-select contract status dropdown
             const contractStatusSelect = document.getElementById('editContractStatus');
             if (contractStatusSelect) {
                 contractStatusSelect.value = client.contract_status || 'to_be_contracted';
             }
 
-            // Pre-fill date fields and remarks if available
             document.getElementById('contract_start_date').value = client.contract_start_date || '';
             document.getElementById('contract_end_date').value = client.contract_end_date || '';
             document.getElementById('contract_final_balance').value = client.final_balance_notes || '';
@@ -892,13 +892,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_inspection_fro
             document.getElementById('contractModal').classList.add('hidden');
         }
 
+        // Job Order Validation & Trigger Handler
+        document.getElementById('createJobOrderBtn').addEventListener('click', function() {
+            const status = (currentClientObject?.contract_status || '').toLowerCase();
+
+            // Error Handling Rule: Block if contract status is 'to_be_contracted'
+            if (status === 'to_be_contracted' || status === 'to-be-contracted') {
+                alert('Action Blocked: This client is currently "To-Be-Contracted". You must complete the pre-contract inspection and finalize a contract before you can file a job order.');
+                return;
+            }
+
+            const clientName = document.getElementById('modalClientNameInput')?.value || '';
+            const serviceAddress = document.getElementById('modalServiceAddressInput')?.value || '';
+
+            const encodedName = encodeURIComponent(clientName);
+            const encodedAddress = encodeURIComponent(serviceAddress);
+
+            // Redirect to Operations / Dispatch workspace
+            window.location.href = `pest-operations.php?client=${encodedName}&address=${encodedAddress}`;
+        });
+
         function openInspectionHistoryModal() {
             document.getElementById('historyClientName').innerText = currentClientName || 'Client';
 
             const tbody = document.getElementById('clientHistoryTableBody');
             tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 italic">Loading inspection history...</td></tr>`;
 
-            // Fetch history from backend
             fetch(`../controllers/getInspectionHistory.php?client_name=${encodeURIComponent(currentClientName)}&client_email=${encodeURIComponent(currentClientEmail)}`)
                 .then(response => response.json())
                 .then(res => {
@@ -908,16 +927,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_inspection_fro
                             let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">${item.inspection_status || 'Pending Visit'}</span>`;
 
                             rows += `
-        <tr class="hover:bg-slate-50 transition">
-            <td class="py-3 px-3 font-mono text-slate-600">${item.created_at ?? 'N/A'}</td>
-            <td class="py-3 px-3">${statusBadge}</td>
-            <td class="py-3 px-3 text-slate-800 font-medium">${item.findings || item.service_address || 'Standard Site Inspection'}</td>
-            <td class="py-3 px-3 text-slate-600">${item.technician_name ?? 'Unassigned'}</td>
-            <td class="py-3 px-3 text-right">
-                <a href="inspections.php?id=${item.id}" class="text-[#007a55] hover:underline font-semibold text-[11px]">View</a>
-            </td>
-        </tr>
-    `;
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="py-3 px-3 font-mono text-slate-600">${item.created_at ?? 'N/A'}</td>
+                                    <td class="py-3 px-3">${statusBadge}</td>
+                                    <td class="py-3 px-3 text-slate-800 font-medium">${item.findings || item.service_address || 'Standard Site Inspection'}</td>
+                                    <td class="py-3 px-3 text-slate-600">${item.technician_name ?? 'Unassigned'}</td>
+                                    <td class="py-3 px-3 text-right">
+                                        <a href="inspections.php?id=${item.id}" class="text-[#007a55] hover:underline font-semibold text-[11px]">View</a>
+                                    </td>
+                                </tr>
+                            `;
                         });
                         tbody.innerHTML = rows;
                     } else {

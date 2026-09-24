@@ -62,14 +62,6 @@ $navItems = [
 
     <!-- Bottom Widget & Profile Footer -->
     <div class="space-y-4">
-        <div class="bg-emerald-900/30 p-3 rounded-lg border border-emerald-800/40">
-            <div class="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-1">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                System Access
-            </div>
-            <p class="text-[11px] text-emerald-200/80 leading-snug">18 Accounts secured • MFA ready</p>
-        </div>
-
         <div class="flex items-center justify-between pt-3 border-t border-emerald-900/60">
     <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs text-white flex-shrink-0">
