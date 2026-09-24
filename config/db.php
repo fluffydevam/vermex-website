@@ -51,24 +51,9 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 3. Contracts Table
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS contracts (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            client_id INT NOT NULL,
-            contract_type ENUM('1/2-Year Residential', 'Monthly Commercial') NOT NULL,
-            contract_value DECIMAL(10,2) NOT NULL,
-            downpayment_amount DECIMAL(10,2) NOT NULL,
-            downpayment_status ENUM('Pending Verification', 'Verified / Cleared') NOT NULL DEFAULT 'Pending Verification',
-            balance_status ENUM('Pending 30-Day Window', 'Cleared', 'Overdue') NOT NULL DEFAULT 'Pending 30-Day Window',
-            start_date DATE NOT NULL,
-            end_date DATE NOT NULL,
-            contract_status ENUM('Active', 'Pending Clearance', 'Expired', 'Cancelled') NOT NULL DEFAULT 'Pending Clearance',
-            FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ");
+    
 
-    // 4. Job Orders / Dispatch Table
+    // 3. Job Orders / Dispatch Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS job_orders (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -105,7 +90,7 @@ try {
         ]);
     }
 
-    // 5. Site Inspections Table (Combined with Findings JSON)
+    // 4. Site Inspections Table (Combined with Findings JSON)
 $pdo->exec("
 CREATE TABLE IF NOT EXISTS site_inspections (
     id INT AUTO_INCREMENT PRIMARY KEY,
