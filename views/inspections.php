@@ -7,6 +7,7 @@ $currentPage = 'inspections.php';
 // Handle Form Submission / Saving Inspection
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inspection'])) {
     $clientName = trim($_POST['client_name']);
+    $contractId = trim($_POST['contract_id'] ?? '');
     $techName = trim($_POST['technician']);
     $date = $_POST['inspection_date'];
     $timeIn = $_POST['time_in'];
@@ -35,15 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inspection'])) {
         for ($i = 0; $i < count($_POST['condition_label']); $i++) {
             $conditionsArray[] = [
                 'label' => $_POST['condition_label'][$i],
-                'status' => $_POST['condition_status'][$i] ?? '', // 'yes' or 'no'
+                'status' => $_POST['condition_status'][$i] ?? '', 
                 'area' => trim($_POST['condition_area'][$i] ?? '')
             ];
         }
     }
     $conditionsJson = json_encode($conditionsArray);
 
-    // Findings JSON
+    // Findings JSON & Pest Detection Check
     $findingsArray = [];
+    $hasPests = false;
     if (isset($_POST['area']) && is_array($_POST['area'])) {
         for ($i = 0; $i < count($_POST['area']); $i++) {
             $area = trim($_POST['area'][$i]);
@@ -53,17 +55,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inspection'])) {
 
             if (!empty($area) || !empty($findings)) {
                 $findingsArray[] = ['area' => $area, 'findings' => $findings, 'action_taken' => $action, 'remarks' => $remarks];
+                if (!empty($findings)) {
+                    $hasPests = true;
+                }
             }
         }
     }
     $findingsJson = json_encode($findingsArray);
 
+    // Determine Status based on Pest Findings
+    $inspectionStatus = $hasPests ? 'Inspection Complete (Pests Found)' : 'Inspection Complete';
+
     // Update Query
-    $stmt = $pdo->prepare("UPDATE site_inspections SET technician_name = ?, inspection_date = ?, time_in = ?, time_out = ?, ilt_qty = ?, ilt_remarks = ?, rat_cage_qty = ?, rat_cage_remarks = ?, rat_bait_qty = ?, rat_bait_remarks = ?, glue_trap_qty = ?, glue_trap_remarks = ?, vermex_representative = ?, client_representative = ?, conditions_json = ?, findings_json = ?, inspection_status = 'Inspected (Pest Found)' WHERE client_name = ?");
-    $stmt->execute([$techName, $date, $timeIn, $timeOut, $iltQty, $iltRemarks, $ratCage, $ratCageRemarks, $ratBait, $ratBaitRemarks, $glueTrap, $glueTrapRemarks, $vermexRep, $clientRep, $conditionsJson, $findingsJson, $clientName]);
+    $stmt = $pdo->prepare("UPDATE site_inspections SET contract_id = ?, technician_name = ?, inspection_date = ?, time_in = ?, time_out = ?, ilt_qty = ?, ilt_remarks = ?, rat_cage_qty = ?, rat_cage_remarks = ?, rat_bait_qty = ?, rat_bait_remarks = ?, glue_trap_qty = ?, glue_trap_remarks = ?, vermex_representative = ?, client_representative = ?, conditions_json = ?, findings_json = ?, inspection_status = ? WHERE client_name = ?");
+    $stmt->execute([$contractId, $techName, $date, $timeIn, $timeOut, $iltQty, $iltRemarks, $ratCage, $ratCageRemarks, $ratBait, $ratBaitRemarks, $glueTrap, $glueTrapRemarks, $vermexRep, $clientRep, $conditionsJson, $findingsJson, $inspectionStatus, $clientName]);
 
     header("Location: inspections.php?success=1");
     exit;
+}
+
+// Handle Auto-Opening Modal & Contract/Address Sync if redirected from Contracts table (`clients.php`)
+$autoOpenInspection = null;
+if (isset($_GET['client_id'])) {
+    $clientId =$_GET['client_id'];
+    $passedContractId =$_GET['contract_id'] ?? null;
+    
+    // 1. Get client details from the clients table
+    $clientStmt =$pdo->prepare("SELECT * FROM clients WHERE id = ? LIMIT 1");
+    $clientStmt->execute([$clientId]);
+    $clientData =$clientStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($clientData) {$clientName = $clientData['client_name'] ?? $clientData['name'] ?? '';
+        
+        // Flexible address matching checking multiple potential column names in your database
+        $clientAddress = trim(
+            ($clientData['service_address'] ?? '') ?: 
+            (($clientData['street_address'] ?? '') . ' ' . ($clientData['barangay'] ?? '') . ' ' . ($clientData['city'] ?? '')) ?: 
+            ($clientData['address'] ?? '') ?: 
+            ($clientData['location'] ?? '') ?: 
+            ($clientData['street'] ?? '')
+        );
+
+        $clientEmail =$clientData['email'] ?? $clientData['client_email'] ?? '';$accountType = $clientData['client_type'] ?? $clientData['account_type'] ?? 'Commercial';
+
+        // Verify if passed contract ID exists in contracts table
+        $contractIdNum = null;
+        if (!empty($passedContractId)) {
+            $verifyContract =$pdo->prepare("SELECT id FROM contracts WHERE id = ? LIMIT 1");
+            $verifyContract->execute([$passedContractId]);
+            if ($verifyContract->fetch()) {
+                $contractIdNum =$passedContractId;
+            }
+        }
+
+        if (!$contractIdNum) {
+            $contractStmt =$pdo->prepare("SELECT id FROM contracts WHERE client_id = ? LIMIT 1");
+            $contractStmt->execute([$clientId]);
+            $contractData =$contractStmt->fetch(PDO::FETCH_ASSOC);
+            if ($contractData) {
+                $contractIdNum =$contractData['id'];
+            }
+        }
+
+        // 2. Check if a site inspection record already exists for this client
+        $checkStmt =$pdo->prepare("SELECT * FROM site_inspections WHERE client_name = ? LIMIT 1");
+        $checkStmt->execute([$clientName]);
+        $autoOpenInspection =$checkStmt->fetch(PDO::FETCH_ASSOC);
+
+        // 3. Insert or Update row with the correct address and contract ID
+        if (!$autoOpenInspection) {
+            $insertStmt =$pdo->prepare("
+                INSERT INTO site_inspections (contract_id, client_name, client_email, service_address, account_type, inspection_status) 
+                VALUES (?, ?, ?, ?, ?, 'Pending Visit')
+            ");
+            $insertStmt->execute([$contractIdNum, $clientName,$clientEmail, $clientAddress,$accountType]);
+            
+            $checkStmt->execute([$clientName]);
+            $autoOpenInspection =$checkStmt->fetch(PDO::FETCH_ASSOC);
+        } else {
+            // Update service address and contract_id if they were previously blank
+            $updateFields = [];$updateParams = [];
+
+            if (!empty($clientAddress)) {$updateFields[] = "service_address = ?";
+                $updateParams[] =$clientAddress;
+                $autoOpenInspection['service_address'] =$clientAddress;
+            }
+            if (!empty($contractIdNum) && empty($autoOpenInspection['contract_id'])) {$updateFields[] = "contract_id = ?";
+                $updateParams[] =$contractIdNum;
+                $autoOpenInspection['contract_id'] =$contractIdNum;
+            }
+
+            if (!empty($updateFields)) {$updateParams[] = $autoOpenInspection['id'];$updateSql = "UPDATE site_inspections SET " . implode(', ', $updateFields) . " WHERE id = ?";
+                $updateStmt = $pdo->prepare($updateSql);
+                $updateStmt->execute($updateParams);
+            }
+        }
+    }
 }
 
 // Fetch filter parameters
@@ -84,7 +171,8 @@ if (!empty($typeFilter)) {
     $params[] = $typeFilter;
 }
 if (!empty($searchQuery)) {
-    $sql .= " AND (client_name LIKE ? OR service_address LIKE ?)";
+    $sql .= " AND (client_name LIKE ? OR service_address LIKE ? OR contract_id LIKE ?)";
+    $params[] = "%$searchQuery%";
     $params[] = "%$searchQuery%";
     $params[] = "%$searchQuery%";
 }
@@ -93,10 +181,9 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $inspections = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Metrics Counts
+// Metrics Counts (Restricted to the 2 requested KPI cards)
 $pendingCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status = 'Pending Visit'")->fetchColumn();
-$completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status LIKE 'Inspected%'")->fetchColumn();
-$contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status = 'Ready for Contract'")->fetchColumn();
+$completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status LIKE 'Inspection Complete%'")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -104,9 +191,10 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Inspections - Vermex Pest Solutions</title>
+    <title>Pre-Contract Inspections - Vermex Pest Solutions</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 </head>
 
 <body class="bg-[#f8faf9] text-slate-800 font-sans flex h-screen overflow-hidden">
@@ -117,7 +205,7 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between text-xs text-slate-500">
-            <div>Operations / <span class="font-semibold text-slate-800">Site Inspections</span></div>
+            <div>Operations / <span class="font-semibold text-slate-800">Pre-Contract Inspections</span></div>
             <div class="flex items-center gap-2">
                 <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
                 <span class="font-medium text-slate-700">Operations Live (MySQL Connected)</span>
@@ -132,11 +220,11 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
                 </div>
             </div>
 
-            <!-- Metrics Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- KPI Cards (Strictly 2 Cards as requested) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="bg-white p-5 rounded-xl border border-slate-200/85 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pending Site Visits</p>
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pending Pre-Contract Site Inspections</p>
                         <p class="text-3xl font-bold text-slate-900 mt-1"><?= $pendingCount ?></p>
                     </div>
                     <div class="bg-amber-50 p-3 rounded-xl text-amber-600 border border-amber-100"><i data-lucide="clock" class="w-6 h-6"></i></div>
@@ -148,25 +236,19 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
                     </div>
                     <div class="bg-emerald-50 p-3 rounded-xl text-[#007a55] border border-emerald-100"><i data-lucide="clipboard-check" class="w-6 h-6"></i></div>
                 </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-200/85 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Ready For Contract</p>
-                        <p class="text-3xl font-bold text-slate-900 mt-1"><?= $contractReadyCount ?></p>
-                    </div>
-                    <div class="bg-blue-50 p-3 rounded-xl text-blue-600 border border-blue-100"><i data-lucide="file-text" class="w-6 h-6"></i></div>
-                </div>
             </div>
 
             <!-- Pipeline Container with Database Filters -->
             <div class="bg-white border border-slate-200/85 rounded-xl p-5 space-y-4 shadow-sm">
                 <form method="GET" action="inspections.php" class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 pb-4">
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Client Inquiries & Inspection Pipeline</h2>
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Pre-Contract Inspections</h2>
 
                     <div class="flex flex-wrap items-center gap-3">
                         <select name="status" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
                             <option value="">All Statuses</option>
                             <option value="Pending Visit" <?= $statusFilter === 'Pending Visit' ? 'selected' : '' ?>>Pending Visit</option>
-                            <option value="Inspected (Pest Found)" <?= $statusFilter === 'Inspected (Pest Found)' ? 'selected' : '' ?>>Inspected (Pest Found)</option>
+                            <option value="Inspection Complete" <?= $statusFilter === 'Inspection Complete' ? 'selected' : '' ?>>Inspection Complete</option>
+                            <option value="Inspection Complete (Pests Found)" <?= $statusFilter === 'Inspection Complete (Pests Found)' ? 'selected' : '' ?>>Inspection Complete (Pests Found)</option>
                         </select>
 
                         <select name="type" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
@@ -177,7 +259,7 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
 
                         <div class="relative">
                             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
-                            <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client or address..." class="bg-slate-50 border border-slate-200 text-xs rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-[#007a55] w-64">
+                            <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, contract ID..." class="bg-slate-50 border border-slate-200 text-xs rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-[#007a55] w-64">
                         </div>
                     </div>
                 </form>
@@ -187,7 +269,8 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
                     <table class="w-full text-left text-xs">
                         <thead>
                             <tr class="text-[11px] uppercase text-slate-400 border-b border-slate-100 font-semibold">
-                                <th class="pb-3">Client / Company Name</th>
+                                <th class="pb-3">Contract ID</th>
+                                <th class="pb-3">Account Name</th>
                                 <th class="pb-3">Account Type</th>
                                 <th class="pb-3">Service Address</th>
                                 <th class="pb-3">Assigned Tech</th>
@@ -205,15 +288,19 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
                                     $rowJson = htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8');
                                     $findingsJson = htmlspecialchars(json_encode($clientFindings), ENT_QUOTES, 'UTF-8');
                                     $conditionsJson = htmlspecialchars(json_encode($clientConditions), ENT_QUOTES, 'UTF-8');
+                                    $isCompleted = strpos($row['inspection_status'], 'Inspection Complete') !== false;
                                     ?>
                                     <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-3.5 font-bold text-slate-900">
+                                            <?= !empty($row['contract_id']) ? htmlspecialchars($row['contract_id']) : '<span class="text-slate-400 font-normal italic">Pending</span>' ?>
+                                        </td>
                                         <td class="py-3.5">
                                             <div class="font-bold text-slate-900"><?= htmlspecialchars($row['client_name']) ?></div>
                                             <div class="text-[11px] text-slate-400 font-normal"><?= htmlspecialchars($row['client_email']) ?></div>
                                         </td>
                                         <td class="py-3.5">
-                                            <span class="<?= $row['account_type'] === 'Commercial' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200' ?> border px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
-                                                <?= htmlspecialchars($row['account_type']) ?>
+                                            <span class="<?= ($row['account_type'] ?? '') === 'Commercial' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200' ?> border px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
+                                                <?= htmlspecialchars($row['account_type'] ?? 'Commercial') ?>
                                             </span>
                                         </td>
                                         <td class="py-3.5 text-slate-500"><?= htmlspecialchars($row['service_address']) ?></td>
@@ -221,23 +308,24 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
                                             <?= !empty($row['technician_name']) ? htmlspecialchars($row['technician_name']) : '<span class="text-slate-400 italic font-normal">Unassigned</span>' ?>
                                         </td>
                                         <td class="py-3.5">
-                                            <span class="inline-flex items-center gap-1.5 <?= $row['inspection_status'] === 'Pending Visit' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-[#007a55] border-emerald-200' ?> border px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
-                                                <span class="w-1.5 h-1.5 rounded-full <?= $row['inspection_status'] === 'Pending Visit' ? 'bg-amber-500' : 'bg-emerald-500' ?>"></span>
+                                            <span class="inline-flex items-center gap-1.5 <?= !$isCompleted ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-[#007a55] border-emerald-200' ?> border px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
+                                                <span class="w-1.5 h-1.5 rounded-full <?= !$isCompleted ? 'bg-amber-500' : 'bg-emerald-500' ?>"></span>
                                                 <?= htmlspecialchars($row['inspection_status']) ?>
                                             </span>
                                         </td>
                                         <td class="py-3.5 text-right space-x-2">
-                                            <!-- Assigned Tech Button linked to inspection row ID -->
-                                            <button type="button" onclick="openAssignTechModal(<?= $row['id'] ?>)" class="border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">Assign Tech</button>
-                                            <button type="button" onclick="openInspectionFormModal(<?= $rowJson ?>, <?= $findingsJson ?>, <?= $conditionsJson ?>)" class="bg-[#007a55] hover:bg-[#006344] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
-                                                <?= $row['inspection_status'] === 'Pending Visit' ? 'Inspection Form' : 'View Report' ?>
-                                            </button>
+                                            <?php if ($isCompleted): ?>
+                                                <button type="button" onclick="openInspectionFormModal(<?= $rowJson ?>, <?= $findingsJson ?>, <?= $conditionsJson ?>)" class="border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">Edit Report</button>
+                                            <?php else: ?>
+                                                <button type="button" onclick="openAssignTechModal(<?= $row['id'] ?>)" class="border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">Assign Tech</button>
+                                                <button type="button" onclick="openInspectionFormModal(<?= $rowJson ?>, <?= $findingsJson ?>, <?= $conditionsJson ?>)" class="bg-[#007a55] hover:bg-[#006344] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">Inspection Form</button>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="6" class="py-6 text-center text-slate-400">No inspection records found matching your filters.</td>
+                                    <td colspan="7" class="py-6 text-center text-slate-400">No inspection records found matching your filters.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -247,7 +335,7 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
         </div>
     </main>
 
-    <!-- ASSIGN TECHNICIAN MODAL WITH CUSTOM SCROLLABLE DROPDOWN -->
+    <!-- ASSIGN TECHNICIAN MODAL -->
     <div id="assignTechModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
         <div class="bg-white border border-slate-200 rounded-xl p-5 max-w-sm w-full space-y-4 shadow-xl text-xs">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -262,20 +350,13 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
 
                 <div>
                     <label class="block text-slate-600 font-medium mb-1">Select Field Technician *</label>
-                    
-                    <!-- Custom Scrollable Dropdown Trigger -->
                     <div class="relative">
                         <button type="button" onclick="toggleTechDropdown()" id="selectedTechButton" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 text-left flex justify-between items-center focus:outline-none focus:border-[#007a55]">
                             <span id="selectedTechText">-- Choose Field Technician --</span>
                             <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
                         </button>
-
-                        <!-- Hidden Input to store the chosen technician name for form submission -->
                         <input type="hidden" name="technician_name" id="technicianNameInput" required>
-
-                        <!-- Scrollable Options Box -->
                         <div id="techDropdownMenu" class="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-40 overflow-y-auto hidden z-50">
-                            <!-- Dynamically populated options go here -->
                             <div class="px-3 py-2 text-xs text-slate-400 italic">Loading technicians...</div>
                         </div>
                     </div>
@@ -307,7 +388,7 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
                     </div>
                 </div>
 
-                <div id="printableArea" class="p-6 space-y-4 text-xs text-slate-800 bg-white">
+                <div id="inspectionReportContent" class="p-6 space-y-4 text-xs text-slate-800 bg-white">
                     <div class="text-center border-b border-slate-200 pb-2">
                         <h2 class="text-base font-bold uppercase tracking-wider text-slate-900">INSPECTION REPORT FORM</h2>
                     </div>
@@ -324,6 +405,10 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
                             </div>
                         </div>
                         <div class="p-3 space-y-2">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="font-semibold text-slate-500 w-24">CONTRACT ID:</span>
+                                <input type="text" id="modalContractId" name="contract_id" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 font-medium text-slate-800 text-xs" placeholder="e.g. CNT-001">
+                            </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div class="flex items-center gap-1">
                                     <span class="font-semibold text-slate-500">DATE:</span>
@@ -334,7 +419,7 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
                                     <input type="text" name="technician" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 font-medium text-slate-800 text-xs" value="Rodel Mamparil">
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 pt-1">
                                 <span class="font-semibold text-slate-500 w-16">TIME IN:</span>
                                 <input type="time" name="time_in" class="w-28 bg-white border border-slate-200 rounded px-2 py-1 text-xs" value="09:15">
                                 <span class="font-semibold text-slate-500 ml-2">TIME OUT:</span>
@@ -440,18 +525,16 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
         function openAssignTechModal(inspectionId) {
             document.getElementById('assign_inspection_id').value = inspectionId;
             
-            // Reset dropdown fields
             document.getElementById('selectedTechText').innerText = '-- Choose Field Technician --';
             document.getElementById('technicianNameInput').value = '';
             
             const menu = document.getElementById('techDropdownMenu');
             menu.innerHTML = '<div class="px-3 py-2 text-xs text-slate-400 italic">Loading technicians...</div>';
 
-            // Fetch technicians matching the Field Technician role from database
             fetch('../controllers/getTechnicians.php')
                 .then(response => response.json())
                 .then(res => {
-                    menu.innerHTML = ''; // Clear loading text
+                    menu.innerHTML = '';
                     if (res.success && res.data.length > 0) {
                         res.data.forEach(tech => {
                             const item = document.createElement('div');
@@ -479,20 +562,17 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
             document.getElementById('assignTechModal').classList.add('hidden');
         }
 
-        // Toggle dropdown visibility
         function toggleTechDropdown() {
             const menu = document.getElementById('techDropdownMenu');
             menu.classList.toggle('hidden');
         }
 
-        // Select a technician and update custom UI input
         function selectTechnician(name) {
             document.getElementById('technicianNameInput').value = name;
             document.getElementById('selectedTechText').innerText = name;
             document.getElementById('techDropdownMenu').classList.add('hidden');
         }
 
-        // Close dropdown when clicking outside
         window.addEventListener('click', function(e) {
             const button = document.getElementById('selectedTechButton');
             const menu = document.getElementById('techDropdownMenu');
@@ -513,7 +593,7 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
             .then(res => {
                 if (res.success) {
                     closeAssignTechModal();
-                    location.reload(); // Refresh to show newly assigned tech name
+                    location.reload();
                 } else {
                     alert(res.message || 'Failed to assign technician.');
                 }
@@ -540,6 +620,7 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
         function openInspectionFormModal(inspection, findings = [], conditions = []) {
             document.getElementById('modalClientName').value = inspection.client_name || '';
             document.getElementById('modalAddress').value = inspection.service_address || '';
+            document.getElementById('modalContractId').value = inspection.contract_id || '';
 
             if (inspection.inspection_date) document.querySelector('input[name="inspection_date"]').value = inspection.inspection_date;
             if (inspection.technician_name) document.querySelector('input[name="technician"]').value = inspection.technician_name;
@@ -622,8 +703,21 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
         }
 
         function downloadFormPdf() {
-            alert('Generating PDF of the Inspection Report Form...');
-        }
+    const element = document.getElementById('inspectionReportContent');
+    
+    const clientNameInput = document.getElementById('modalClientName');
+    const clientName = clientNameInput && clientNameInput.value ? clientNameInput.value.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'client';
+    
+    const options = {
+        margin:       10,
+        filename:     `inspection-report-${clientName}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().from(element).set(options).save();
+}
 
         function addFindingRow() {
             let tbody = document.getElementById('findingsTableBody');
@@ -640,6 +734,19 @@ $contractReadyCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE i
             tbody.appendChild(newRow);
             lucide.createIcons();
         }
+
+        // Auto-open modal on load if redirected with client_id parameter
+        <?php if ($autoOpenInspection): ?>
+        <?php 
+        $autoFindings = !empty($autoOpenInspection['findings_json']) ? json_decode($autoOpenInspection['findings_json'], true) : [];$autoConditions = !empty($autoOpenInspection['conditions_json']) ? json_decode($autoOpenInspection['conditions_json'], true) : [];
+        ?>
+        window.addEventListener('DOMContentLoaded', () => {
+            const autoInspectionRow = <?= json_encode($autoOpenInspection) ?>;
+            const autoFindingsData = <?= json_encode($autoFindings) ?>;
+            const autoConditionsData = <?= json_encode($autoConditions) ?>;
+            openInspectionFormModal(autoInspectionRow, autoFindingsData, autoConditionsData);
+        });
+        <?php endif; ?>
     </script>
 </body>
 

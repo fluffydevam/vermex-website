@@ -511,13 +511,20 @@ foreach ($contracts as $con) {
                                             </td>
                                             <td class="py-3 font-mono text-slate-500 text-[11px]"><?= $con['created_at'] ?></td>
                                             <td class="py-3 text-right">
-                                                <?php if ($isArchivedView): ?>
-                                                    <a href="../controllers/restoreContract.php?id=<?= $con['id'] ?>" onclick="return confirm('Are you sure you want to restore this contract?');" class="text-emerald-700 hover:text-emerald-900 font-medium text-xs px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded transition">Restore</a>
-                                                <?php else: ?>
-                                                    <button onclick='openEditContractModal(<?= json_encode($con) ?>)' class="text-blue-600 hover:text-blue-800 font-medium text-xs px-2 py-1 bg-blue-50 rounded transition mr-1">Edit</button>
-                                                    <a href="../controllers/archiveContract.php?id=<?= $con['id'] ?>" onclick="return confirm('Are you sure you want to archive this contract?');" class="text-slate-600 hover:text-slate-800 font-medium text-xs px-2 py-1 bg-slate-100 rounded transition">Archive</a>
-                                                <?php endif; ?>
-                                            </td>
+    <?php if ($isArchivedView): ?>
+        <a href="../controllers/restoreContract.php?id=<?= $con['id'] ?>" onclick="return confirm('Are you sure you want to restore this contract?');" class="text-emerald-700 hover:text-emerald-900 font-medium text-xs px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded transition">Restore</a>
+    <?php else: ?>
+        <!-- Conditional Pre-Contract Inspection Button (Only for to_be_contracted) -->
+        <?php if (($con['contract_status'] ?? '') === 'to_be_contracted'): ?>
+            <a href="inspections.php?contract_id=<?= $con['id'] ?>&client_id=<?= $con['client_id_ref'] ?>" class="text-emerald-700 hover:text-emerald-900 font-medium text-xs px-2 py-1 bg-emerald-50 border border-emerald-200 rounded transition mr-1 inline-flex items-center gap-1" title="Schedule Pre-Contract Inspection">
+                <i data-lucide="clipboard-check" class="w-3 h-3"></i> Inspection
+            </a>
+        <?php endif; ?>
+
+        <button onclick='openEditContractModal(<?= json_encode($con) ?>)' class="text-blue-600 hover:text-blue-800 font-medium text-xs px-2 py-1 bg-blue-50 rounded transition mr-1">Edit</button>
+        <a href="../controllers/archiveContract.php?id=<?= $con['id'] ?>" onclick="return confirm('Are you sure you want to archive this contract?');" class="text-slate-600 hover:text-slate-800 font-medium text-xs px-2 py-1 bg-slate-100 rounded transition">Archive</a>
+    <?php endif; ?>
+</td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
