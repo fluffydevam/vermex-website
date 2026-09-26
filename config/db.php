@@ -5,13 +5,12 @@ $pass = "";
 $dbname = "vermex_pest_solutions";
 
 try {
-    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbname`");
 
-    // 1. Users Table (Updated with separate first_name and last_name)
+    // 1. Users Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -29,7 +28,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 2. Clients Table (Updated with standardized address fields)
+    // 2. Clients Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS clients (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,17 +42,27 @@ try {
             city VARCHAR(100) NOT NULL DEFAULT 'Davao City',
             client_type ENUM('Residential', 'Commercial') NOT NULL DEFAULT 'Residential',
             status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
-            contract_status ENUM('active', 'expiring_soon', 'cancelled', 'expired') NOT NULL DEFAULT 'active',
-            contract_start_date DATE NULL,
-            contract_end_date DATE NULL,
-            final_balance_notes TEXT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    
+    // 3. Contracts Table (Matched exactly to your existing DB screenshot)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS contracts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            client_id INT NOT NULL,
+            contract_name VARCHAR(150) NOT NULL,
+            contract_status ENUM('active', 'to_be_contracted', 'expiring_soon', 'cancelled', 'expired') NOT NULL DEFAULT 'to_be_contracted',
+            contract_start_date DATE NULL,
+            contract_end_date DATE NULL,
+            contract_value DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            final_balance_notes DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
 
-    // 3. Job Orders / Dispatch Table
+    // 4. Job Orders / Dispatch Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS job_orders (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -70,11 +79,10 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // Seed default Admin user if none exists (using first_name and last_name)
-    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    if ($stmt->fetchColumn() == 0) {
-        $defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
-        $insertAdmin = $pdo->prepare("
+    // Seed default Admin user if none exists
+    $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
+    if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
+        $insertAdmin =$pdo->prepare("
             INSERT INTO users (username, email, password, first_name, last_name, phone, role, sector_region, status)
             VALUES (:username, :email, :password, :first_name, :last_name, :phone, :role, :sector_region, 'active')
         ");
@@ -90,34 +98,34 @@ try {
         ]);
     }
 
-    // 4. Site Inspections Table (Combined with Findings JSON)
-$pdo->exec("
-CREATE TABLE IF NOT EXISTS site_inspections (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    client_name VARCHAR(255) NOT NULL,
-    client_email VARCHAR(255),
-    account_type VARCHAR(100),
-    service_address TEXT,
-    inspection_status VARCHAR(100) DEFAULT 'Pending Visit',
-    technician_name VARCHAR(255),
-    inspection_date DATE,
-    time_in TIME,
-    time_out TIME,
-    ilt_qty INT DEFAULT 0,
-    ilt_remarks VARCHAR(255),
-    rat_cage_qty INT DEFAULT 0,
-    rat_cage_remarks VARCHAR(255),
-    rat_bait_qty INT DEFAULT 0,
-    rat_bait_remarks VARCHAR(255),
-    glue_trap_qty INT DEFAULT 0,
-    glue_trap_remarks VARCHAR(255),
-    vermex_representative VARCHAR(255),
-    client_representative VARCHAR(255),
-    conditions_json TEXT,
-    findings_json TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-");
+    // 5. Site Inspections Table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS site_inspections (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            client_name VARCHAR(255) NOT NULL,
+            client_email VARCHAR(255),
+            account_type VARCHAR(100),
+            service_address TEXT,
+            inspection_status VARCHAR(100) DEFAULT 'Pending Visit',
+            technician_name VARCHAR(255),
+            inspection_date DATE,
+            time_in TIME,
+            time_out TIME,
+            ilt_qty INT DEFAULT 0,
+            ilt_remarks VARCHAR(255),
+            rat_cage_qty INT DEFAULT 0,
+            rat_cage_remarks VARCHAR(255),
+            rat_bait_qty INT DEFAULT 0,
+            rat_bait_remarks VARCHAR(255),
+            glue_trap_qty INT DEFAULT 0,
+            glue_trap_remarks VARCHAR(255),
+            vermex_representative VARCHAR(255),
+            client_representative VARCHAR(255),
+            conditions_json TEXT,
+            findings_json TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
 
 } catch (PDOException $e) {
     die("Database Initialization Failed: " . $e->getMessage());
