@@ -14,6 +14,9 @@ session_start();
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Custom Vermex Theme Rules -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+
     <style>
         ::-webkit-scrollbar {
             width: 6px;
@@ -31,20 +34,20 @@ session_start();
         }
     </style>
 </head>
-<body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased overflow-hidden">
+<body class="bg-[#f8faf9] text-slate-800 h-screen flex font-sans antialiased overflow-hidden">
 
     <!-- 1. Shared Sidebar Component -->
     <?php include 'components/sidebar.php'; ?>
 
-    <!-- 2. Main Content Area -->
-    <main class="flex-1 flex flex-col overflow-y-auto bg-[#f8faf9]">
+    <!-- 2. Main Content Area (Scrollable Container) -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f8faf9]">
         
-        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto">
+        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto pb-12">
             
             <!-- Page Title & Top Action Header -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                    <div class="flex items-center gap-2 text-[11px] text-[#007a55] font-semibold tracking-wider uppercase mb-1">
+                    <div class="flex items-center gap-2 text-[11px] text-emerald-700 font-semibold tracking-wider uppercase mb-1">
                         <span>Live Operations</span>
                         <span>•</span>
                         <span>Sector 04</span>
@@ -56,9 +59,9 @@ session_start();
                 <div class="flex items-center gap-3">
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" placeholder="Search jobs, clients, or pests..." class="bg-white border border-slate-200 text-slate-800 placeholder-slate-400 text-xs rounded-lg pl-9 pr-4 py-2 w-64 focus:outline-none focus:border-[#007a55] transition shadow-sm">
+                        <input type="text" placeholder="Search jobs, clients, or pests..." class="bg-white border border-slate-200 text-slate-800 placeholder-slate-400 text-xs rounded-lg pl-9 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition shadow-sm">
                     </div>
-                    <button class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
+                    <button class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         <span>Create Job</span>
                     </button>
@@ -95,7 +98,7 @@ session_start();
                         <p class="text-2xl font-bold text-slate-900 mt-1">146</p>
                         <p class="text-[11px] text-emerald-600 font-medium mt-1">+12.4% this month</p>
                     </div>
-                    <div class="bg-emerald-50 p-2.5 rounded-lg text-[#007a55] border border-emerald-100">
+                    <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                         <i data-lucide="check-circle-2" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -106,7 +109,7 @@ session_start();
                         <p class="text-2xl font-bold text-slate-900 mt-1">3</p>
                         <p class="text-[11px] text-amber-600 font-medium mt-1">1 review pending</p>
                     </div>
-                    <div class="bg-emerald-50 p-2.5 rounded-lg text-[#007a55] border border-emerald-100">
+                    <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                         <i data-lucide="shield-alert" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -116,12 +119,12 @@ session_start();
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 <!-- Primary Active Jobs Table (Left Column) -->
-                <div class="lg:col-span-2 bg-white border border-slate-200/80 rounded-xl p-5 space-y-4 shadow-sm">
+                <div class="lg:col-span-2 bg-white border border-slate-200/80 rounded-xl p-5 space-y-4 shadow-sm h-fit">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
                             <div class="flex items-center gap-2">
                                 <h2 class="text-base font-semibold text-slate-900">Active Pest Jobs</h2>
-                                <span class="bg-emerald-50 text-[#007a55] text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-100">27 live</span>
+                                <span class="bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-200">27 live</span>
                             </div>
                             <p class="text-[11px] text-slate-400 mt-0.5">Last sync 14:32:08 • auto-refresh 30s</p>
                         </div>
@@ -160,7 +163,7 @@ session_start();
                                     <td class="py-3 text-slate-700">Contrac Blox <span class="text-slate-400">(12 x 28g)</span></td>
                                     <td class="py-3"><span class="bg-rose-50 text-rose-700 border border-rose-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Critical</span></td>
                                     <td class="py-3 text-right">
-                                        <a href="#" class="bg-emerald-50 hover:bg-emerald-100 text-[#007a55] border border-emerald-100 px-2.5 py-1 rounded text-[11px] font-semibold inline-flex items-center gap-1 transition">
+                                        <a href="#" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded text-[11px] font-semibold inline-flex items-center gap-1 transition">
                                             Open <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
                                         </a>
                                     </td>
@@ -175,7 +178,7 @@ session_start();
                                     <td class="py-3 text-slate-700">Termidor HE <span class="text-slate-400">(0.125% / 84L)</span></td>
                                     <td class="py-3"><span class="bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">High</span></td>
                                     <td class="py-3 text-right">
-                                        <a href="#" class="bg-emerald-50 hover:bg-emerald-100 text-[#007a55] border border-emerald-100 px-2.5 py-1 rounded text-[11px] font-semibold inline-flex items-center gap-1 transition">
+                                        <a href="#" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded text-[11px] font-semibold inline-flex items-center gap-1 transition">
                                             Open <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
                                         </a>
                                     </td>
@@ -190,7 +193,7 @@ session_start();
                                     <td class="py-3 text-slate-700">Advion Ant Gel <span class="text-slate-400">(18 x 0.5g)</span></td>
                                     <td class="py-3"><span class="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Medium</span></td>
                                     <td class="py-3 text-right">
-                                        <a href="#" class="bg-emerald-50 hover:bg-emerald-100 text-[#007a55] border border-emerald-100 px-2.5 py-1 rounded text-[11px] font-semibold inline-flex items-center gap-1 transition">
+                                        <a href="#" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded text-[11px] font-semibold inline-flex items-center gap-1 transition">
                                             Open <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
                                         </a>
                                     </td>
@@ -207,7 +210,7 @@ session_start();
                     <div class="bg-white border border-slate-200/80 rounded-xl p-4 space-y-3 shadow-sm">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                             <h3 class="text-xs font-semibold text-slate-800 flex items-center gap-2">
-                                <i data-lucide="navigation" class="w-3.5 h-3.5 text-[#007a55]"></i>
+                                <i data-lucide="navigation" class="w-3.5 h-3.5 text-emerald-700"></i>
                                 Technician Dispatch
                             </h3>
                             <span class="text-[10px] text-slate-500 font-mono font-medium">14/16 Active</span>
@@ -218,7 +221,7 @@ session_start();
                                     <p class="font-bold text-slate-800">Rodel Mamparil</p>
                                     <p class="text-[10px] text-slate-400">PO-2841 • Harborview Hotel</p>
                                 </div>
-                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-[#007a55] border border-emerald-200/60">On Site</span>
+                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60">On Site</span>
                             </div>
                             <div class="p-2.5 bg-slate-50/80 rounded-lg border border-slate-100 flex items-center justify-between">
                                 <div>
@@ -234,7 +237,7 @@ session_start();
                     <div class="bg-white border border-slate-200/80 rounded-xl p-4 space-y-3 shadow-sm">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                             <h3 class="text-xs font-semibold text-slate-800 flex items-center gap-2">
-                                <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-[#007a55]"></i>
+                                <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-emerald-700"></i>
                                 Chemical Usage (Today)
                             </h3>
                             <span class="text-[10px] bg-amber-50 text-amber-700 border border-amber-200/60 px-1.5 py-0.5 rounded font-semibold">Low Stock</span>
@@ -246,7 +249,7 @@ session_start();
                                     <span class="text-slate-800 font-mono font-semibold">160 ml used</span>
                                 </div>
                                 <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                    <div class="bg-[#007a55] h-full w-[82%] rounded-full"></div>
+                                    <div class="bg-emerald-700 h-full w-[82%] rounded-full"></div>
                                 </div>
                             </div>
                             <div>
@@ -265,10 +268,10 @@ session_start();
                     <div class="bg-white border border-slate-200/80 rounded-xl p-4 space-y-3 shadow-sm">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                             <h3 class="text-xs font-semibold text-slate-800 flex items-center gap-2">
-                                <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-[#007a55]"></i>
+                                <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-emerald-700"></i>
                                 Field Job Order & Inspection Review
                             </h3>
-                            <span class="bg-emerald-50 text-[#007a55] text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-100">1 Pending</span>
+                            <span class="bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-200">1 Pending</span>
                         </div>
 
                         <!-- Digitized Form Record -->
@@ -276,7 +279,7 @@ session_start();
                             <div class="flex justify-between items-start">
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <span class="font-mono text-[#007a55] font-bold">JO #L-8152</span>
+                                        <span class="font-mono text-emerald-700 font-bold">JO #L-8152</span>
                                         <span class="text-[10px] text-slate-400">• 10:10 AM</span>
                                     </div>
                                     <p class="font-bold text-slate-800 text-xs mt-0.5">ANNIPIL (Roxas, Davao City)</p>
@@ -295,7 +298,7 @@ session_start();
 
                             <!-- Action Buttons -->
                             <div class="flex gap-2 pt-1">
-                                <button class="flex-1 bg-[#007a55] hover:bg-[#006344] text-white font-medium text-[11px] py-1.5 rounded transition flex items-center justify-center gap-1 shadow-sm">
+                                <button class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-[11px] py-1.5 rounded transition flex items-center justify-center gap-1 shadow-sm">
                                     <i data-lucide="check" class="w-3 h-3"></i>
                                     Verify & Approve
                                 </button>

@@ -149,25 +149,7 @@ foreach ($contracts as $con) {
     <title>Vermex - Client & Contract Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased overflow-hidden">
@@ -198,7 +180,7 @@ foreach ($contracts as $con) {
             <!-- Page Header & Dashboard Switcher -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                    <div class="flex items-center gap-2 text-[11px] text-[#007a55] font-semibold tracking-wider uppercase mb-1">
+                    <div class="flex items-center gap-2 text-[11px] text-emerald-700 font-semibold tracking-wider uppercase mb-1">
                         <span>CRM & Operations</span>
                         <span>•</span>
                         <span><?= $currentTab === 'contracts' ? ($isArchivedView ? 'Archived Contracts' : 'Service Contracts') : 'Client Accounts' ?></span>
@@ -221,11 +203,11 @@ foreach ($contracts as $con) {
                     </div>
 
                     <?php if ($currentTab === 'clients'): ?>
-                        <button onclick="toggleClientForm()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
+                        <button onclick="toggleClientForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
                             <i data-lucide="building" class="w-4 h-4"></i> Register New Client
                         </button>
                     <?php else: ?>
-                        <button onclick="openCreateContractModal()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
+                        <button onclick="openCreateContractModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
                             <i data-lucide="file-plus" class="w-4 h-4"></i> Add New Contract
                         </button>
                     <?php endif; ?>
@@ -241,9 +223,9 @@ foreach ($contracts as $con) {
                         <div>
                             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Client Accounts</p>
                             <p class="text-2xl font-bold text-slate-900 mt-1"><?= $totalClients ?> <span class="text-xs font-normal text-slate-500">Clients</span></p>
-                            <p class="text-[11px] text-emerald-600 font-medium mt-1"><?= $activeClients ?> Active Status Accounts</p>
+                            <p class="text-[11px] text-emerald-700 font-medium mt-1"><?= $activeClients ?> Active Status Accounts</p>
                         </div>
-                        <div class="bg-emerald-50 p-2.5 rounded-lg text-[#007a55] border border-emerald-100">
+                        <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                             <i data-lucide="briefcase" class="w-5 h-5"></i>
                         </div>
                     </div>
@@ -286,54 +268,54 @@ foreach ($contracts as $con) {
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">Company / Account Name *</label>
-                                    <input type="text" name="company_name" required placeholder="e.g. Marco Polo Hotel Davao" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <input type="text" name="company_name" required placeholder="e.g. Marco Polo Hotel Davao" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                 </div>
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">Contact First Name *</label>
-                                    <input type="text" name="first_name" required placeholder="First Name" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <input type="text" name="first_name" required placeholder="First Name" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                 </div>
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">Contact Last Name *</label>
-                                    <input type="text" name="last_name" required placeholder="Last Name" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <input type="text" name="last_name" required placeholder="Last Name" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">Account Type *</label>
-                                    <select name="client_type" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <select name="client_type" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                         <option value="Commercial">Commercial</option>
                                         <option value="Residential">Residential</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">Email Address *</label>
-                                    <input type="email" name="email" required placeholder="contact@company.com" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <input type="email" name="email" required placeholder="contact@company.com" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                 </div>
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">Phone Number *</label>
-                                    <input type="text" name="phone" required placeholder="+63 9XX XXX XXXX" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <input type="text" name="phone" required placeholder="+63 9XX XXX XXXX" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">Street Address *</label>
-                                    <input type="text" name="street_address" required placeholder="e.g. Door 4, Prieto Bldg" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <input type="text" name="street_address" required placeholder="e.g. Door 4, Prieto Bldg" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                 </div>
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">Barangay *</label>
-                                    <input type="text" name="barangay" required placeholder="e.g. Brgy. 27-C" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <input type="text" name="barangay" required placeholder="e.g. Brgy. 27-C" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                 </div>
                                 <div>
                                     <label class="block text-slate-600 font-medium mb-1">City *</label>
-                                    <input type="text" name="city" required value="Davao City" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                                    <input type="text" name="city" required value="Davao City" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                                 </div>
                             </div>
 
                             <div class="flex items-center justify-end gap-3 pt-2">
                                 <button type="button" onclick="toggleClientForm()" class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-200 font-medium">Cancel</button>
-                                <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium px-4 py-2 rounded-lg shadow-sm">Register Client Account</button>
+                                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm">Register Client Account</button>
                             </div>
                         </form>
                     </div>
@@ -351,7 +333,7 @@ foreach ($contracts as $con) {
                         <div class="flex flex-wrap items-center gap-2">
                             <div class="relative flex-1 sm:w-56">
                                 <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                                <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search name, company, email..." class="w-full border border-slate-200 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-[#007a55]">
+                                <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search name, company, email..." class="w-full border border-slate-200 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-emerald-600">
                             </div>
                             <select name="type" onchange="this.form.submit()" class="border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 font-medium">
                                 <option value="">Type: All</option>
@@ -385,16 +367,16 @@ foreach ($contracts as $con) {
                                 <?php else: ?>
                                     <?php foreach ($clients as $client): ?>
                                         <?php
-                                        $typeClass = ($client['client_type'] ?? '') === 'Residential' ? "bg-emerald-50 text-[#007a55] border-emerald-200/60" : "bg-blue-50 text-blue-700 border-blue-200/60";
+                                        $typeClass = ($client['client_type'] ?? '') === 'Residential' ? "bg-emerald-50 text-emerald-700 border-emerald-200/60" : "bg-blue-50 text-blue-700 border-blue-200/60";
                                         $statusBadge = ($client['status'] ?? 'active') === 'active'
-                                            ? '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>'
+                                            ? '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>'
                                             : '<span class="bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">Disabled</span>';
                                         $fullAddress = trim(($client['street_address'] ?? '') . ', ' . ($client['barangay'] ?? '') . ', ' . ($client['city'] ?? 'Davao City'));
                                         $encodedClient = htmlspecialchars(json_encode($client), ENT_QUOTES, 'UTF-8');
                                         ?>
                                         <tr class="hover:bg-slate-50/80 transition">
                                             <td class="py-3 px-1">
-                                                <button onclick="openViewModal(<?= $encodedClient ?>)" class="font-semibold text-slate-900 hover:text-[#007a55] hover:underline text-left transition">
+                                                <button onclick="openViewModal(<?= $encodedClient ?>)" class="font-semibold text-slate-900 hover:text-emerald-700 hover:underline text-left transition">
                                                     <?= htmlspecialchars($client['client_name']) ?>
                                                 </button>
                                                 <div class="text-[11px] text-slate-500 mt-0.5"><?= htmlspecialchars(($client['last_name'] ?? '') . ', ' . ($client['first_name'] ?? '')) ?> • <span class="font-mono text-slate-400"><?= htmlspecialchars($client['phone_number'] ?? '') ?></span></div>
@@ -424,9 +406,9 @@ foreach ($contracts as $con) {
                         <div>
                             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Contracts</p>
                             <p class="text-2xl font-bold text-slate-900 mt-1"><?= $totalContractsCount ?> <span class="text-xs font-normal text-slate-500">Agreements</span></p>
-                            <p class="text-[11px] text-emerald-600 font-medium mt-1"><?= $activeContractsCount ?> Active Service Contracts</p>
+                            <p class="text-[11px] text-emerald-700 font-medium mt-1"><?= $activeContractsCount ?> Active Service Contracts</p>
                         </div>
-                        <div class="bg-emerald-50 p-2.5 rounded-lg text-[#007a55] border border-emerald-100">
+                        <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                             <i data-lucide="file-text" class="w-5 h-5"></i>
                         </div>
                     </div>
@@ -485,7 +467,7 @@ foreach ($contracts as $con) {
                         <div class="flex flex-wrap items-center gap-2 w-full">
                             <div class="relative flex-1 sm:w-56">
                                 <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                                <input type="text" name="c_search" value="<?= htmlspecialchars($contractSearch) ?>" placeholder="Search contract, ID, or client..." class="w-full border border-slate-200 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-[#007a55]">
+                                <input type="text" name="c_search" value="<?= htmlspecialchars($contractSearch) ?>" placeholder="Search contract, ID, or client..." class="w-full border border-slate-200 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-emerald-600">
                             </div>
                             <?php if (!$isArchivedView): ?>
                                 <select name="c_status" onchange="this.form.submit()" class="border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 font-medium">
@@ -523,7 +505,7 @@ foreach ($contracts as $con) {
                                 <?php else: ?>
                                     <?php foreach ($contracts as $con): ?>
                                         <?php
-                                        $cStatusBadge = '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>';
+                                        $cStatusBadge = '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>';
                                         if ($con['contract_status'] === 'to_be_contracted') $cStatusBadge = '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">To-Be-Contracted</span>';
                                         elseif ($con['contract_status'] === 'expiring_soon') $cStatusBadge = '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-semibold">Expiring Soon</span>';
                                         elseif ($con['contract_status'] === 'expired') $cStatusBadge = '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-semibold">Expired</span>';
@@ -532,7 +514,7 @@ foreach ($contracts as $con) {
 
                                         // Determine client type badge style
                                         $clientTypeBadge = ($con['client_type'] ?? '') === 'Residential'
-                                            ? '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-medium">Residential</span>'
+                                            ? '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-medium">Residential</span>'
                                             : '<span class="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded text-[10px] font-medium">Commercial</span>';
                                         
                                         $encodedContract = htmlspecialchars(json_encode($con), ENT_QUOTES, 'UTF-8');
@@ -599,7 +581,7 @@ foreach ($contracts as $con) {
             <div class="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-[#007a55]">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-emerald-700">
                             <i data-lucide="building-2" class="w-5 h-5"></i>
                         </div>
                         <div>
@@ -650,9 +632,9 @@ foreach ($contracts as $con) {
                     <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                             <div class="flex items-center gap-2 text-slate-800 font-bold">
-                                <i data-lucide="file-text" class="w-4 h-4 text-[#007a55]"></i> Contracts Summary & History
+                                <i data-lucide="file-text" class="w-4 h-4 text-emerald-700"></i> Contracts Summary & History
                             </div>
-                            <button type="button" onclick="openAddContractForClient()" class="bg-[#007a55] hover:bg-[#006344] text-white text-[11px] px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition font-medium shadow-sm">
+                            <button type="button" onclick="openAddContractForClient()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition font-medium shadow-sm">
                                 <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Contract
                             </button>
                         </div>
@@ -691,7 +673,7 @@ foreach ($contracts as $con) {
             <div class="bg-white border border-slate-200 rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        <i data-lucide="file-plus" class="w-4 h-4 text-[#007a55]"></i> Create New Contract
+                        <i data-lucide="file-plus" class="w-4 h-4 text-emerald-700"></i> Create New Contract
                     </h3>
                     <button onclick="closeCreateContractModal()" class="text-slate-400 hover:text-slate-700">&times;</button>
                 </div>
@@ -700,12 +682,12 @@ foreach ($contracts as $con) {
                     <!-- Auto-generated / Hidden ID info display -->
                     <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-[11px] text-slate-600 flex justify-between">
                         <span>Contract ID: <strong class="font-mono text-slate-900">Auto-Generated</strong></span>
-                        <span>Status: <strong class="text-[#007a55]">To-Be-Contracted</strong></span>
+                        <span>Status: <strong class="text-emerald-700">To-Be-Contracted</strong></span>
                     </div>
 
                     <div>
                         <label class="block text-slate-600 font-medium mb-1">Select Client *</label>
-                        <select name="client_id" id="contract_modal_client_id" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#007a55]">
+                        <select name="client_id" id="contract_modal_client_id" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-600">
                             <option value="">-- Choose Client Account --</option>
                             <?php foreach ($clients as $cl): ?>
                                 <option value="<?= $cl['id'] ?>"><?= htmlspecialchars($cl['client_name']) ?> (ID: #<?= $cl['id'] ?>)</option>
@@ -715,34 +697,34 @@ foreach ($contracts as $con) {
 
                     <div>
                         <label class="block text-slate-600 font-medium mb-1">Contract Name *</label>
-                        <input type="text" name="contract_name" required placeholder="e.g. Annual Pest Maintenance 2026" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                        <input type="text" name="contract_name" required placeholder="e.g. Annual Pest Maintenance 2026" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                     </div>
 
                     <div>
                         <label class="block text-slate-600 font-medium mb-1">Contract Value (₱) *</label>
-                        <input type="number" step="0.01" name="contract_value" required placeholder="0.00" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                        <input type="number" step="0.01" name="contract_value" required placeholder="0.00" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-slate-600 font-medium mb-1">Start Date</label>
-                            <input type="date" name="start_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-600 focus:outline-none focus:border-[#007a55]">
+                            <input type="date" name="start_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-600 focus:outline-none focus:border-emerald-600">
                         </div>
                         <div>
                             <label class="block text-slate-600 font-medium mb-1">Expiry Date</label>
-                            <input type="date" name="end_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-600 focus:outline-none focus:border-[#007a55]">
+                            <input type="date" name="end_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-600 focus:outline-none focus:border-emerald-600">
                         </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                         <button type="button" onclick="closeCreateContractModal()" class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-200 font-medium">Cancel</button>
-                        <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium px-4 py-2 rounded-lg shadow-sm">Save Contract</button>
+                        <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition">Save Contract</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Edit Contract Modal -->
+       <!-- Edit Contract Modal -->
         <div id="editContractModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
             <div class="bg-white border border-slate-200 rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -757,12 +739,12 @@ foreach ($contracts as $con) {
 
                     <div>
                         <label class="block text-slate-600 font-medium mb-1">Contract Name *</label>
-                        <input type="text" id="edit_contract_name" name="contract_name" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                        <input type="text" id="edit_contract_name" name="contract_name" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                     </div>
 
                     <div>
                         <label class="block text-slate-600 font-medium mb-1">Contract Status *</label>
-                        <select name="contract_status" id="edit_contract_status" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                        <select name="contract_status" id="edit_contract_status" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                             <option value="to_be_contracted">To-Be-Contracted</option>
                             <option value="active">Active</option>
                             <option value="expiring_soon">Expiring Soon</option>
@@ -774,23 +756,23 @@ foreach ($contracts as $con) {
 
                     <div>
                         <label class="block text-slate-600 font-medium mb-1">Contract Value (₱) *</label>
-                        <input type="number" step="0.01" id="edit_contract_value" name="contract_value" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                        <input type="number" step="0.01" id="edit_contract_value" name="contract_value" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-slate-600 font-medium mb-1">Start Date</label>
-                            <input type="date" id="edit_contract_start" name="start_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                            <input type="date" id="edit_contract_start" name="start_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                         </div>
                         <div>
                             <label class="block text-slate-600 font-medium mb-1">Expiry Date</label>
-                            <input type="date" id="edit_contract_end" name="end_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                            <input type="date" id="edit_contract_end" name="end_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                         </div>
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                         <button type="button" onclick="closeEditContractModal()" class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-200 font-medium">Cancel</button>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm">Update Contract</button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition">Update Contract</button>
                     </div>
                 </form>
             </div>

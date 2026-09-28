@@ -130,8 +130,12 @@ $eligibleContracts = $pdo->query("
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payments & Billing - Vermex Pest Solutions</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Vermex Theme Rules -->
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body class="bg-slate-100 text-slate-800 flex h-screen overflow-hidden font-sans">
 
@@ -210,9 +214,9 @@ $eligibleContracts = $pdo->query("
                 <form method="GET" class="flex flex-col md:flex-row gap-3 w-full">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client, contract ID, name, or reference no..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client, contract ID, name, or reference no..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
                     </div>
-                    <select name="method" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none">
+                    <select name="method" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
                         <option value="">All Payment Methods</option>
                         <option value="Cash" <?= $filterMethod === 'Cash' ? 'selected' : '' ?>>Cash</option>
                         <option value="Bank Transfer" <?= $filterMethod === 'Bank Transfer' ? 'selected' : '' ?>>Bank Transfer</option>
@@ -220,7 +224,7 @@ $eligibleContracts = $pdo->query("
                         <option value="GCash" <?= $filterMethod === 'GCash' ? 'selected' : '' ?>>GCash</option>
                         <option value="Credit Card" <?= $filterMethod === 'Credit Card' ? 'selected' : '' ?>>Credit Card</option>
                     </select>
-                    <select name="type" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none">
+                    <select name="type" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
                         <option value="">All Payment Types</option>
                         <option value="Downpayment" <?= $filterType === 'Downpayment' ? 'selected' : '' ?>>Downpayment</option>
                         <option value="Balance Settlement" <?= $filterType === 'Balance Settlement' ? 'selected' : '' ?>>Balance Settlement</option>
@@ -313,7 +317,7 @@ $eligibleContracts = $pdo->query("
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Select Contract *</label>
-                    <select name="contract_id" id="contractSelect" onchange="updateBalanceHint()" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <select name="contract_id" id="contractSelect" onchange="updateBalanceHint()" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
                         <option value="" data-balance="0">-- Select Contract --</option>
                         <?php foreach ($eligibleContracts as $ec): ?>
                             <option value="<?= $ec['id'] ?>" data-balance="<?= $ec['final_balance'] ?>" data-value="<?= $ec['contract_value'] ?>">
@@ -331,11 +335,11 @@ $eligibleContracts = $pdo->query("
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Amount Paid (₱) *</label>
-                        <input type="number" step="0.01" name="amount_paid" placeholder="0.00" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none font-bold text-emerald-700">
+                        <input type="number" step="0.01" name="amount_paid" placeholder="0.00" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none font-bold text-emerald-700">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Type *</label>
-                        <select name="payment_type" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <select name="payment_type" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
                             <option value="Downpayment">Downpayment</option>
                             <option value="Balance Settlement">Balance Settlement</option>
                             <option value="Full Payment">Full Payment</option>
@@ -347,7 +351,7 @@ $eligibleContracts = $pdo->query("
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method *</label>
-                        <select name="payment_method" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <select name="payment_method" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
                             <option value="Check">Check</option>
@@ -357,13 +361,13 @@ $eligibleContracts = $pdo->query("
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Reference No. (Optional)</label>
-                        <input type="text" name="reference_number" placeholder="OR# or Ref#" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        <input type="text" name="reference_number" placeholder="OR# or Ref#" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Remarks / Notes</label>
-                    <textarea name="remarks" rows="2" placeholder="Additional details..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+                    <textarea name="remarks" rows="2" placeholder="Additional details..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none"></textarea>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
