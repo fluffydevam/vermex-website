@@ -114,6 +114,57 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
+    // 6. Payments Audit & Transaction Table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS payments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            contract_id INT NULL,
+            client_id INT NOT NULL,
+            user_id INT NULL,
+            amount_paid DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            payment_type ENUM('Downpayment', 'Balance Settlement', 'Full Payment', 'Adjustment') NOT NULL,
+            payment_method ENUM('Cash', 'Bank Transfer', 'Check', 'GCash', 'Credit Card') NOT NULL,
+            reference_number VARCHAR(100) NULL,
+            remarks TEXT NULL,
+            payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE,
+            FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    // 7. Inventory Table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS inventory (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_name VARCHAR(255) NOT NULL,
+            category ENUM('Chemical', 'Device/Trap', 'Equipment', 'PPE') NOT NULL DEFAULT 'Chemical',
+            quantity_in_stock DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            unit VARCHAR(50) NOT NULL DEFAULT 'mL',
+            min_threshold DECIMAL(10,2) NOT NULL DEFAULT 10.00,
+            unit_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            batch_number VARCHAR(100) NULL,
+            storage_location VARCHAR(100) NULL,
+            status ENUM('In Stock', 'Low Stock', 'Out of Stock') NOT NULL DEFAULT 'In Stock',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
+    // 8. Job Order Materials Junction Table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS job_order_materials (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            job_order_id INT NOT NULL,
+            inventory_id INT NOT NULL,
+            quantity_used DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            unit_used VARCHAR(50) NOT NULL,
+            logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (job_order_id) REFERENCES job_orders(id) ON DELETE CASCADE,
+            FOREIGN KEY (inventory_id) REFERENCES inventory(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
+
     // Seed default Admin user if none exists
     $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
     if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);

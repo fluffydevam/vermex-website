@@ -37,6 +37,53 @@ $stmt = $pdo->prepare($clientQuery);
 $stmt->execute($clientParams);
 $clients = $stmt->fetchAll();
 
+// Auto-update contract statuses based on expiry dates
+$today = date('Y-m-d');
+
+// Mark active or expiring_soon contracts whose end date has passed as 'expired'
+$updateExpiredStmt = $pdo->prepare("
+    UPDATE contracts 
+    SET contract_status = 'expired' 
+    WHERE contract_status IN ('active', 'expiring_soon') 
+      AND contract_end_date IS NOT NULL 
+      AND contract_end_date != '' 
+      AND contract_end_date != '0000-00-00'
+      AND contract_end_date < :today
+");
+$updateExpiredStmt->execute(['today' => $today]);
+
+// Revert 'expiring_soon' contracts back to 'active' if they have more than 2 days remaining
+$revertExpiringStmt = $pdo->prepare("
+    UPDATE contracts 
+    SET contract_status = 'active' 
+    WHERE contract_status = 'expiring_soon' 
+      AND contract_end_date IS NOT NULL 
+      AND contract_end_date != '' 
+      AND contract_end_date != '0000-00-00'
+      AND contract_end_date > DATE_ADD(:today, INTERVAL 2 DAY)
+");
+$revertExpiringStmt->execute(['today' => $today]);
+
+// Mark active contracts expiring within 2 days as 'expiring_soon'
+$updateExpiringSoonStmt = $pdo->prepare("
+    UPDATE contracts 
+    SET contract_status = 'expiring_soon' 
+    WHERE contract_status = 'active' 
+      AND contract_end_date IS NOT NULL 
+      AND contract_end_date != '' 
+      AND contract_end_date != '0000-00-00'
+      AND contract_end_date >= :today 
+      AND contract_end_date <= DATE_ADD(:today, INTERVAL 2 DAY)
+");
+$updateExpiringSoonStmt->execute(['today' => $today]);
+
+$pdo->exec("
+    UPDATE contracts c
+    SET c.final_balance = GREATEST(0.00, c.contract_value - COALESCE(
+        (SELECT SUM(p.amount_paid) FROM payments p WHERE p.contract_id = c.id), 0.00
+    ))
+");
+
 // 2. Fetch Contracts Data (with Client details via JOIN)
 $contractQuery = "
     SELECT con.*, c.client_name, c.client_type, c.id as client_id_ref 
@@ -54,7 +101,7 @@ if ($isArchivedView) {
 $contractParams = [];
 
 if (!empty($contractSearch)) {
-    $contractQuery .= " AND (con.contract_name LIKE :c_search OR c.client_name LIKE :c_search OR con.contract_status LIKE :c_search)";
+    $contractQuery .= " AND (con.contract_name LIKE :c_search OR c.client_name LIKE :c_search OR con.contract_status LIKE :c_search OR con.id LIKE :c_search)";
     $contractParams['c_search'] = "%{$contractSearch}%";
 }
 if (!empty($filterContractStatus) && !$isArchivedView) {
@@ -343,10 +390,11 @@ foreach ($contracts as $con) {
                                             ? '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>'
                                             : '<span class="bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">Disabled</span>';
                                         $fullAddress = trim(($client['street_address'] ?? '') . ', ' . ($client['barangay'] ?? '') . ', ' . ($client['city'] ?? 'Davao City'));
+                                        $encodedClient = htmlspecialchars(json_encode($client), ENT_QUOTES, 'UTF-8');
                                         ?>
                                         <tr class="hover:bg-slate-50/80 transition">
                                             <td class="py-3 px-1">
-                                                <button onclick='openViewModal(<?= json_encode($client) ?>)' class="font-semibold text-slate-900 hover:text-[#007a55] hover:underline text-left transition">
+                                                <button onclick="openViewModal(<?= $encodedClient ?>)" class="font-semibold text-slate-900 hover:text-[#007a55] hover:underline text-left transition">
                                                     <?= htmlspecialchars($client['client_name']) ?>
                                                 </button>
                                                 <div class="text-[11px] text-slate-500 mt-0.5"><?= htmlspecialchars(($client['last_name'] ?? '') . ', ' . ($client['first_name'] ?? '')) ?> • <span class="font-mono text-slate-400"><?= htmlspecialchars($client['phone_number'] ?? '') ?></span></div>
@@ -357,7 +405,7 @@ foreach ($contracts as $con) {
                                             </td>
                                             <td class="py-3"><?= $statusBadge ?></td>
                                             <td class="py-3 text-right">
-                                                <button onclick='openViewModal(<?= json_encode($client) ?>)' class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-medium transition">View Profile</button>
+                                                <button onclick="openViewModal(<?= $encodedClient ?>)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-medium transition">View Profile</button>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -437,7 +485,7 @@ foreach ($contracts as $con) {
                         <div class="flex flex-wrap items-center gap-2 w-full">
                             <div class="relative flex-1 sm:w-56">
                                 <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                                <input type="text" name="c_search" value="<?= htmlspecialchars($contractSearch) ?>" placeholder="Search contract or client..." class="w-full border border-slate-200 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-[#007a55]">
+                                <input type="text" name="c_search" value="<?= htmlspecialchars($contractSearch) ?>" placeholder="Search contract, ID, or client..." class="w-full border border-slate-200 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-[#007a55]">
                             </div>
                             <?php if (!$isArchivedView): ?>
                                 <select name="c_status" onchange="this.form.submit()" class="border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 font-medium">
@@ -486,6 +534,8 @@ foreach ($contracts as $con) {
                                         $clientTypeBadge = ($con['client_type'] ?? '') === 'Residential'
                                             ? '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-medium">Residential</span>'
                                             : '<span class="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded text-[10px] font-medium">Commercial</span>';
+                                        
+                                        $encodedContract = htmlspecialchars(json_encode($con), ENT_QUOTES, 'UTF-8');
                                         ?>
                                         <tr class="hover:bg-slate-50/80 transition">
                                             <td class="py-3 px-1">
@@ -501,30 +551,35 @@ foreach ($contracts as $con) {
                                             </td>
                                             <td class="py-3"><?= $cStatusBadge ?></td>
                                             <td class="py-3">
-                                                <div class="text-[11px] text-slate-700"><?= $con['contract_start_date'] ?: 'Not set' ?> to <?= $con['contract_end_date'] ?: 'Not set' ?></div>
+                                                <div class="text-[11px] text-slate-700"><?= htmlspecialchars($con['contract_start_date'] ?: 'Not set') ?> to <?= htmlspecialchars($con['contract_end_date'] ?: 'Not set') ?></div>
                                             </td>
                                             <td class="py-3 font-mono font-medium text-slate-800">
                                                 ₱<?= number_format($con['contract_value'] ?? 0, 2) ?>
                                             </td>
                                             <td class="py-3 font-mono font-medium text-rose-600">
-                                                ₱<?= number_format($con['final_balance_notes'] ?? 0, 2) ?>
+                                                ₱<?= number_format($con['final_balance'] ?? 0, 2) ?>
                                             </td>
-                                            <td class="py-3 font-mono text-slate-500 text-[11px]"><?= $con['created_at'] ?></td>
+                                            <td class="py-3 font-mono text-slate-500 text-[11px]"><?= htmlspecialchars($con['created_at']) ?></td>
                                             <td class="py-3 text-right">
-    <?php if ($isArchivedView): ?>
-        <a href="../controllers/restoreContract.php?id=<?= $con['id'] ?>" onclick="return confirm('Are you sure you want to restore this contract?');" class="text-emerald-700 hover:text-emerald-900 font-medium text-xs px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded transition">Restore</a>
-    <?php else: ?>
-        <!-- Conditional Pre-Contract Inspection Button (Only for to_be_contracted) -->
-        <?php if (($con['contract_status'] ?? '') === 'to_be_contracted'): ?>
-            <a href="inspections.php?contract_id=<?= $con['id'] ?>&client_id=<?= $con['client_id_ref'] ?>" class="text-emerald-700 hover:text-emerald-900 font-medium text-xs px-2 py-1 bg-emerald-50 border border-emerald-200 rounded transition mr-1 inline-flex items-center gap-1" title="Schedule Pre-Contract Inspection">
-                <i data-lucide="clipboard-check" class="w-3 h-3"></i> Inspection
-            </a>
-        <?php endif; ?>
+                                                <?php if ($isArchivedView): ?>
+                                                    <a href="../controllers/restoreContract.php?id=<?= $con['id'] ?>" onclick="return confirm('Are you sure you want to restore this contract?');" class="text-emerald-700 hover:text-emerald-900 font-medium text-xs px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded transition">Restore</a>
+                                                <?php else: ?>
+                                                    <!-- Conditional Pre-Contract Inspection Button -->
+                                                    <?php if (($con['contract_status'] ?? '') === 'to_be_contracted'): ?>
+                                                        <a href="inspections.php?contract_id=<?= $con['id'] ?>&client_id=<?= $con['client_id_ref'] ?>" class="text-emerald-700 hover:text-emerald-900 font-medium text-xs px-2 py-1 bg-emerald-50 border border-emerald-200 rounded transition mr-1 inline-flex items-center gap-1" title="Schedule Pre-Contract Inspection">
+                                                            <i data-lucide="clipboard-check" class="w-3 h-3"></i> Inspection
+                                                        </a>
+                                                    <?php endif; ?>
 
-        <button onclick='openEditContractModal(<?= json_encode($con) ?>)' class="text-blue-600 hover:text-blue-800 font-medium text-xs px-2 py-1 bg-blue-50 rounded transition mr-1">Edit</button>
-        <a href="../controllers/archiveContract.php?id=<?= $con['id'] ?>" onclick="return confirm('Are you sure you want to archive this contract?');" class="text-slate-600 hover:text-slate-800 font-medium text-xs px-2 py-1 bg-slate-100 rounded transition">Archive</a>
-    <?php endif; ?>
-</td>
+                                                    <!-- Shortcut Button: View Payment History for this Contract -->
+                                                    <a href="payments.php?search=CONTRACT-<?= $con['id'] ?>" class="text-emerald-700 hover:text-emerald-900 font-medium text-xs px-2 py-1 bg-emerald-50 border border-emerald-200/60 rounded transition mr-1 inline-flex items-center gap-1" title="View Payments">
+                                                        <i data-lucide="credit-card" class="w-3 h-3"></i> Payments
+                                                    </a>
+
+                                                    <button onclick="openEditContractModal(<?= $encodedContract ?>)" class="text-blue-600 hover:text-blue-800 font-medium text-xs px-2 py-1 bg-blue-50 rounded transition mr-1">Edit</button>
+                                                    <a href="../controllers/archiveContract.php?id=<?= $con['id'] ?>" onclick="return confirm('Are you sure you want to archive this contract?');" class="text-slate-600 hover:text-slate-800 font-medium text-xs px-2 py-1 bg-slate-100 rounded transition">Archive</a>
+                                                <?php endif; ?>
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
@@ -556,7 +611,7 @@ foreach ($contracts as $con) {
                 </div>
 
                 <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
-                    <!-- Client Details Card (As Is) -->
+                    <!-- Client Details Card -->
                     <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm">
                         <div class="flex items-center gap-2 text-slate-800 font-bold border-b border-slate-100 pb-2">
                             <i data-lucide="user" class="w-4 h-4 text-blue-600"></i> Client Details
@@ -612,11 +667,12 @@ foreach ($contracts as $con) {
                                         <th class="pb-2 font-semibold">Status</th>
                                         <th class="pb-2 font-semibold">Start - Expiry Date</th>
                                         <th class="pb-2 font-semibold text-right">Contract Value</th>
+                                        <th class="pb-2 font-semibold text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="modalContractsTableBody" class="divide-y divide-slate-100">
                                     <tr>
-                                        <td colspan="5" class="py-4 text-center text-slate-400 italic">Loading contracts...</td>
+                                        <td colspan="6" class="py-4 text-center text-slate-400 italic">Loading contracts...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -670,11 +726,11 @@ foreach ($contracts as $con) {
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-slate-600 font-medium mb-1">Start Date</label>
-                            <input type="date" name="start_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-400 focus:outline-none focus:border-[#007a55]" placeholder="Not Set">
+                            <input type="date" name="start_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-600 focus:outline-none focus:border-[#007a55]">
                         </div>
                         <div>
                             <label class="block text-slate-600 font-medium mb-1">Expiry Date</label>
-                            <input type="date" name="end_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-400 focus:outline-none focus:border-[#007a55]" placeholder="Not Set">
+                            <input type="date" name="end_date" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-slate-600 focus:outline-none focus:border-[#007a55]">
                         </div>
                     </div>
 
@@ -760,7 +816,7 @@ foreach ($contracts as $con) {
             document.getElementById('view_phone').innerText = client.phone_number || 'N/A';
             document.getElementById('view_address').innerText = [client.street_address, client.barangay, client.city].filter(Boolean).join(', ') || 'N/A';
 
-            // Fetch all contracts for this specific client ID via AJAX or render from server array
+            // Fetch all contracts for this specific client ID via AJAX
             fetchClientContracts(client.id);
 
             document.getElementById('viewContractModal').classList.remove('hidden');
@@ -772,7 +828,7 @@ foreach ($contracts as $con) {
 
         function fetchClientContracts(clientId) {
             const tbody = document.getElementById('modalContractsTableBody');
-            tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400 italic">Loading contracts...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 italic">Loading contracts...</td></tr>`;
 
             fetch(`../controllers/getClientContracts.php?client_id=${clientId}`)
                 .then(res => res.json())
@@ -781,10 +837,11 @@ foreach ($contracts as $con) {
                         let rows = '';
                         data.contracts.forEach(con => {
                             let badge = '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>';
-                            if (con.contract_status === 'to_be_contracted') badge = '<span class="bg-slate-100 text-slate-600 border px-2 py-0.5 rounded text-[10px] font-semibold">To-Be-Contracted</span>';
-                            else if (con.contract_status === 'expiring_soon') badge = '<span class="bg-amber-50 text-amber-700 border px-2 py-0.5 rounded text-[10px] font-semibold">Expiring Soon</span>';
-                            else if (con.contract_status === 'expired') badge = '<span class="bg-rose-50 text-rose-700 border px-2 py-0.5 rounded text-[10px] font-semibold">Expired</span>';
-                            else if (con.contract_status === 'archived') badge = '<span class="bg-slate-200 text-slate-700 border px-2 py-0.5 rounded text-[10px] font-semibold">Archived</span>';
+                            if (con.contract_status === 'to_be_contracted') badge = '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">To-Be-Contracted</span>';
+                            else if (con.contract_status === 'expiring_soon') badge = '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-semibold">Expiring Soon</span>';
+                            else if (con.contract_status === 'expired') badge = '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-semibold">Expired</span>';
+                            else if (con.contract_status === 'cancelled') badge = '<span class="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded text-[10px] font-semibold">Cancelled</span>';
+                            else if (con.contract_status === 'archived') badge = '<span class="bg-slate-200 text-slate-700 border border-slate-300 px-2 py-0.5 rounded text-[10px] font-semibold">Archived</span>';
 
                             rows += `
                                 <tr class="hover:bg-slate-50 transition">
@@ -793,16 +850,21 @@ foreach ($contracts as $con) {
                                     <td class="py-2.5">${badge}</td>
                                     <td class="py-2.5 text-slate-600">${con.contract_start_date || 'Not set'} to ${con.contract_end_date || 'Not set'}</td>
                                     <td class="py-2.5 font-mono text-right font-medium text-slate-800">₱${Number(con.contract_value || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                                    <td class="py-2.5 text-right">
+                                        <a href="payments.php?search=CONTRACT-${con.id}" class="text-emerald-700 hover:text-emerald-900 font-medium text-[11px] px-2 py-0.5 bg-emerald-50 border border-emerald-200/60 rounded transition">
+                                            Payments
+                                        </a>
+                                    </td>
                                 </tr>
                             `;
                         });
                         tbody.innerHTML = rows;
                     } else {
-                        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400 italic">No contracts recorded for this client yet.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 italic">No contracts recorded for this client yet.</td></tr>`;
                     }
                 })
                 .catch(err => {
-                    tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-500">Failed to load contracts.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-rose-500">Failed to load contracts.</td></tr>`;
                 });
         }
 
