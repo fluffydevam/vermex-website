@@ -60,6 +60,9 @@ foreach ($users as $u) {
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Custom Vermex Theme Rules -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+
     <style>
         ::-webkit-scrollbar {
             width: 6px;
@@ -81,21 +84,21 @@ foreach ($users as $u) {
     </style>
 </head>
 
-<body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased overflow-hidden">
+<body class="bg-[#f8faf9] text-slate-800 h-screen flex font-sans antialiased overflow-hidden">
 
     <!-- 1. Shared Sidebar Component -->
     <?php include 'components/sidebar.php'; ?>
 
-    <!-- 2. Main Content Area -->
-    <main class="flex-1 flex flex-col overflow-y-auto bg-[#f8faf9]">
+    <!-- 2. Main Content Area (Scrollable Container) -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f8faf9]">
 
-        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto">
+        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto pb-12">
 
             <!-- Session Notification Alerts -->
             <?php if (isset($_SESSION['success'])): ?>
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-xs flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-[#007a55]"></i>
+                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-700"></i>
                         <span><?= htmlspecialchars($_SESSION['success']) ?></span>
                     </div>
                     <button onclick="this.parentElement.remove()" class="text-emerald-600 hover:text-emerald-900">&times;</button>
@@ -117,7 +120,7 @@ foreach ($users as $u) {
             <!-- Page Header -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                    <div class="flex items-center gap-2 text-[11px] text-[#007a55] font-semibold tracking-wider uppercase mb-1">
+                    <div class="flex items-center gap-2 text-[11px] text-emerald-700 font-semibold tracking-wider uppercase mb-1">
                         <span>Administration</span>
                         <span>•</span>
                         <span>Secure Access</span>
@@ -127,7 +130,7 @@ foreach ($users as $u) {
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleUserForm()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
+                    <button onclick="toggleUserForm()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
                         <i data-lucide="user-plus" class="w-4 h-4"></i>
                         <span>Create New User Account</span>
                     </button>
@@ -142,7 +145,7 @@ foreach ($users as $u) {
                         <p class="text-2xl font-bold text-slate-900 mt-1"><?= $totalUsers ?> <span class="text-xs font-normal text-slate-500">Accounts</span></p>
                         <p class="text-[11px] text-emerald-600 font-medium mt-1"><?= $activeUsersCount ?> Active Accounts</p>
                     </div>
-                    <div class="bg-emerald-50 p-2.5 rounded-lg text-[#007a55] border border-emerald-100">
+                    <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                         <i data-lucide="users" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -164,7 +167,7 @@ foreach ($users as $u) {
                         <p class="text-2xl font-bold text-slate-900 mt-1">0 <span class="text-xs font-normal text-slate-500">Pending</span></p>
                         <p class="text-[11px] text-emerald-600 font-medium mt-1">No pending approvals</p>
                     </div>
-                    <div class="bg-emerald-50 p-2.5 rounded-lg text-[#007a55] border border-emerald-100">
+                    <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                         <i data-lucide="user-check" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -186,7 +189,7 @@ foreach ($users as $u) {
                 <div class="bg-white border border-slate-200/80 rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
                         <div>
-                            <div class="flex items-center gap-2 text-[10px] text-[#007a55] font-semibold tracking-wider uppercase">
+                            <div class="flex items-center gap-2 text-[10px] text-emerald-700 font-semibold tracking-wider uppercase">
                                 <i data-lucide="lock" class="w-3 h-3"></i> Secure Provisioning
                             </div>
                             <h2 class="text-base font-semibold text-slate-900 mt-0.5">Create New User Account</h2>
@@ -200,11 +203,11 @@ foreach ($users as $u) {
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">First Name *</label>
-                                <input type="text" name="first_name" required placeholder="e.g. John" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <input type="text" name="first_name" required placeholder="e.g. John" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                             </div>
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">Last Name *</label>
-                                <input type="text" name="last_name" required placeholder="e.g. Doe" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <input type="text" name="last_name" required placeholder="e.g. Doe" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                             </div>
                         </div>
 
@@ -212,11 +215,11 @@ foreach ($users as $u) {
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">Username *</label>
-                                <input type="text" name="username" required placeholder="e.g. jdoe" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 font-mono rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <input type="text" name="username" required placeholder="e.g. jdoe" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 font-mono rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                             </div>
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">Email Address *</label>
-                                <input type="email" name="email" required placeholder="name@vermexpest.com" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <input type="email" name="email" required placeholder="name@vermexpest.com" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                             </div>
                         </div>
 
@@ -224,11 +227,11 @@ foreach ($users as $u) {
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">Contact Number</label>
-                                <input type="text" name="phone" placeholder="+63 9XX XXX XXXX" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <input type="text" name="phone" placeholder="+63 9XX XXX XXXX" class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                             </div>
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">Assigned Role *</label>
-                                <select name="role" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <select name="role" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                                     <option value="Field Technician">Field Technician</option>
                                     <option value="Admin">Admin</option>
                                     <option value="Billing Officer">Billing Officer</option>
@@ -237,7 +240,7 @@ foreach ($users as $u) {
                             </div>
                             <div>
                                 <label class="block text-slate-600 font-medium mb-1">Sector / Station</label>
-                                <select name="sector_region" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <select name="sector_region" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                                     <option value="Davao Head Office">Davao Head Office</option>
                                     <option value="Sector 01 - Industrial Zone">Sector 01 - Industrial Zone</option>
                                     <option value="Sector 02 - Downtown Davao">Sector 02 - Downtown Davao</option>
@@ -250,17 +253,17 @@ foreach ($users as $u) {
                         <div>
                             <div class="flex items-center justify-between mb-1">
                                 <label class="text-slate-600 font-medium">Temporary Password *</label>
-                                <button type="button" onclick="generatePassword()" class="text-[10px] text-[#007a55] hover:underline transition font-semibold">Generate Random Password</button>
+                                <button type="button" onclick="generatePassword()" class="text-[10px] text-emerald-700 hover:underline transition font-semibold">Generate Random Password</button>
                             </div>
                             <div class="relative">
-                                <input id="passInput" type="text" name="password" required value="VmX-84F2-Kp7!" class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-mono rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                                <input id="passInput" type="text" name="password" required value="VmX-84F2-Kp7!" class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-mono rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                             </div>
                         </div>
 
                         <!-- Actions Footer -->
                         <div class="flex items-center justify-end gap-3 pt-2">
                             <button type="button" onclick="toggleUserForm()" class="bg-white hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-lg border border-slate-200 transition font-medium">Cancel</button>
-                            <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                            <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
                                 <i data-lucide="send" class="w-3.5 h-3.5"></i>
                                 Create Account
                             </button>
@@ -280,16 +283,16 @@ foreach ($users as $u) {
                     <div class="flex items-center gap-2">
                         <div class="relative flex-1 sm:w-64">
                             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search name, email, or username..." class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-[#007a55] transition">
+                            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search name, email, or username..." class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                         </div>
-                        <select name="role" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#007a55] transition font-medium">
+                        <select name="role" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition font-medium">
                             <option value="">Role: All</option>
                             <option value="Admin" <?= $filterRole === 'Admin' ? 'selected' : '' ?>>Admin</option>
                             <option value="Field Technician" <?= $filterRole === 'Field Technician' ? 'selected' : '' ?>>Field Technician</option>
                             <option value="Billing Officer" <?= $filterRole === 'Billing Officer' ? 'selected' : '' ?>>Billing Officer</option>
                             <option value="Chemical Custodian" <?= $filterRole === 'Chemical Custodian' ? 'selected' : '' ?>>Chemical Custodian</option>
                         </select>
-                        <select name="status" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#007a55] transition font-medium">
+                        <select name="status" onchange="this.form.submit()" class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition font-medium">
                             <option value="">Status: All</option>
                             <option value="active" <?= $filterStatus === 'active' ? 'selected' : '' ?>>Active</option>
                             <option value="disabled" <?= $filterStatus === 'disabled' ? 'selected' : '' ?>>Disabled</option>
@@ -320,7 +323,7 @@ foreach ($users as $u) {
                                     // Initials
                                     $initials = strtoupper(substr($user['first_name'] ?? '', 0, 1) . substr($user['last_name'] ?? '', 0, 1));
                                     // Role badge style
-                                    $roleBadgeClass = "bg-emerald-50 text-[#007a55] border-emerald-200/60";
+                                    $roleBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
                                     if ($user['role'] === 'Field Technician') {
                                         $roleBadgeClass = "bg-blue-50 text-blue-700 border-blue-200/60";
                                     } elseif ($user['role'] === 'Billing Officer') {
@@ -331,14 +334,14 @@ foreach ($users as $u) {
 
                                     // Status badge style
                                     $statusBadge = $user['status'] === 'active'
-                                        ? '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>'
+                                        ? '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>'
                                         : '<span class="bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">Disabled</span>';
                                     ?>
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="py-3 px-1">
                                             <div class="flex items-center gap-3">
                                                 <!-- Avatar Circle -->
-                                                <div class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-xs font-bold text-[#007a55]">
+                                                <div class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-xs font-bold text-emerald-700">
                                                     <?= $initials ?>
                                                 </div>
                                                 <div>
@@ -346,7 +349,7 @@ foreach ($users as $u) {
                                                     <div class="flex items-center gap-2">
                                                         <span class="font-semibold text-slate-800 text-xs"><?= htmlspecialchars(trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''))) ?></span>
                                                         <?php if (!empty($user['username'])): ?>
-                                                            <span class="text-[10px] font-mono text-[#007a55] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 font-medium">
+                                                            <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 font-medium">
                                                                 @<?= htmlspecialchars($user['username']) ?>
                                                             </span>
                                                         <?php endif; ?>
@@ -378,12 +381,12 @@ foreach ($users as $u) {
                                             <div id="action-menu-<?= $user['id'] ?>" class="hidden absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1 text-left">
                                                 <!-- Edit Profile -->
                                                 <button onclick='openEditModal(<?= json_encode($user) ?>)' class="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition font-medium">
-                                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 text-[#007a55]"></i> Edit User
+                                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 text-emerald-700"></i> Edit User
                                                 </button>
 
                                                 <!-- Reset Password -->
                                                 <button onclick='openResetModal(<?= $user["id"] ?>, "<?= htmlspecialchars(trim(($user["first_name"] ?? "") . " " . ($user["last_name"] ?? "")), ENT_QUOTES) ?>")' class="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition font-medium">
-                                                    <i data-lucide="key-round" class="w-3.5 h-3.5 text-amber-400"></i> Reset Password
+                                                    <i data-lucide="key-round" class="w-3.5 h-3.5 text-amber-500"></i> Reset Password
                                                 </button>
 
                                                 <div class="border-t border-slate-100 my-1"></div>
@@ -392,7 +395,7 @@ foreach ($users as $u) {
                                                 <form action="../controllers/toggleUserStatus.php" method="POST" onsubmit="return confirm('Are you sure you want to change this user\'s access status?');">
                                                     <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
                                                     <input type="hidden" name="current_status" value="<?= $user['status'] ?>">
-                                                    <button type="submit" class="w-full px-3 py-2 text-xs flex items-center gap-2 transition font-medium <?= $user['status'] === 'active' ? 'text-rose-600 hover:bg-rose-50' : 'text-[#007a55] hover:bg-emerald-50' ?>">
+                                                    <button type="submit" class="w-full px-3 py-2 text-xs flex items-center gap-2 transition font-medium <?= $user['status'] === 'active' ? 'text-rose-600 hover:bg-rose-50' : 'text-emerald-700 hover:bg-emerald-50' ?>">
                                                         <i data-lucide="<?= $user['status'] === 'active' ? 'user-x' : 'user-check' ?>" class="w-3.5 h-3.5"></i>
                                                         <?= $user['status'] === 'active' ? 'Disable Account' : 'Enable Account' ?>
                                                     </button>
@@ -416,7 +419,7 @@ foreach ($users as $u) {
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        <i data-lucide="user-cog" class="w-4 h-4 text-[#007a55]"></i> Edit User Account
+                        <i data-lucide="user-cog" class="w-4 h-4 text-emerald-700"></i> Edit User Account
                     </h3>
                     <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-700 text-lg">&times;</button>
                 </div>
@@ -431,11 +434,11 @@ foreach ($users as $u) {
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">First Name *</label>
-                                <input type="text" id="edit_first_name" name="first_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                                <input type="text" id="edit_first_name" name="first_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                             </div>
                             <div>
                                 <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Last Name *</label>
-                                <input type="text" id="edit_last_name" name="last_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                                <input type="text" id="edit_last_name" name="last_name" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                             </div>
                         </div>
 
@@ -443,11 +446,11 @@ foreach ($users as $u) {
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Username *</label>
-                                <input type="text" id="edit_username" name="username" required class="w-full bg-white border border-slate-200 text-slate-800 font-mono rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                                <input type="text" id="edit_username" name="username" required class="w-full bg-white border border-slate-200 text-slate-800 font-mono rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                             </div>
                             <div>
                                 <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Email Address *</label>
-                                <input type="email" id="edit_email" name="email" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                                <input type="email" id="edit_email" name="email" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                             </div>
                         </div>
 
@@ -455,11 +458,11 @@ foreach ($users as $u) {
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Phone Number</label>
-                                <input type="text" id="edit_phone" name="phone" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                                <input type="text" id="edit_phone" name="phone" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                             </div>
                             <div>
                                 <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">System Role *</label>
-                                <select id="edit_role" name="role" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                                <select id="edit_role" name="role" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                                     <option value="Admin">Admin</option>
                                     <option value="Billing Officer">Billing Officer</option>
                                     <option value="Field Technician">Field Technician</option>
@@ -471,7 +474,7 @@ foreach ($users as $u) {
                         <!-- Row 4: Station / Region -->
                         <div>
                             <label class="block text-slate-700 font-medium mb-1 text-xs uppercase tracking-wider">Station / Region *</label>
-                            <select id="edit_sector_region" name="sector_region" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:border-[#007a55]">
+                            <select id="edit_sector_region" name="sector_region" required class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                                 <option value="Davao Head Office">Davao Head Office</option>
                                 <option value="Tagum Branch">Tagum Branch</option>
                                 <option value="Panabo Station">Panabo Station</option>
@@ -483,7 +486,7 @@ foreach ($users as $u) {
                     <!-- Actions Footer -->
                     <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                         <button type="button" onclick="closeEditModal()" class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition font-medium">Cancel</button>
-                        <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium px-4 py-2 rounded-lg transition shadow-sm">Save Changes</button>
+                        <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium px-4 py-2 rounded-lg transition shadow-sm">Save Changes</button>
                     </div>
                 </form>
 
@@ -507,7 +510,7 @@ foreach ($users as $u) {
 
                     <div>
                         <label class="block text-slate-600 font-medium mb-1">New Password *</label>
-                        <input type="text" id="reset_new_password" name="new_password" required placeholder="Enter new password" class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-mono rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                        <input type="text" id="reset_new_password" name="new_password" required placeholder="Enter new password" class="w-full bg-slate-50 border border-slate-200 text-slate-900 font-mono rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
