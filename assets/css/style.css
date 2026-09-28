@@ -15,9 +15,37 @@
   /* Active States */
   --sidebar-active-bg: #431913;
   --sidebar-hover-bg: #3d1712;
+  
+  /* Workspace Brand Palette */
+  --vermex-bg-subtle: #fdf2f2;
+  --vermex-border-subtle: #fecaca;
+  --vermex-text-dark: #991b1b;
 }
 
-/* Sidebar Container */
+/* ==========================================================================
+   Custom Global Scrollbar
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fdf2f2;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #f87171;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vermex-brand-red);
+}
+
+/* ==========================================================================
+   Sidebar Container & Components (Preserved)
+   ========================================================================== */
 .vermex-sidebar {
   width: 16rem;
   min-width: 16rem;
@@ -149,4 +177,85 @@
 
 .sidebar-logout-btn:hover {
   color: var(--vermex-accent-coral);
+}
+
+/* ==========================================================================
+   Workspace Branding & UI Component Overrides
+   ========================================================================== */
+
+/* Buttons & Primary Actions */
+.btn-primary, 
+.bg-emerald-600, 
+.bg-emerald-700,
+.bg-teal-600,
+.bg-teal-700 {
+  background-color: var(--vermex-brand-red) !important;
+  color: #ffffff !important;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.btn-primary:hover, 
+.bg-emerald-600:hover, 
+.bg-emerald-700:hover,
+.bg-teal-600:hover,
+.bg-teal-700:hover {
+  background-color: var(--vermex-brand-red-hover) !important;
+}
+
+/* Text Highlights, Category Labels & Links */
+.text-emerald-600, 
+.text-emerald-700,
+.text-teal-600,
+.text-blue-600 {
+  color: var(--vermex-brand-red) !important;
+}
+
+/* Card Icons & Metric Boxes */
+.stat-card-icon, 
+.bg-emerald-50, 
+.bg-emerald-100,
+.bg-teal-50,
+.bg-blue-50 {
+  background-color: var(--vermex-bg-subtle) !important;
+  color: var(--vermex-brand-red) !important;
+}
+
+/* Active Tabs (e.g. Clients Dashboard / Contracts Dashboard Toggle) */
+.tab-active,
+button.bg-white.shadow {
+  border-bottom: 2px solid var(--vermex-brand-red) !important;
+  color: var(--vermex-brand-red) !important;
+  font-weight: 600 !important;
+}
+
+/* Table Headers */
+th, 
+.table-header {
+  color: #4a5568;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+/* Form Input Focus Rings */
+input:focus, 
+select:focus, 
+textarea:focus {
+  outline: none !important;
+  border-color: var(--vermex-brand-red) !important;
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2) !important;
+}
+
+/* Status Badges */
+.badge-active, 
+.bg-emerald-100.text-emerald-800 {
+  background-color: #fee2e2 !important;
+  color: var(--vermex-text-dark) !important;
+  border: 1px solid var(--vermex-border-subtle) !important;
+}
+
+/* Progress Bars & Dividers */
+.bg-emerald-500,
+.bg-teal-500 {
+  background-color: var(--vermex-brand-red) !important;
 }
