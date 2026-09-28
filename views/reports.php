@@ -14,6 +14,9 @@ session_start();
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- Custom Vermex Theme Rules -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+
     <style>
         ::-webkit-scrollbar {
             width: 6px;
@@ -31,20 +34,20 @@ session_start();
         }
     </style>
 </head>
-<body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased overflow-hidden">
+<body class="bg-[#f8faf9] text-slate-800 h-screen flex font-sans antialiased overflow-hidden">
 
     <!-- 1. Shared Sidebar Component -->
     <?php include 'components/sidebar.php'; ?>
 
-    <!-- 2. Main Content Area -->
-    <main class="flex-1 flex flex-col overflow-y-auto bg-[#f8faf9]">
+    <!-- 2. Main Content Area (Scrollable Container) -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f8faf9]">
         
-        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto">
+        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto pb-12">
             
             <!-- Page Header -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                    <div class="flex items-center gap-2 text-[11px] text-[#007a55] font-semibold tracking-wider uppercase mb-1">
+                    <div class="flex items-center gap-2 text-[11px] text-emerald-700 font-semibold tracking-wider uppercase mb-1">
                         <span>Management</span>
                         <span>•</span>
                         <span>Service Reports</span>
@@ -54,12 +57,12 @@ session_start();
                 </div>
                 
                 <div class="flex items-center gap-3">
-                    <select class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition shadow-sm font-medium">
+                    <select class="bg-white border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition shadow-sm font-medium">
                         <option value="this-month">This Month</option>
                         <option value="last-month">Last Month</option>
                         <option value="year-to-date">Year to Date</option>
                     </select>
-                    <button class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
+                    <button class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
                         <i data-lucide="download" class="w-4 h-4"></i>
                         <span>Export Summary Report</span>
                     </button>
@@ -74,7 +77,7 @@ session_start();
                         <p class="text-2xl font-bold text-slate-900 mt-1">146</p>
                         <p class="text-[11px] text-emerald-600 font-medium mt-1">100% Client Sign-off</p>
                     </div>
-                    <div class="bg-emerald-50 p-2.5 rounded-lg text-[#007a55] border border-emerald-100">
+                    <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                         <i data-lucide="clipboard-check" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -177,30 +180,30 @@ session_start();
                         <div>
                             <div class="flex justify-between text-slate-600 mb-1 font-medium">
                                 <span>Termidor HE (Termiticide)</span>
-                                <span class="font-bold text-[#007a55] font-mono">12,400 mL</span>
+                                <span class="font-bold text-emerald-700 font-mono">12,400 mL</span>
                             </div>
                             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                <div class="bg-[#007a55] h-full w-[65%] rounded-full"></div>
+                                <div class="bg-emerald-700 h-full w-[65%] rounded-full"></div>
                             </div>
                         </div>
 
                         <div>
                             <div class="flex justify-between text-slate-600 mb-1 font-medium">
                                 <span>Advion Gel Bait</span>
-                                <span class="font-bold text-[#007a55] font-mono">3,200 mL</span>
+                                <span class="font-bold text-emerald-700 font-mono">3,200 mL</span>
                             </div>
                             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                <div class="bg-[#007a55] h-full w-[30%] rounded-full"></div>
+                                <div class="bg-emerald-700 h-full w-[30%] rounded-full"></div>
                             </div>
                         </div>
 
                         <div>
                             <div class="flex justify-between text-slate-600 mb-1 font-medium">
                                 <span>Contrac Blox</span>
-                                <span class="font-bold text-[#007a55] font-mono">2,850 mL / Bait Units</span>
+                                <span class="font-bold text-emerald-700 font-mono">2,850 mL / Bait Units</span>
                             </div>
                             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                <div class="bg-[#007a55] h-full w-[25%] rounded-full"></div>
+                                <div class="bg-emerald-700 h-full w-[25%] rounded-full"></div>
                             </div>
                         </div>
                     </div>
@@ -215,7 +218,7 @@ session_start();
                         <h2 class="text-base font-semibold text-slate-900">Technician Activity Summary</h2>
                         <p class="text-[11px] text-slate-400 mt-0.5">Jobs logged and chemical volumes applied per technician.</p>
                     </div>
-                    <span class="bg-emerald-50 text-[#007a55] text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-100">3 Active Staff</span>
+                    <span class="bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-emerald-200">3 Active Staff</span>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -234,27 +237,27 @@ session_start();
                                 <td class="py-3 font-bold text-slate-800">Rodel Mamparil</td>
                                 <td class="py-3 text-slate-500">Sector 04 (Roxas, Davao City)</td>
                                 <td class="py-3 text-slate-700 font-medium">58 Jobs</td>
-                                <td class="py-3 text-[#007a55] font-mono font-medium">7,800 mL</td>
+                                <td class="py-3 text-emerald-700 font-mono font-medium">7,800 mL</td>
                                 <td class="py-3 text-right">
-                                    <span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>
+                                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>
                                 </td>
                             </tr>
                             <tr class="hover:bg-slate-50/80 transition">
                                 <td class="py-3 font-bold text-slate-800">John Doe</td>
                                 <td class="py-3 text-slate-500">Sector 02 (Downtown)</td>
                                 <td class="py-3 text-slate-700 font-medium">46 Jobs</td>
-                                <td class="py-3 text-[#007a55] font-mono font-medium">5,650 mL</td>
+                                <td class="py-3 text-emerald-700 font-mono font-medium">5,650 mL</td>
                                 <td class="py-3 text-right">
-                                    <span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>
+                                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>
                                 </td>
                             </tr>
                             <tr class="hover:bg-slate-50/80 transition">
                                 <td class="py-3 font-bold text-slate-800">Mark Santos</td>
                                 <td class="py-3 text-slate-500">Sector 01 (Industrial)</td>
                                 <td class="py-3 text-slate-700 font-medium">42 Jobs</td>
-                                <td class="py-3 text-[#007a55] font-mono font-medium">5,000 mL</td>
+                                <td class="py-3 text-emerald-700 font-mono font-medium">5,000 mL</td>
                                 <td class="py-3 text-right">
-                                    <span class="bg-emerald-50 text-[#007a55] border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>
+                                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>
                                 </td>
                             </tr>
                         </tbody>
