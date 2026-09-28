@@ -156,8 +156,12 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Order Dispatch - Vermex Pest Solutions</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Vermex Theme Rules -->
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-800 flex h-screen overflow-hidden">
 
@@ -220,9 +224,9 @@ try {
                 <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Completed Jobs</p>
-                        <h3 class="text-2xl font-bold text-emerald-600 mt-1"><?= $completedCount ?></h3>
+                        <h3 class="text-2xl font-bold text-emerald-700 mt-1"><?= $completedCount ?></h3>
                     </div>
-                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <div class="p-3 bg-emerald-50 text-emerald-700 rounded-xl">
                         <i data-lucide="check-circle-2" class="w-6 h-6"></i>
                     </div>
                 </div>
@@ -243,12 +247,12 @@ try {
                 <form method="GET" class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                     <div class="flex items-center gap-2">
                         <label class="text-xs font-semibold text-gray-600 flex items-center gap-1.5">
-                            <i data-lucide="calendar" class="w-4 h-4 text-emerald-600"></i> Date:
+                            <i data-lucide="calendar" class="w-4 h-4 text-emerald-700"></i> Date:
                         </label>
-                        <input type="date" name="date" value="<?= htmlspecialchars($filterDate) ?>" onchange="this.form.submit()" class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 focus:ring-2 focus:ring-emerald-500 bg-white">
+                        <input type="date" name="date" value="<?= htmlspecialchars($filterDate) ?>" onchange="this.form.submit()" class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 focus:ring-2 focus:ring-emerald-600 bg-white">
                     </div>
                     <div class="flex items-center gap-2">
-                        <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, tech, or service..." class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 w-60 focus:ring-2 focus:ring-emerald-500">
+                        <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, tech, or service..." class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 w-60 focus:ring-2 focus:ring-emerald-600">
                         <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-300">Filter</button>
                     </div>
                 </form>
@@ -295,13 +299,13 @@ try {
                                         </td>
                                         <td class="py-3.5 px-4 text-gray-800 font-medium whitespace-nowrap">
                                             <div class="flex items-center gap-1.5">
-                                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-700"></i>
                                                 <span><?= htmlspecialchars($job['assigned_tech'] ?: 'Unassigned') ?></span>
                                             </div>
                                         </td>
                                         <td class="py-3.5 px-4 whitespace-nowrap">
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold 
-                                                <?= $job['priority'] === 'Urgent' ? 'bg-red-100 text-red-700 border border-red-200' : ($job['priority'] === 'High' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200') ?>">
+                                                <?= $job['priority'] === 'Urgent' ? 'bg-rose-100 text-rose-700 border border-rose-200' : ($job['priority'] === 'High' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200') ?>">
                                                 <?= htmlspecialchars($job['priority']) ?>
                                             </span>
                                         </td>
@@ -331,10 +335,10 @@ try {
     <div id="jobModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full overflow-hidden max-h-[90vh] flex flex-col">
             
-            <div class="bg-[#0b2219] text-white px-6 py-4 flex justify-between items-center">
+            <div class="bg-emerald-900 text-white px-6 py-4 flex justify-between items-center">
                 <div>
                     <h3 class="font-bold text-base">Job Order Execution Form</h3>
-                    <p class="text-[11px] text-emerald-300">Vermex Pest Solutions — Field Dispatch & Service Report</p>
+                    <p class="text-[11px] text-emerald-200">Vermex Pest Solutions — Field Dispatch & Service Report</p>
                 </div>
                 <button type="button" onclick="closeModal()" class="text-gray-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
@@ -348,7 +352,7 @@ try {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Contract Client Account</label>
-                        <select name="client_name" id="modal_client_name" onchange="updateClientData(this)" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white" required>
+                        <select name="client_name" id="modal_client_name" onchange="updateClientData(this)" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white focus:outline-none focus:border-emerald-600" required>
                             <option value="">Select Active Client Account</option>
                             <?php foreach ($clients as $c): 
                                 $cName      = $c['client_name'] ?? $c['company_name'] ?? $c['name'] ?? 'Client';
@@ -375,23 +379,23 @@ try {
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <input type="text" name="location" id="modal_location" placeholder="Service Address Location" class="w-full mt-2 border border-gray-300 rounded-lg p-2 bg-white" required>
+                        <input type="text" name="location" id="modal_location" placeholder="Service Address Location" class="w-full mt-2 border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600" required>
                     </div>
 
                     <div class="space-y-2">
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block font-bold text-gray-700 mb-1">Scheduled Date</label>
-                                <input type="date" name="scheduled_date" id="modal_scheduled_date" class="w-full border border-gray-300 rounded-lg p-2 bg-white" required>
+                                <input type="date" name="scheduled_date" id="modal_scheduled_date" class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600" required>
                             </div>
                             <div>
                                 <label class="block font-bold text-gray-700 mb-1">Service Window</label>
-                                <input type="text" name="service_window" id="modal_service_window" placeholder="08:00–09:30" class="w-full border border-gray-300 rounded-lg p-2 bg-white" required>
+                                <input type="text" name="service_window" id="modal_service_window" placeholder="08:00–09:30" class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600" required>
                             </div>
                         </div>
                         <div>
                             <label class="block font-bold text-gray-700 mb-1">Assigned Personnel / Field Tech</label>
-                            <select name="assigned_tech" id="modal_assigned_tech" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white" required>
+                            <select name="assigned_tech" id="modal_assigned_tech" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white focus:outline-none focus:border-emerald-600" required>
                                 <option value="">Loading technicians...</option>
                             </select>
                         </div>
@@ -401,18 +405,18 @@ try {
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="md:col-span-1">
                         <label class="block font-bold text-gray-700 mb-1">Treatment / Service Type</label>
-                        <input type="text" name="service_type" id="modal_service_type" placeholder="e.g. General Pest Control" class="w-full border border-gray-300 rounded-lg p-2 bg-white" required>
+                        <input type="text" name="service_type" id="modal_service_type" placeholder="e.g. General Pest Control" class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600" required>
                     </div>
                     <div class="md:col-span-1">
                         <label class="block font-bold text-gray-700 mb-1">Time In / Time Out</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" name="time_in" id="modal_time_in" placeholder="08:10 AM" class="border border-gray-300 rounded-lg p-2 bg-white">
-                            <input type="text" name="time_out" id="modal_time_out" placeholder="10:15 AM" class="border border-gray-300 rounded-lg p-2 bg-white">
+                            <input type="text" name="time_in" id="modal_time_in" placeholder="08:10 AM" class="border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600">
+                            <input type="text" name="time_out" id="modal_time_out" placeholder="10:15 AM" class="border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600">
                         </div>
                     </div>
                     <div class="md:col-span-1">
                         <label class="block font-bold text-gray-700 mb-1">Priority</label>
-                        <select name="priority" id="modal_priority" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white">
+                        <select name="priority" id="modal_priority" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white focus:outline-none focus:border-emerald-600">
                             <option value="Standard">Standard</option>
                             <option value="High">High</option>
                             <option value="Urgent">Urgent</option>
@@ -420,7 +424,7 @@ try {
                     </div>
                     <div class="md:col-span-1">
                         <label class="block font-bold text-gray-700 mb-1">Route Status</label>
-                        <select name="route_status" id="modal_route_status" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white">
+                        <select name="route_status" id="modal_route_status" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white focus:outline-none focus:border-emerald-600">
                             <option value="Scheduled">Scheduled</option>
                             <option value="En route">En route</option>
                             <option value="On site">On site</option>
@@ -455,7 +459,7 @@ try {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Chemicals & Dilution Rate</label>
-                        <textarea name="comments" id="modal_comments" rows="3" placeholder="Chemicals applied, dilution rates, dosage, water volume..." class="w-full border border-gray-300 rounded-lg p-2 bg-white"></textarea>
+                        <textarea name="comments" id="modal_comments" rows="3" placeholder="Chemicals applied, dilution rates, dosage, water volume..." class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600"></textarea>
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Client Acknowledgment</label>
@@ -468,7 +472,7 @@ try {
 
                 <div class="border-t pt-4 flex justify-end gap-2">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-semibold shadow-sm">Save Job Order</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-semibold shadow-sm transition">Save Job Order</button>
                 </div>
             </form>
         </div>
@@ -579,9 +583,9 @@ try {
             const tbody = document.querySelector('#areaTable tbody');
             const row   = document.createElement('tr');
             row.innerHTML = `
-                <td class="p-2"><input type="text" name="area_name[]" value="${escapeHtml(area)}" placeholder="e.g. Kitchen / Perimeter" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white" required></td>
-                <td class="p-2"><input type="text" name="area_action[]" value="${escapeHtml(action)}" placeholder="Residual spraying applied" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white"></td>
-                <td class="p-2 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></td>
+                <td class="p-2"><input type="text" name="area_name[]" value="${escapeHtml(area)}" placeholder="e.g. Kitchen / Perimeter" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white focus:outline-none focus:border-emerald-600" required></td>
+                <td class="p-2"><input type="text" name="area_action[]" value="${escapeHtml(action)}" placeholder="Residual spraying applied" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white focus:outline-none focus:border-emerald-600"></td>
+                <td class="p-2 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></td>
             `;
             tbody.appendChild(row);
             lucide.createIcons();
