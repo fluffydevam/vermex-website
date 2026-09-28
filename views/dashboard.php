@@ -29,6 +29,7 @@ $userRole = $_SESSION['role'] ?? 'Admin';
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         .custom-sidebar { background-color: #0b2219; }
         .active-nav { background-color: #14382a; border-radius: 0.5rem; }
@@ -57,7 +58,7 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                 </div>
                 <button class="relative p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100">
                     <i data-lucide="bell" class="w-5 h-5"></i>
-                    <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
                 </button>
             </div>
         </header>
@@ -89,7 +90,7 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                     <div>
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jobs Today</p>
                         <h3 class="text-2xl font-bold text-gray-900 mt-1"><?= $todayJobsCount ?></h3>
-                        <p class="text-xs text-emerald-600 mt-1 font-medium">4 dispatched • 2 pending balance</p>
+                        <p class="text-xs text-emerald-700 mt-1 font-medium">4 dispatched • 2 pending balance</p>
                     </div>
                     <div class="p-2.5 bg-emerald-50 text-emerald-700 rounded-lg">
                         <i data-lucide="calendar-check" class="w-5 h-5"></i>
@@ -125,7 +126,7 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                     <div>
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Chemical Alerts</p>
                         <h3 class="text-2xl font-bold text-gray-900 mt-1"><?= $lowStockAlertsCount ?></h3>
-                        <p class="text-xs text-red-600 mt-1 font-medium">Items below reorder point</p>[cite: 1]
+                        <p class="text-xs text-rose-600 mt-1 font-medium">Items below reorder point</p>[cite: 1]
                     </div>
                     <div class="p-2.5 bg-amber-50 text-amber-700 rounded-lg">
                         <i data-lucide="alert-triangle" class="w-5 h-5"></i>
@@ -150,13 +151,13 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                             <!-- Entry 1 -->
                             <div class="py-3 flex justify-between items-start">
                                 <div class="flex gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs mt-0.5">
+                                    <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs mt-0.5">
                                         R
                                     </div>
                                     <div>
                                         <h4 class="text-sm font-semibold text-gray-800">Marco Polo Hotel Davao</h4>
                                         <p class="text-xs text-gray-500 mt-0.5">Commercial Monthly Plan • Termite Treatment Inquiry</p>[cite: 1]
-                                        <span class="inline-block mt-2 px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded text-[10px] font-semibold">Urgent Visit Requested</span>
+                                        <span class="inline-block mt-2 px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded text-[10px] font-semibold">Urgent Visit Requested</span>
                                     </div>
                                 </div>
                                 <span class="text-xs text-gray-400">12 min ago</span>
@@ -202,7 +203,7 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                         </div>
                         
                         <div class="space-y-3">
-                            <div class="border-l-4 border-emerald-600 bg-gray-50 p-3 rounded-r-lg flex justify-between items-center">
+                            <div class="border-l-4 border-emerald-700 bg-gray-50 p-3 rounded-r-lg flex justify-between items-center">
                                 <div>
                                     <div class="flex items-center gap-2">
                                         <span class="text-xs font-bold text-emerald-800">09:30 AM</span>
@@ -247,7 +248,7 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                                     <span class="font-bold text-gray-900">12</span>
                                 </div>
                                 <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-emerald-600 h-full" style="width: 55%"></div>
+                                    <div class="bg-emerald-700 h-full" style="width: 55%"></div>
                                 </div>
                             </div>
 
@@ -274,10 +275,10 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                             <div>
                                 <div class="flex justify-between text-xs font-medium mb-1">
                                     <span class="text-gray-600">30-Day Overdue Receivables</span>[cite: 1]
-                                    <span class="font-bold text-red-600">2</span>
+                                    <span class="font-bold text-rose-600">2</span>
                                 </div>
                                 <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-red-500 h-full" style="width: 10%"></div>
+                                    <div class="bg-rose-500 h-full" style="width: 10%"></div>
                                 </div>
                             </div>
                         </div>
@@ -291,11 +292,11 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                         </div>
 
                         <div class="space-y-3">
-                            <div class="p-3 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3">
-                                <i data-lucide="alert-circle" class="w-5 h-5 text-red-600 mt-0.5"></i>
+                            <div class="p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-start gap-3">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-rose-600 mt-0.5"></i>
                                 <div>
                                     <h4 class="text-xs font-bold text-gray-800">Fipronil Termiticide Liquid</h4>
-                                    <p class="text-[11px] text-red-700 font-semibold mt-0.5">2 Liters Remaining (Below min 5L threshold)</p>[cite: 1]
+                                    <p class="text-[11px] text-rose-700 font-semibold mt-0.5">2 Liters Remaining (Below min 5L threshold)</p>[cite: 1]
                                 </div>
                             </div>
 
@@ -303,7 +304,7 @@ $userRole = $_SESSION['role'] ?? 'Admin';
                                 <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 mt-0.5"></i>
                                 <div>
                                     <h4 class="text-xs font-bold text-gray-800">Bromadiolone Bait Blocks</h4>
-                                    <p class="text-[11px] text-amber-700 font-semibold mt-0.5">8 Packs Remaining (Below min 15 packs)</p][cite: 1]
+                                    <p class="text-[11px] text-amber-700 font-semibold mt-0.5">8 Packs Remaining (Below min 15 packs)</p>[cite: 1]
                                 </div>
                             </div>
                         </div>
