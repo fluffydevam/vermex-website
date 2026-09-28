@@ -34,15 +34,15 @@ session_start();
         }
     </style>
 </head>
-<body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased overflow-hidden">
+<body class="bg-[#f8faf9] text-slate-800 h-screen flex font-sans antialiased overflow-hidden">
 
     <!-- 1. Shared Sidebar Component -->
     <?php include 'components/sidebar.php'; ?>
 
-    <!-- 2. Main Content Area -->
-    <main class="flex-1 flex flex-col overflow-y-auto bg-[#f8faf9]">
+    <!-- 2. Main Content Area (Scrollable Container) -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f8faf9]">
         
-        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto">
+        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto pb-12">
             
             <!-- Page Title & Top Action Header -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
@@ -119,7 +119,7 @@ session_start();
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 <!-- Primary Active Jobs Table (Left Column) -->
-                <div class="lg:col-span-2 bg-white border border-slate-200/80 rounded-xl p-5 space-y-4 shadow-sm">
+                <div class="lg:col-span-2 bg-white border border-slate-200/80 rounded-xl p-5 space-y-4 shadow-sm h-fit">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
                             <div class="flex items-center gap-2">
