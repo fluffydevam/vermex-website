@@ -247,6 +247,7 @@ $eligibleContracts = $pdo->query("
                                 <th class="px-5 py-3.5">Client & Contract</th>
                                 <th class="px-5 py-3.5">Payment Type</th>
                                 <th class="px-5 py-3.5">Method</th>
+                                <th class="px-5 py-3.5">Contract Value</th>
                                 <th class="px-5 py-3.5">Amount Paid</th>
                                 <th class="px-5 py-3.5">Remaining Balance</th>
                                 <th class="px-5 py-3.5">Date</th>
@@ -278,6 +279,9 @@ $eligibleContracts = $pdo->query("
                                         <td class="px-5 py-4 font-medium text-slate-600">
                                             <?= htmlspecialchars($p['payment_method']) ?>
                                         </td>
+                                        <td class="px-5 py-4 font-bold text-slate-700">
+                                            ₱<?= number_format($p['contract_value'] ?? 0, 2) ?>
+                                        </td>
                                         <td class="px-5 py-4 font-bold text-emerald-600">
                                             ₱<?= number_format($p['amount_paid'], 2) ?>
                                         </td>
@@ -294,7 +298,7 @@ $eligibleContracts = $pdo->query("
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="8" class="text-center py-10 text-slate-400 font-medium">No payment transactions recorded yet.</td>
+                                    <td colspan="9" class="text-center py-10 text-slate-400 font-medium">No payment transactions recorded yet.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
