@@ -79,7 +79,7 @@ $updateExpiringSoonStmt->execute(['today' => $today]);
 
 $pdo->exec("
     UPDATE contracts c
-    SET c.final_balance = GREATEST(0.00, c.contract_value - COALESCE(
+    SET c.final_balance_notes = GREATEST(0.00, c.contract_value - COALESCE(
         (SELECT SUM(p.amount_paid) FROM payments p WHERE p.contract_id = c.id), 0.00
     ))
 ");

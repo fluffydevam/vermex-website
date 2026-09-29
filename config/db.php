@@ -56,6 +56,7 @@ try {
             contract_start_date DATE NULL,
             contract_end_date DATE NULL,
             contract_value DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            final_balance DECIMAL(10,2) NOT NULL DEFAULT 0.00,
             final_balance_notes DECIMAL(10,2) NOT NULL DEFAULT 0.00,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
