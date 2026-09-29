@@ -47,21 +47,21 @@ try {
     ");
 
     // 3. Contracts Table
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS contracts (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            client_id INT NOT NULL,
-            contract_name VARCHAR(150) NOT NULL,
-            contract_status ENUM('active', 'to_be_contracted', 'expiring_soon', 'cancelled', 'expired', 'archived') NOT NULL DEFAULT 'to_be_contracted',
-            contract_start_date DATE NULL,
-            contract_end_date DATE NULL,
-            contract_value DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-            final_balance DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-            final_balance_notes DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    ");
+$pdo->exec("
+    CREATE TABLE IF NOT EXISTS contracts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        client_id INT NOT NULL,
+        contract_name VARCHAR(150) NOT NULL,
+        contract_status ENUM('active', 'to_be_contracted', 'expiring_soon', 'cancelled', 'expired') DEFAULT 'to_be_contracted',
+        contract_start_date DATE NULL,
+        contract_end_date DATE NULL,
+        contract_value DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        final_balance DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        final_balance_notes TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+");
 
     // 4. Site Inspections Table (Linked with contract_id)
     $pdo->exec("
