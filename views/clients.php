@@ -595,9 +595,18 @@ foreach ($contracts as $con) {
                 <div class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
                     <!-- Client Details Card -->
                     <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm">
-                        <div class="flex items-center gap-2 text-slate-800 font-bold border-b border-slate-100 pb-2">
-                            <i data-lucide="user" class="w-4 h-4 text-blue-600"></i> Client Details
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <div class="flex items-center gap-2 text-slate-800 font-bold">
+                                <i data-lucide="user" class="w-4 h-4 text-blue-600"></i> Client Details
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="openEditClientModal()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                                    <i data-lucide="edit" class="w-3.5 h-3.5"></i> Edit Client
+                                </button>
+                                <span id="clientActionContainer"></span>
+                            </div>
                         </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Company / Name</span>
@@ -665,6 +674,75 @@ foreach ($contracts as $con) {
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
                     <button onclick="closeViewModal()" class="bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg border border-slate-200 text-xs font-medium transition">Close Profile</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Edit Client Modal -->
+        <div id="editClientModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+            <div class="bg-white border border-slate-200 rounded-xl p-6 max-w-xl w-full space-y-4 shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="user-cog" class="w-4 h-4 text-blue-600"></i> Edit Client Account
+                    </h3>
+                    <button onclick="closeEditClientModal()" class="text-slate-400 hover:text-slate-700">&times;</button>
+                </div>
+
+                <form action="../controllers/updateClient.php" method="POST" class="space-y-3.5 text-xs">
+                    <input type="hidden" id="edit_client_id" name="client_id">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Company / Name *</label>
+                            <input type="text" id="edit_client_name" name="client_name" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">First Name *</label>
+                            <input type="text" id="edit_first_name" name="first_name" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Last Name *</label>
+                            <input type="text" id="edit_last_name" name="last_name" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Account Type *</label>
+                            <select id="edit_client_type" name="client_type" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                                <option value="Commercial">Commercial</option>
+                                <option value="Residential">Residential</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Email Address *</label>
+                            <input type="email" id="edit_email" name="email" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Phone Number *</label>
+                            <input type="text" id="edit_phone" name="phone_number" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Street Address *</label>
+                            <input type="text" id="edit_street_address" name="street_address" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">Barangay *</label>
+                            <input type="text" id="edit_barangay" name="barangay" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                        </div>
+                        <div>
+                            <label class="block text-slate-600 font-medium mb-1">City *</label>
+                            <input type="text" id="edit_city" name="city" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                        <button type="button" onclick="closeEditClientModal()" class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-200 font-medium">Cancel</button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition">Update Client Account</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -788,9 +866,12 @@ foreach ($contracts as $con) {
         }
 
         let selectedActiveClientId = null;
+        let currentClientData = null;
 
         function openViewModal(client) {
             selectedActiveClientId = client.id;
+            currentClientData = client;
+
             document.getElementById('view_company_name').innerText = client.client_name || 'N/A';
             document.getElementById('view_contact_person').innerText = (client.last_name || '') + ', ' + (client.first_name || '');
             document.getElementById('view_client_type').innerText = client.client_type || 'Commercial';
@@ -808,15 +889,40 @@ foreach ($contracts as $con) {
             document.getElementById('viewContractModal').classList.add('hidden');
         }
 
+        function openEditClientModal() {
+            if (!currentClientData) return;
+
+            document.getElementById('edit_client_id').value = currentClientData.id;
+            document.getElementById('edit_client_name').value = currentClientData.client_name || '';
+            document.getElementById('edit_first_name').value = currentClientData.first_name || '';
+            document.getElementById('edit_last_name').value = currentClientData.last_name || '';
+            document.getElementById('edit_client_type').value = currentClientData.client_type || 'Commercial';
+            document.getElementById('edit_email').value = currentClientData.email || '';
+            document.getElementById('edit_phone').value = currentClientData.phone_number || '';
+            document.getElementById('edit_street_address').value = currentClientData.street_address || '';
+            document.getElementById('edit_barangay').value = currentClientData.barangay || '';
+            document.getElementById('edit_city').value = currentClientData.city || 'Davao City';
+
+            document.getElementById('editClientModal').classList.remove('hidden');
+        }
+
+        function closeEditClientModal() {
+            document.getElementById('editClientModal').classList.add('hidden');
+        }
+
         function fetchClientContracts(clientId) {
             const tbody = document.getElementById('modalContractsTableBody');
+            const actionContainer = document.getElementById('clientActionContainer');
             tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 italic">Loading contracts...</td></tr>`;
+            actionContainer.innerHTML = '';
 
             fetch(`../controllers/getClientContracts.php?client_id=${clientId}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.contracts.length > 0) {
                         let rows = '';
+                        let hasRemainingBalance = false;
+
                         data.contracts.forEach(con => {
                             let badge = '<span class="bg-emerald-50 text-[#007a55] border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>';
                             if (con.contract_status === 'to_be_contracted') badge = '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">To-Be-Contracted</span>';
@@ -824,6 +930,10 @@ foreach ($contracts as $con) {
                             else if (con.contract_status === 'expired') badge = '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-semibold">Expired</span>';
                             else if (con.contract_status === 'cancelled') badge = '<span class="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded text-[10px] font-semibold">Cancelled</span>';
                             else if (con.contract_status === 'archived') badge = '<span class="bg-slate-200 text-slate-700 border border-slate-300 px-2 py-0.5 rounded text-[10px] font-semibold">Archived</span>';
+
+                            if (parseFloat(con.final_balance || 0) > 0) {
+                                hasRemainingBalance = true;
+                            }
 
                             rows += `
                                 <tr class="hover:bg-slate-50 transition">
@@ -841,9 +951,32 @@ foreach ($contracts as $con) {
                             `;
                         });
                         tbody.innerHTML = rows;
+
+                        // Action button condition based on contracts & remaining final balance
+                        if (!hasRemainingBalance) {
+                            actionContainer.innerHTML = `
+                                <a href="../controllers/archiveClient.php?id=${clientId}" onclick="return confirm('Are you sure you want to archive this client?');" class="bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                                    <i data-lucide="archive" class="w-3.5 h-3.5"></i> Archive Client
+                                </a>
+                            `;
+                        } else {
+                            actionContainer.innerHTML = `
+                                <button disabled title="Cannot delete or archive while contracts have an outstanding balance" class="bg-slate-100 text-slate-400 border border-slate-200 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-not-allowed">
+                                    <i data-lucide="lock" class="w-3.5 h-3.5"></i> Has Balance
+                                </button>
+                            `;
+                        }
                     } else {
                         tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 italic">No contracts recorded for this client yet.</td></tr>`;
+                        
+                        // If no contracts exist, allow full deletion
+                        actionContainer.innerHTML = `
+                            <a href="../controllers/deleteClient.php?id=${clientId}" onclick="return confirm('Are you sure you want to permanently delete this client?');" class="bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete Client
+                            </a>
+                        `;
                     }
+                    lucide.createIcons();
                 })
                 .catch(err => {
                     tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-rose-500">Failed to load contracts.</td></tr>`;
