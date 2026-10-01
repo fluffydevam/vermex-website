@@ -15,8 +15,8 @@ $contractSearch = trim($_GET['c_search'] ?? '');
 $filterContractStatus = trim($_GET['c_status'] ?? '');
 $isArchivedView = (isset($_GET['status']) && $_GET['status'] === 'archived');
 
-// 1. Fetch Clients Data
-$clientQuery = "SELECT * FROM clients WHERE 1=1";
+// 1. Fetch Clients Data (Exclude archived clients from active view)
+$clientQuery = "SELECT * FROM clients WHERE status != 'archived'";
 $clientParams = [];
 
 if (!empty($search)) {
@@ -211,6 +211,10 @@ foreach ($contracts as $con) {
                             <i data-lucide="file-plus" class="w-4 h-4"></i> Add New Contract
                         </button>
                     <?php endif; ?>
+                    
+                    <a href="archived-clients.php" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
+                        <i data-lucide="archive" class="w-4 h-4"></i> Archived Clients
+                    </a>
                 </div>
             </div>
 
