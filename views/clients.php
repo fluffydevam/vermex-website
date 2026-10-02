@@ -15,8 +15,8 @@ $contractSearch = trim($_GET['c_search'] ?? '');
 $filterContractStatus = trim($_GET['c_status'] ?? '');
 $isArchivedView = (isset($_GET['status']) && $_GET['status'] === 'archived');
 
-// 1. Fetch Clients Data (Exclude archived clients from active view)
-$clientQuery = "SELECT * FROM clients WHERE status != 'archived'";
+// 1. Fetch Clients Data (Include active, inactive, disabled, and archived clients)
+$clientQuery = "SELECT * FROM clients WHERE 1=1";
 $clientParams = [];
 
 if (!empty($search)) {
@@ -27,10 +27,15 @@ if (!empty($filterType)) {
     $clientQuery .= " AND client_type = :type";
     $clientParams['type'] = $filterType;
 }
+
 if (!empty($filterStatus)) {
     $clientQuery .= " AND status = :status";
     $clientParams['status'] = $filterStatus;
+} else {
+    // Hide archived clients by default when no specific status filter is active
+    $clientQuery .= " AND status != 'archived'";
 }
+
 $clientQuery .= " ORDER BY created_at DESC";
 
 $stmt = $pdo->prepare($clientQuery);
@@ -115,13 +120,20 @@ $stmtContract->execute($contractParams);
 $contracts = $stmtContract->fetchAll();
 
 // KPI Calculations
+$archivedCountStmt = $pdo->query("SELECT COUNT(*) FROM clients WHERE status = 'archived'");
+$archivedClients = (int) $archivedCountStmt->fetchColumn();
+
 $totalClients = count($clients);
 $activeClients = 0;
+$inactiveClients = 0;
 $commercialCount = 0;
 $residentialCount = 0;
 
 foreach ($clients as $c) {
-    if (($c['status'] ?? '') === 'active') $activeClients++;
+    $st = $c['status'] ?? '';
+    if ($st === 'active') $activeClients++;
+    elseif ($st === 'inactive' || $st === 'disabled') $inactiveClients++;
+
     if (($c['client_type'] ?? '') === 'Commercial') $commercialCount++;
     if (($c['client_type'] ?? '') === 'Residential') $residentialCount++;
 }
@@ -211,10 +223,7 @@ foreach ($contracts as $con) {
                             <i data-lucide="file-plus" class="w-4 h-4"></i> Add New Contract
                         </button>
                     <?php endif; ?>
-                    
-                    <a href="archived-clients.php" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
-                        <i data-lucide="archive" class="w-4 h-4"></i> Archived Clients
-                    </a>
+
                 </div>
             </div>
 
@@ -227,7 +236,13 @@ foreach ($contracts as $con) {
                         <div>
                             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Client Accounts</p>
                             <p class="text-2xl font-bold text-slate-900 mt-1"><?= $totalClients ?> <span class="text-xs font-normal text-slate-500">Clients</span></p>
-                            <p class="text-[11px] text-emerald-700 font-medium mt-1"><?= $activeClients ?> Active Status Accounts</p>
+                            <div class="flex items-center gap-2 text-[11px] font-medium mt-1">
+                                <span class="text-emerald-700"><?= $activeClients ?> Active</span>
+                                <span class="text-slate-300">•</span>
+                                <span class="text-amber-600"><?= $inactiveClients ?> Inactive</span>
+                                <span class="text-slate-300">•</span>
+                                <span class="text-slate-500"><?= $archivedClients ?> Archived</span>
+                            </div>
                         </div>
                         <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                             <i data-lucide="briefcase" class="w-5 h-5"></i>
@@ -339,6 +354,7 @@ foreach ($contracts as $con) {
                                 <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
                                 <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search name, company, email..." class="w-full border border-slate-200 text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-emerald-600">
                             </div>
+
                             <select name="type" onchange="this.form.submit()" class="border border-slate-200 text-slate-700 text-xs rounded-lg px-2.5 py-1.5 font-medium">
                                 <option value="">Type: All</option>
                                 <option value="Commercial" <?= $filterType === 'Commercial' ? 'selected' : '' ?>>Commercial</option>
@@ -348,7 +364,11 @@ foreach ($contracts as $con) {
                                 <option value="">Status: All</option>
                                 <option value="active" <?= $filterStatus === 'active' ? 'selected' : '' ?>>Active</option>
                                 <option value="inactive" <?= $filterStatus === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                                <option value="archived" <?= $filterStatus === 'archived' ? 'selected' : '' ?>>Archived</option>
                             </select>
+                            <a href="archived-clients.php" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
+                                <i data-lucide="archive" class="w-4 h-4"></i> Archived Clients
+                            </a>
                         </div>
                     </form>
 
@@ -372,9 +392,18 @@ foreach ($contracts as $con) {
                                     <?php foreach ($clients as $client): ?>
                                         <?php
                                         $typeClass = ($client['client_type'] ?? '') === 'Residential' ? "bg-emerald-50 text-emerald-700 border-emerald-200/60" : "bg-blue-50 text-blue-700 border-blue-200/60";
-                                        $statusBadge = ($client['status'] ?? 'active') === 'active'
-                                            ? '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>'
-                                            : '<span class="bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">Disabled</span>';
+
+                                        $clientStatus = $client['status'] ?? 'active';
+                                        if ($clientStatus === 'active') {
+                                            $statusBadge = '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>';
+                                        } elseif ($clientStatus === 'inactive' || $clientStatus === 'disabled') {
+                                            $statusBadge = '<span class="bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">' . ucfirst($clientStatus) . '</span>';
+                                        } elseif ($clientStatus === 'archived') {
+                                            $statusBadge = '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">Archived</span>';
+                                        } else {
+                                            $statusBadge = '<span class="bg-slate-50 text-slate-700 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">' . ucfirst($clientStatus) . '</span>';
+                                        }
+
                                         $fullAddress = trim(($client['street_address'] ?? '') . ', ' . ($client['barangay'] ?? '') . ', ' . ($client['city'] ?? 'Davao City'));
                                         $encodedClient = htmlspecialchars(json_encode($client), ENT_QUOTES, 'UTF-8');
                                         ?>
@@ -442,7 +471,7 @@ foreach ($contracts as $con) {
 
                 <!-- Contracts Table View -->
                 <div class="bg-white border border-slate-200/80 rounded-xl p-5 space-y-4 shadow-sm">
-                    
+
                     <!-- Toggle Button for Archived View -->
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
@@ -520,7 +549,7 @@ foreach ($contracts as $con) {
                                         $clientTypeBadge = ($con['client_type'] ?? '') === 'Residential'
                                             ? '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-medium">Residential</span>'
                                             : '<span class="bg-blue-50 text-blue-700 border border-blue-200/60 px-2 py-0.5 rounded text-[10px] font-medium">Commercial</span>';
-                                        
+
                                         $encodedContract = htmlspecialchars(json_encode($con), ENT_QUOTES, 'UTF-8');
                                         ?>
                                         <tr class="hover:bg-slate-50/80 transition">
@@ -602,6 +631,7 @@ foreach ($contracts as $con) {
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                             <div class="flex items-center gap-2 text-slate-800 font-bold">
                                 <i data-lucide="user" class="w-4 h-4 text-blue-600"></i> Client Details
+                                <span id="view_status_badge"></span> <!-- Status Badge Output -->
                             </div>
                             <div class="flex items-center gap-2">
                                 <button type="button" onclick="openEditClientModal()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
@@ -718,6 +748,15 @@ foreach ($contracts as $con) {
                             </select>
                         </div>
                         <div>
+                            <label class="block text-slate-600 font-medium mb-1">Account Status *</label>
+                            <select id="edit_client_status" name="status" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
+
+                        <div>
                             <label class="block text-slate-600 font-medium mb-1">Email Address *</label>
                             <input type="email" id="edit_email" name="email" required class="w-full border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
                         </div>
@@ -806,7 +845,7 @@ foreach ($contracts as $con) {
             </div>
         </div>
 
-       <!-- Edit Contract Modal -->
+        <!-- Edit Contract Modal -->
         <div id="editContractModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
             <div class="bg-white border border-slate-200 rounded-xl p-6 max-w-md w-full space-y-4 shadow-xl">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -883,9 +922,19 @@ foreach ($contracts as $con) {
             document.getElementById('view_phone').innerText = client.phone_number || 'N/A';
             document.getElementById('view_address').innerText = [client.street_address, client.barangay, client.city].filter(Boolean).join(', ') || 'N/A';
 
-            // Fetch all contracts for this specific client ID via AJAX
-            fetchClientContracts(client.id);
+            // Render Status Badge
+            let st = (client.status || 'active').toLowerCase();
+            let badgeHtml = '';
+            if (st === 'active') {
+                badgeHtml = '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Active</span>';
+            } else if (st === 'inactive' || st === 'disabled') {
+                badgeHtml = '<span class="bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded text-[10px] font-semibold">Inactive</span>';
+            } else if (st === 'archived') {
+                badgeHtml = '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-semibold">Archived</span>';
+            }
+            document.getElementById('view_status_badge').innerHTML = badgeHtml;
 
+            fetchClientContracts(client.id);
             document.getElementById('viewContractModal').classList.remove('hidden');
         }
 
@@ -901,6 +950,7 @@ foreach ($contracts as $con) {
             document.getElementById('edit_first_name').value = currentClientData.first_name || '';
             document.getElementById('edit_last_name').value = currentClientData.last_name || '';
             document.getElementById('edit_client_type').value = currentClientData.client_type || 'Commercial';
+            document.getElementById('edit_client_status').value = currentClientData.status || 'active'; // Set current status
             document.getElementById('edit_email').value = currentClientData.email || '';
             document.getElementById('edit_phone').value = currentClientData.phone_number || '';
             document.getElementById('edit_street_address').value = currentClientData.street_address || '';
@@ -972,7 +1022,7 @@ foreach ($contracts as $con) {
                         }
                     } else {
                         tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400 italic">No contracts recorded for this client yet.</td></tr>`;
-                        
+
                         // If no contracts exist, allow full deletion
                         actionContainer.innerHTML = `
                             <a href="../controllers/deleteClient.php?id=${clientId}" onclick="return confirm('Are you sure you want to permanently delete this client?');" class="bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition">

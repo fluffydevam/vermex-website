@@ -15,7 +15,6 @@ $navItems = [
     ['label' => 'Inspections', 'file' => 'inspections.php', 'icon' => 'clipboard-check'],
     ['label' => 'Clients & Contracts', 'file' => 'clients.php', 'icon' => 'users'],
     ['label' => 'Payments & Billing', 'file' => 'payments.php', 'icon' => 'credit-card'],
-    ['label' => 'Pest Operations', 'file' => 'pest-operations.php', 'icon' => 'bug'],
     ['label' => 'Inventory', 'file' => 'inventory.php', 'icon' => 'flask-conical'],
     ['label' => 'Reports & Analytics', 'file' => 'reports.php', 'icon' => 'bar-chart-3'],
     ['label' => 'User Management', 'file' => 'users.php', 'icon' => 'shield-check'],

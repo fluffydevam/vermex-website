@@ -42,8 +42,8 @@ try {
             $_SESSION['error'] = "Cannot archive or delete client with an unpaid balance (₱" . number_format($totalRemaining, 2) . ").";
             $redirect_url = "../views/clients.php";
         } else {
-            // Case 3: Has contracts, but all paid off -> Set client status to inactive
-            $archiveStmt = $pdo->prepare("UPDATE clients SET status = 'inactive' WHERE id = ?");
+            // Case 3: Has contracts, but all paid off -> Set client status to archived
+            $archiveStmt = $pdo->prepare("UPDATE clients SET status = 'archived' WHERE id = ?");
             $archiveStmt->execute([$client_id]);
 
             $_SESSION['success'] = "Client successfully archived.";

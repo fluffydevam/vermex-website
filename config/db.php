@@ -41,7 +41,7 @@ try {
             barangay VARCHAR(100) NOT NULL,
             city VARCHAR(100) NOT NULL DEFAULT 'Davao City',
             client_type ENUM('Residential', 'Commercial') NOT NULL DEFAULT 'Residential',
-            status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+            status ENUM('active', 'inactive', 'archived') NOT NULL DEFAULT 'active',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
