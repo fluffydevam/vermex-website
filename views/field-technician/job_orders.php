@@ -230,10 +230,12 @@ try {
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Scheduled Date:</label>
-                            <input type="date" name="scheduled_date" value="<?php echo htmlspecialchars($jobOrder['scheduled_date'] ?? date('Y-m-d')); ?>" required
-                                class="w-full px-3.5 py-2 bg-[#061c13] border border-[#17523a] rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 transition shadow-inner">
-                        </div>
+    <label class="block text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Scheduled Date:</label>
+    <input type="date" value="<?php echo htmlspecialchars($jobOrder['scheduled_date'] ?? date('Y-m-d')); ?>" disabled
+        class="w-full px-3.5 py-2 bg-[#061c13] border border-[#17523a] rounded-xl text-xs text-gray-400 cursor-not-allowed shadow-inner">
+    <!-- Pass the original date securely so it never changes on update -->
+    <input type="hidden" name="scheduled_date" value="<?php echo htmlspecialchars($jobOrder['scheduled_date'] ?? date('Y-m-d')); ?>">
+</div>
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Service Window:</label>
                             <input type="text" name="service_window" value="<?php echo htmlspecialchars($jobOrder['service_window'] ?? ''); ?>" placeholder="e.g. 09:00 AM - 10:30 AM"

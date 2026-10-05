@@ -120,15 +120,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $qty   = floatval($quantities[$j] ?? 0);
 
             if ($matId > 0 && $qty > 0) {
-                // 1. Insert into job order junction table (using inventory_id)
                 $matInsertStmt = $pdo->prepare("INSERT INTO job_order_materials (job_order_id, inventory_id, quantity_used) VALUES (?, ?, ?)");
                 $matInsertStmt->execute([$targetJobId, $matId, $qty]);
 
-                // 2. Deduct from inventory table
                 $invDeductStmt = $pdo->prepare("UPDATE inventory SET quantity_in_stock = quantity_in_stock - ? WHERE id = ?");
                 $invDeductStmt->execute([$qty, $matId]);
 
-                // 3. Insert into inventory audit log
                 try {
                     $logStmt = $pdo->prepare("INSERT INTO inventory_logs (material_id, job_order_id, action_type, quantity_changed, remarks, performed_by) VALUES (?, ?, 'Job Order Deduction', ?, ?, ?)");
                     $logStmt->execute([
@@ -147,32 +144,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $pdo->commit();
     } catch (Exception $e) {
         $pdo->rollBack();
-        // Handle error appropriately or log
     }
 
     header("Location: dispatch.php?date=" . urlencode($scheduledDate));
     exit();
 }
 
-// Fetch active contract job orders for today or selected date from database
+// Fetch filter parameters
 $filterDate  = $_GET['date'] ?? date('Y-m-d');
 $searchQuery = trim($_GET['search'] ?? '');
+$viewRange   = $_GET['range'] ?? 'day';
 
-$sql    = "SELECT * FROM job_orders WHERE scheduled_date = ?";
-$params = [$filterDate];
-
-if (!empty($searchQuery)) {
-    $sql .= " AND (client_name LIKE ? OR location LIKE ? OR service_type LIKE ? OR assigned_tech LIKE ?)";
-    $searchTerm = "%$searchQuery%";
-    array_push($params, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+if ($viewRange === 'upcoming') {
+    $sql    = "SELECT * FROM job_orders WHERE scheduled_date >= CURDATE() AND scheduled_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)";
+    $params = [];
+    if (!empty($searchQuery)) {
+        $sql .= " AND (client_name LIKE ? OR location LIKE ? OR service_type LIKE ? OR assigned_tech LIKE ?)";
+        $searchTerm = "%$searchQuery%";
+        array_push($params, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+    }
+    $sql .= " ORDER BY scheduled_date ASC, service_window ASC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+} elseif ($viewRange === 'all') {
+    $sql    = "SELECT * FROM job_orders WHERE 1=1";
+    $params = [];
+    if (!empty($searchQuery)) {
+        $sql .= " AND (client_name LIKE ? OR location LIKE ? OR service_type LIKE ? OR assigned_tech LIKE ?)";
+        $searchTerm = "%$searchQuery%";
+        array_push($params, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+    }
+    $sql .= " ORDER BY scheduled_date DESC, service_window ASC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+} else {
+    $sql    = "SELECT * FROM job_orders WHERE scheduled_date = ?";
+    $params = [$filterDate];
+    if (!empty($searchQuery)) {
+        $sql .= " AND (client_name LIKE ? OR location LIKE ? OR service_type LIKE ? OR assigned_tech LIKE ?)";
+        $searchTerm = "%$searchQuery%";
+        array_push($params, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+    }
+    $sql .= " ORDER BY service_window ASC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
 }
-$sql .= " ORDER BY service_window ASC";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
 $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Calculate KPI Metrics for selected date
+// Calculate KPI Metrics for selected date / view
 $totalJobsCount  = count($jobs);
 $inProgressCount = 0;
 $completedCount  = 0;
@@ -280,7 +299,9 @@ try {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Scheduled Today</p>
+                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                            <?= $viewRange === 'upcoming' ? 'Total (Next 7 Days)' : ($viewRange === 'all' ? 'Total All Records' : 'Scheduled Today') ?>
+                        </p>
                         <h3 class="text-2xl font-bold text-gray-900 mt-1"><?= $totalJobsCount ?></h3>
                     </div>
                     <div class="p-3 bg-emerald-50 text-emerald-700 rounded-xl">
@@ -319,24 +340,47 @@ try {
                 </div>
             </div>
 
-            <!-- Schedule & Filter Bar -->
-            <div class="flex flex-wrap items-center justify-between bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm gap-4">
-                <form method="GET" class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                    <div class="flex items-center gap-2">
-                        <label class="text-xs font-semibold text-gray-600 flex items-center gap-1.5">
-                            <i data-lucide="calendar" class="w-4 h-4 text-emerald-700"></i> Date:
-                        </label>
-                        <input type="date" name="date" value="<?= htmlspecialchars($filterDate) ?>" onchange="this.form.submit()" class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 focus:ring-2 focus:ring-emerald-600 bg-white">
+            <!-- Schedule & Quick Navigation Filter Bar -->
+            <form method="GET" action="dispatch.php" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                <input type="hidden" name="range" value="<?= htmlspecialchars($viewRange) ?>">
+                <div class="flex items-center flex-wrap gap-2">
+                    <!-- Quick Day Navigators -->
+                    <a href="dispatch.php?date=<?= date('Y-m-d', strtotime($filterDate . ' -1 day')) ?>&range=<?= $viewRange ?><?= !empty($searchQuery) ? '&search=' . urlencode($searchQuery) : '' ?>" class="bg-gray-50 border border-gray-200 text-gray-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-100 flex items-center gap-1">
+                        <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Prev Day
+                    </a>
+                    <a href="dispatch.php?date=<?= date('Y-m-d') ?>&range=<?= $viewRange ?><?= !empty($searchQuery) ? '&search=' . urlencode($searchQuery) : '' ?>" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100">
+                        Today
+                    </a>
+                    <a href="dispatch.php?date=<?= date('Y-m-d', strtotime($filterDate . ' +1 day')) ?>&range=<?= $viewRange ?><?= !empty($searchQuery) ? '&search=' . urlencode($searchQuery) : '' ?>" class="bg-gray-50 border border-gray-200 text-gray-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-100 flex items-center gap-1">
+                        Next Day <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </a>
+
+                    <!-- Date Picker Input -->
+                    <div class="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-gray-500"></i>
+                        <input type="date" name="date" value="<?= htmlspecialchars($filterDate) ?>" onchange="this.form.submit()" class="bg-transparent text-xs font-medium text-gray-800 focus:outline-none" <?= $viewRange === 'all' ? 'disabled' : '' ?>>
                     </div>
+
                     <div class="flex items-center gap-2">
-                        <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, tech, or service..." class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 w-60 focus:ring-2 focus:ring-emerald-600">
+                        <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, tech, or service..." class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 w-48 focus:ring-2 focus:ring-emerald-600 bg-white">
                         <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-300">Filter</button>
+                        
+                        <!-- Clear Filters Button -->
+                        <a href="dispatch.php" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 transition" title="Clear all filters & search">
+                            <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Clear Filters
+                        </a>
                     </div>
-                </form>
-                <div class="text-xs text-gray-500">
-                    Total Scheduled for Date: <span class="font-bold text-gray-900"><?= count($jobs) ?></span>
                 </div>
-            </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Range & All View Toggle Buttons -->
+                    <div class="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs">
+                        <a href="dispatch.php?date=<?= $filterDate ?>&range=day<?= !empty($searchQuery) ? '&search=' . urlencode($searchQuery) : '' ?>" class="px-2.5 py-1 rounded-md font-medium transition <?= $viewRange === 'day' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900' ?>">Single Day</a>
+                        <a href="dispatch.php?range=upcoming<?= !empty($searchQuery) ? '&search=' . urlencode($searchQuery) : '' ?>" class="px-2.5 py-1 rounded-md font-medium transition <?= $viewRange === 'upcoming' ? 'bg-emerald-700 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900' ?>">Next 7 Days</a>
+                        <a href="dispatch.php?range=all<?= !empty($searchQuery) ? '&search=' . urlencode($searchQuery) : '' ?>" class="px-2.5 py-1 rounded-md font-medium transition <?= $viewRange === 'all' ? 'bg-emerald-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900' ?>">All Jobs</a>
+                    </div>
+                </div>
+            </form>
 
             <!-- Job Orders Table -->
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -359,7 +403,7 @@ try {
                                 <tr>
                                     <td colspan="8" class="py-10 text-center text-gray-400">
                                         <i data-lucide="calendar-x" class="w-8 h-8 mx-auto mb-2 text-gray-300"></i>
-                                        No active job orders scheduled for this date.
+                                        No job orders found matching your criteria. <a href="dispatch.php" class="text-emerald-700 underline font-semibold ml-1">Reset filters</a>
                                     </td>
                                 </tr>
                             <?php else: ?>
@@ -617,7 +661,6 @@ try {
                 });
         }
 
-        // Helper to convert 12-hour format strings to 24-hour time picker format
         function to24Hour(timeStr) {
             if (!timeStr) return '';
             const cleaned = timeStr.trim();

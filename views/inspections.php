@@ -11,6 +11,68 @@ requireRole(['Admin']);
 
 $currentPage = 'inspections.php';
 
+/* =====================================================================
+   CANONICAL SHARED FORMAT (keep identical in
+   views/field-technician/pre_inspection.php)
+
+   inspection_status : 'Pending Visit' | 'Inspection Complete'
+                       | 'Inspection Complete (Pests Found)'
+   findings_json     : [{"area","findings","action_taken","remarks"}, ...]
+   conditions_json   : [{"label","status":"yes"|"no"|"","area"}, ...]
+   =================================================================== */
+const STATUS_PENDING  = 'Pending Visit';
+const STATUS_COMPLETE = 'Inspection Complete';
+const STATUS_PESTS    = 'Inspection Complete (Pests Found)';
+
+$DEFAULT_CONDITIONS = [
+    "Prolonged Open Door - Entry Point of Pests",
+    "Open Garbage Bin - Attracts Rodents & Flies",
+    "Litter/Dirt on Floor - Attracts Pests",
+    "Food Debris on Floor - Attracts Pests",
+    "Gaps on Door/Window - Entry Point",
+    "Hole on Wall / Ceiling - Entry Point",
+    "Poor Storage Practices - Harborage",
+    "Clogged Drain / Stagnant Water",
+    "Floor Drain - No Cover"
+];
+
+function normalizeConditionStatus($s) {
+    $s = strtolower(trim((string)$s));
+    return in_array($s, ['yes', 'no'], true) ? $s : '';
+}
+
+// Accepts canonical list [{label,status,area}] AND the legacy field-tech
+// object format {"label": {ans, area}} so old rows always load.
+function normalizeConditionsJson(?string $json): array {
+    $data = json_decode($json ?? '', true);
+    $out = [];
+    if (!is_array($data)) return $out;
+    foreach ($data as $key => $val) {
+        if (!is_array($val)) continue;
+        if (isset($val['label'])) {
+            $out[] = [
+                'label'  => $val['label'],
+                'status' => normalizeConditionStatus($val['status'] ?? ''),
+                'area'   => $val['area'] ?? ''
+            ];
+        } elseif (isset($val['ans']) || isset($val['area'])) {
+            $out[] = [
+                'label'  => is_string($key) ? $key : '',
+                'status' => normalizeConditionStatus($val['ans'] ?? $val['status'] ?? ''),
+                'area'   => $val['area'] ?? ''
+            ];
+        }
+    }
+    return $out;
+}
+
+function findingsContainPests(array $findings): bool {
+    foreach ($findings as $f) {
+        if (!empty(trim($f['findings'] ?? ''))) return true;
+    }
+    return false;
+}
+
 // Handle Form Submission / Saving Inspection
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inspection'])) {
     $clientName = trim($_POST['client_name']);
@@ -19,17 +81,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inspection'])) {
     $date = $_POST['inspection_date'];
     $timeIn = $_POST['time_in'];
     $timeOut = $_POST['time_out'];
-    
+
     // Devices & Remarks
     $iltQty = intval($_POST['ilt_qty']);
     $iltRemarks = trim($_POST['ilt_remarks'] ?? '');
-    
+
     $ratCage = intval($_POST['rat_cage_qty']);
     $ratCageRemarks = trim($_POST['rat_cage_remarks'] ?? '');
-    
+
     $ratBait = intval($_POST['rat_bait_qty']);
     $ratBaitRemarks = trim($_POST['rat_bait_remarks'] ?? '');
-    
+
     $glueTrap = intval($_POST['glue_trap_qty']);
     $glueTrapRemarks = trim($_POST['glue_trap_remarks'] ?? '');
 
@@ -37,41 +99,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inspection'])) {
     $vermexRep = trim($_POST['vermex_representative'] ?? 'Rodel Mamparil');
     $clientRep = trim($_POST['client_representative'] ?? '');
 
-    // Contributing Conditions JSON
+    // Contributing Conditions (canonical: condition_label[] + condition_status[i] + condition_area[])
     $conditionsArray = [];
     if (isset($_POST['condition_label']) && is_array($_POST['condition_label'])) {
-        for ($i = 0; $i < count($_POST['condition_label']); $i++) {
+        foreach ($_POST['condition_label'] as $i => $label) {
             $conditionsArray[] = [
-                'label' => $_POST['condition_label'][$i],
-                'status' => $_POST['condition_status'][$i] ?? '', 
-                'area' => trim($_POST['condition_area'][$i] ?? '')
+                'label'  => $label,
+                'status' => normalizeConditionStatus($_POST['condition_status'][$i] ?? ''),
+                'area'   => trim($_POST['condition_area'][$i] ?? '')
             ];
         }
     }
     $conditionsJson = json_encode($conditionsArray);
 
-    // Findings JSON & Pest Detection Check
+    // Findings JSON (canonical: area[] / findings[] / action_taken[] / remarks[])
     $findingsArray = [];
-    $hasPests = false;
     if (isset($_POST['area']) && is_array($_POST['area'])) {
         for ($i = 0; $i < count($_POST['area']); $i++) {
-            $area = trim($_POST['area'][$i]);
-            $findings = trim($_POST['findings'][$i]);
-            $action = trim($_POST['action_taken'][$i]);
-            $remarks = trim($_POST['remarks'][$i]);
+            $area     = trim($_POST['area'][$i] ?? '');
+            $findings = trim($_POST['findings'][$i] ?? '');
+            $action   = trim($_POST['action_taken'][$i] ?? '');
+            $remarks  = trim($_POST['remarks'][$i] ?? '');
 
-            if (!empty($area) || !empty($findings)) {
-                $findingsArray[] = ['area' => $area, 'findings' => $findings, 'action_taken' => $action, 'remarks' => $remarks];
-                if (!empty($findings)) {
-                    $hasPests = true;
-                }
+            if ($area !== '' || $findings !== '' || $action !== '' || $remarks !== '') {
+                $findingsArray[] = [
+                    'area'         => $area,
+                    'findings'     => $findings,
+                    'action_taken' => $action,
+                    'remarks'      => $remarks
+                ];
             }
         }
     }
     $findingsJson = json_encode($findingsArray);
 
-    // Determine Status based on Pest Findings
-    $inspectionStatus = $hasPests ? 'Inspection Complete (Pests Found)' : 'Inspection Complete';
+    // Determine Status based on Pest Findings (same rule both sides)
+    $inspectionStatus = findingsContainPests($findingsArray) ? STATUS_PESTS : STATUS_COMPLETE;
 
     // Update Query - keyed strictly by contract_id to prevent cross-contract interference
     $stmt = $pdo->prepare("UPDATE site_inspections SET technician_name = ?, inspection_date = ?, time_in = ?, time_out = ?, ilt_qty = ?, ilt_remarks = ?, rat_cage_qty = ?, rat_cage_remarks = ?, rat_bait_qty = ?, rat_bait_remarks = ?, glue_trap_qty = ?, glue_trap_remarks = ?, vermex_representative = ?, client_representative = ?, conditions_json = ?, findings_json = ?, inspection_status = ? WHERE contract_id = ?");
@@ -86,7 +149,7 @@ $autoOpenInspection = null;
 if (isset($_GET['client_id'])) {
     $clientId = $_GET['client_id'];
     $passedContractId = $_GET['contract_id'] ?? null;
-    
+
     // 1. Get client details from the clients table
     $clientStmt = $pdo->prepare("SELECT * FROM clients WHERE id = ? LIMIT 1");
     $clientStmt->execute([$clientId]);
@@ -94,13 +157,13 @@ if (isset($_GET['client_id'])) {
 
     if ($clientData) {
         $clientName = $clientData['client_name'] ?? $clientData['name'] ?? '';
-        
+
         // Flexible address matching checking multiple potential column names in your database
         $clientAddress = trim(
-            ($clientData['service_address'] ?? '') ?: 
-            (($clientData['street_address'] ?? '') . ' ' . ($clientData['barangay'] ?? '') . ' ' . ($clientData['city'] ?? '')) ?: 
-            ($clientData['address'] ?? '') ?: 
-            ($clientData['location'] ?? '') ?: 
+            ($clientData['service_address'] ?? '') ?:
+            (($clientData['street_address'] ?? '') . ' ' . ($clientData['barangay'] ?? '') . ' ' . ($clientData['city'] ?? '')) ?:
+            ($clientData['address'] ?? '') ?:
+            ($clientData['location'] ?? '') ?:
             ($clientData['street'] ?? '')
         );
 
@@ -136,11 +199,11 @@ if (isset($_GET['client_id'])) {
         // 3. Insert fresh row linked to this contract ID if it doesn't exist yet
         if (!$autoOpenInspection && !empty($contractIdNum)) {
             $insertStmt = $pdo->prepare("
-                INSERT INTO site_inspections (contract_id, client_name, client_email, service_address, account_type, inspection_status) 
-                VALUES (?, ?, ?, ?, ?, 'Pending Visit')
+                INSERT INTO site_inspections (contract_id, client_name, client_email, service_address, account_type, inspection_status)
+                VALUES (?, ?, ?, ?, ?, '" . STATUS_PENDING . "')
             ");
             $insertStmt->execute([$contractIdNum, $clientName, $clientEmail, $clientAddress, $accountType]);
-            
+
             $checkStmt->execute([$contractIdNum]);
             $autoOpenInspection = $checkStmt->fetch(PDO::FETCH_ASSOC);
         }
@@ -175,9 +238,9 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $inspections = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Metrics Counts
-$pendingCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status = 'Pending Visit'")->fetchColumn();
-$completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status LIKE 'Inspection Complete%'")->fetchColumn();
+// Metrics Counts (includes legacy 'Completed' rows)
+$pendingCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status = '" . STATUS_PENDING . "'")->fetchColumn();
+$completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status LIKE 'Inspection Complete%' OR inspection_status = 'Completed'")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -240,9 +303,9 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                     <div class="flex flex-wrap items-center gap-3">
                         <select name="status" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
                             <option value="">All Statuses</option>
-                            <option value="Pending Visit" <?= $statusFilter === 'Pending Visit' ? 'selected' : '' ?>>Pending Visit</option>
-                            <option value="Inspection Complete" <?= $statusFilter === 'Inspection Complete' ? 'selected' : '' ?>>Inspection Complete</option>
-                            <option value="Inspection Complete (Pests Found)" <?= $statusFilter === 'Inspection Complete (Pests Found)' ? 'selected' : '' ?>>Inspection Complete (Pests Found)</option>
+                            <option value="<?= STATUS_PENDING ?>" <?= $statusFilter === STATUS_PENDING ? 'selected' : '' ?>>Pending Visit</option>
+                            <option value="<?= STATUS_COMPLETE ?>" <?= $statusFilter === STATUS_COMPLETE ? 'selected' : '' ?>>Inspection Complete</option>
+                            <option value="<?= STATUS_PESTS ?>" <?= $statusFilter === STATUS_PESTS ? 'selected' : '' ?>>Inspection Complete (Pests Found)</option>
                         </select>
 
                         <select name="type" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
@@ -277,12 +340,17 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                                 <?php foreach ($inspections as $row): ?>
                                     <?php
                                     $clientFindings = !empty($row['findings_json']) ? json_decode($row['findings_json'], true) : [];
-                                    $clientConditions = !empty($row['conditions_json']) ? json_decode($row['conditions_json'], true) : [];
+                                    if (!is_array($clientFindings)) $clientFindings = [];
+
+                                    // Normalize conditions so BOTH old and new formats load
+                                    $clientConditions = normalizeConditionsJson($row['conditions_json'] ?? null);
 
                                     $rowJson = htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8');
-                                    $findingsJson = htmlspecialchars(json_encode($clientFindings), ENT_QUOTES, 'UTF-8');
+                                    $findingsJson = htmlspecialchars(json_encode(array_values($clientFindings)), ENT_QUOTES, 'UTF-8');
                                     $conditionsJson = htmlspecialchars(json_encode($clientConditions), ENT_QUOTES, 'UTF-8');
-                                    $isCompleted = strpos($row['inspection_status'], 'Inspection Complete') !== false;
+
+                                    $isCompleted = strpos($row['inspection_status'], STATUS_COMPLETE) !== false
+                                                || $row['inspection_status'] === 'Completed';
                                     ?>
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="py-3.5 font-bold text-slate-900">
@@ -515,13 +583,16 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
     <script>
         lucide.createIcons();
 
+        // --- Shared canonical condition list (identical on the field tech page) ---
+        const defaultConditions = <?= json_encode($DEFAULT_CONDITIONS) ?>;
+
         // --- Assign Tech Modal Functions ---
         function openAssignTechModal(inspectionId) {
             document.getElementById('assign_inspection_id').value = inspectionId;
-            
+
             document.getElementById('selectedTechText').innerText = '-- Choose Field Technician --';
             document.getElementById('technicianNameInput').value = '';
-            
+
             const menu = document.getElementById('techDropdownMenu');
             menu.innerHTML = '<div class="px-3 py-2 text-xs text-slate-400 italic">Loading technicians...</div>';
 
@@ -599,19 +670,11 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
         }
 
         // --- Inspection Form Modal Functions ---
-        const defaultConditions = [
-            "Prolonged Open Door - Entry Point of Pests",
-            "Open Garbage Bin - Attracts Rodents & Flies",
-            "Litter/Dirt on Floor - Attracts Pests",
-            "Food Debris on Floor - Attracts Pests",
-            "Gaps on Door/Window - Entry Point",
-            "Hole on Wall / Ceiling - Entry Point",
-            "Poor Storage Practices - Harborage",
-            "Clogged Drain / Stagnant Water",
-            "Floor Drain - No Cover"
-        ];
-
         function openInspectionFormModal(inspection, findings = [], conditions = []) {
+            // Safety: never let a malformed payload break the modal
+            if (!Array.isArray(findings)) findings = [];
+            if (!Array.isArray(conditions)) conditions = [];
+
             document.getElementById('modalClientName').value = inspection.client_name || '';
             document.getElementById('modalAddress').value = inspection.service_address || '';
             document.getElementById('modalContractId').value = inspection.contract_id || '';
@@ -621,21 +684,22 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
             if (inspection.time_in) document.querySelector('input[name="time_in"]').value = inspection.time_in;
             if (inspection.time_out) document.querySelector('input[name="time_out"]').value = inspection.time_out;
 
-            if (inspection.ilt_qty !== undefined) document.querySelector('input[name="ilt_qty"]').value = inspection.ilt_qty;
-            if (inspection.ilt_remarks !== undefined) document.querySelector('input[name="ilt_remarks"]').value = inspection.ilt_remarks;
+            if (inspection.ilt_qty !== undefined && inspection.ilt_qty !== null) document.querySelector('input[name="ilt_qty"]').value = inspection.ilt_qty;
+            if (inspection.ilt_remarks !== undefined && inspection.ilt_remarks !== null) document.querySelector('input[name="ilt_remarks"]').value = inspection.ilt_remarks;
 
-            if (inspection.rat_cage_qty !== undefined) document.querySelector('input[name="rat_cage_qty"]').value = inspection.rat_cage_qty;
-            if (inspection.rat_cage_remarks !== undefined) document.querySelector('input[name="rat_cage_remarks"]').value = inspection.rat_cage_remarks;
+            if (inspection.rat_cage_qty !== undefined && inspection.rat_cage_qty !== null) document.querySelector('input[name="rat_cage_qty"]').value = inspection.rat_cage_qty;
+            if (inspection.rat_cage_remarks !== undefined && inspection.rat_cage_remarks !== null) document.querySelector('input[name="rat_cage_remarks"]').value = inspection.rat_cage_remarks;
 
-            if (inspection.rat_bait_qty !== undefined) document.querySelector('input[name="rat_bait_qty"]').value = inspection.rat_bait_qty;
-            if (inspection.rat_bait_remarks !== undefined) document.querySelector('input[name="rat_bait_remarks"]').value = inspection.rat_bait_remarks;
+            if (inspection.rat_bait_qty !== undefined && inspection.rat_bait_qty !== null) document.querySelector('input[name="rat_bait_qty"]').value = inspection.rat_bait_qty;
+            if (inspection.rat_bait_remarks !== undefined && inspection.rat_bait_remarks !== null) document.querySelector('input[name="rat_bait_remarks"]').value = inspection.rat_bait_remarks;
 
-            if (inspection.glue_trap_qty !== undefined) document.querySelector('input[name="glue_trap_qty"]').value = inspection.glue_trap_qty;
-            if (inspection.glue_trap_remarks !== undefined) document.querySelector('input[name="glue_trap_remarks"]').value = inspection.glue_trap_remarks;
+            if (inspection.glue_trap_qty !== undefined && inspection.glue_trap_qty !== null) document.querySelector('input[name="glue_trap_qty"]').value = inspection.glue_trap_qty;
+            if (inspection.glue_trap_remarks !== undefined && inspection.glue_trap_remarks !== null) document.querySelector('input[name="glue_trap_remarks"]').value = inspection.glue_trap_remarks;
 
             if (inspection.vermex_representative) document.querySelector('input[name="vermex_representative"]').value = inspection.vermex_representative;
             if (inspection.client_representative) document.querySelector('input[name="client_representative"]').value = inspection.client_representative;
 
+            // Contributing Conditions — canonical [{label,status:"yes"|"no"|"",area}]
             let condTbody = document.getElementById('conditionsTableBody');
             condTbody.innerHTML = '';
             defaultConditions.forEach((label, index) => {
@@ -646,33 +710,22 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="border-r border-slate-300 p-1.5 text-[11px]">
-                        <input type="hidden" name="condition_label[]" value="${label}">
+                        <input type="hidden" name="condition_label[]" value="${label.replace(/"/g, '&quot;')}">
                         ${label}
                     </td>
                     <td class="border-r border-slate-300 text-center"><input type="radio" name="condition_status[${index}]" value="yes" ${yesChecked}></td>
                     <td class="border-r border-slate-300 text-center"><input type="radio" name="condition_status[${index}]" value="no" ${noChecked}></td>
-                    <td class="p-1"><input type="text" name="condition_area[]" value="${existing.area || ''}" class="w-full border-0 bg-transparent text-xs"></td>
+                    <td class="p-1"><input type="text" name="condition_area[]" value="${(existing.area || '').replace(/"/g, '&quot;')}" class="w-full border-0 bg-transparent text-xs"></td>
                 `;
                 condTbody.appendChild(tr);
             });
 
+            // Area Findings — canonical {area, findings, action_taken, remarks}
             let tbody = document.getElementById('findingsTableBody');
-            tbody.innerHTML = ''; 
+            tbody.innerHTML = '';
 
-            if (findings && findings.length > 0) {
-                findings.forEach(f => {
-                    let row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="border-r border-slate-300 p-1"><input type="text" name="area[]" value="${f.area || ''}" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
-                        <td class="border-r border-slate-300 p-1"><input type="text" name="findings[]" value="${f.findings || ''}" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
-                        <td class="border-r border-slate-300 p-1"><input type="text" name="action_taken[]" value="${f.action_taken || ''}" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
-                        <td class="p-1 flex items-center justify-between">
-                            <input type="text" name="remarks[]" value="${f.remarks || ''}" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs">
-                            <button type="button" onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-600 px-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
+            if (findings.length > 0) {
+                findings.forEach(f => appendFindingRow(f));
             } else {
                 addFindingRow();
             }
@@ -688,7 +741,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
         }
 
         function printForm() {
-            let printContents = document.getElementById('printableArea').innerHTML;
+            let printContents = document.getElementById('inspectionReportContent').innerHTML;
             let originalContents = document.body.innerHTML;
             document.body.innerHTML = printContents;
             window.print();
@@ -700,7 +753,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
             const element = document.getElementById('inspectionReportContent');
             const clientNameInput = document.getElementById('modalClientName');
             const clientName = clientNameInput && clientNameInput.value ? clientNameInput.value.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'client';
-            
+
             const options = {
                 margin:       10,
                 filename:     `inspection-report-${clientName}.pdf`,
@@ -712,30 +765,36 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
             html2pdf().from(element).set(options).save();
         }
 
-        function addFindingRow() {
+        function appendFindingRow(f = {}) {
             let tbody = document.getElementById('findingsTableBody');
-            let newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td class="border-r border-slate-300 p-1"><input type="text" name="area[]" placeholder="e.g. Ceiling" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
-                <td class="border-r border-slate-300 p-1"><input type="text" name="findings[]" placeholder="Findings/Pests" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
-                <td class="border-r border-slate-300 p-1"><input type="text" name="action_taken[]" placeholder="Action taken" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
+            let row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="border-r border-slate-300 p-1"><input type="text" name="area[]" value="${(f.area || '').replace(/"/g, '&quot;')}" placeholder="e.g. Ceiling" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
+                <td class="border-r border-slate-300 p-1"><input type="text" name="findings[]" value="${(f.findings || '').replace(/"/g, '&quot;')}" placeholder="Findings/Pests" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
+                <td class="border-r border-slate-300 p-1"><input type="text" name="action_taken[]" value="${(f.action_taken || '').replace(/"/g, '&quot;')}" placeholder="Action taken" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
                 <td class="p-1 flex items-center justify-between">
-                    <input type="text" name="remarks[]" placeholder="Remarks" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs">
+                    <input type="text" name="remarks[]" value="${(f.remarks || '').replace(/"/g, '&quot;')}" placeholder="Remarks" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs">
                     <button type="button" onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-600 px-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                 </td>
             `;
-            tbody.appendChild(newRow);
+            tbody.appendChild(row);
+        }
+
+        function addFindingRow() {
+            appendFindingRow();
             lucide.createIcons();
         }
 
         // Auto-open modal on load if redirected with parameters
         <?php if ($autoOpenInspection): ?>
-        <?php 
-        $autoFindings = !empty($autoOpenInspection['findings_json']) ? json_decode($autoOpenInspection['findings_json'], true) : [];$autoConditions = !empty($autoOpenInspection['conditions_json']) ? json_decode($autoOpenInspection['conditions_json'], true) : [];
+        <?php
+        $autoFindings = !empty($autoOpenInspection['findings_json']) ? json_decode($autoOpenInspection['findings_json'], true) : [];
+        if (!is_array($autoFindings)) $autoFindings = [];
+        $autoConditions = normalizeConditionsJson($autoOpenInspection['conditions_json'] ?? null);
         ?>
         window.addEventListener('DOMContentLoaded', () => {
             const autoInspectionRow = <?= json_encode($autoOpenInspection) ?>;
-            const autoFindingsData = <?= json_encode($autoFindings) ?>;
+            const autoFindingsData = <?= json_encode(array_values($autoFindings)) ?>;
             const autoConditionsData = <?= json_encode($autoConditions) ?>;
             openInspectionFormModal(autoInspectionRow, autoFindingsData, autoConditionsData);
         });
