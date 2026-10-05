@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         header("Location: ../views/field-technician/dashboard.php");
                         break;
                     case 'Billing Officer':
-                        header("Location: ../views/billing-officer/dashboard.php");
+                        header("Location: ../views/billing-officer/payments.php");
                         break;
                     case 'Admin':
                     default:
