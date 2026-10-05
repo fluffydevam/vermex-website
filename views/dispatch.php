@@ -262,13 +262,14 @@ try {
             </div>
 
             <!-- Job Orders Table -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+           <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-gray-200 bg-gray-50 text-[10px] font-bold uppercase text-gray-500 tracking-wider">
+                                <th class="py-3 px-4">Scheduled Date</th>
                                 <th class="py-3 px-4">Service Window</th>
-                                <th class="py-3 px-4">Account Name & Address</th>
+                                <th class="py-3 px-4">Account Name & Contract #</th>
                                 <th class="py-3 px-4">Treatment / Service</th>
                                 <th class="py-3 px-4">Assigned Personnel</th>
                                 <th class="py-3 px-4">Priority</th>
@@ -279,7 +280,7 @@ try {
                         <tbody class="divide-y divide-gray-100 text-xs">
                             <?php if (empty($jobs)): ?>
                                 <tr>
-                                    <td colspan="7" class="py-10 text-center text-gray-400">
+                                    <td colspan="8" class="py-10 text-center text-gray-400">
                                         <i data-lucide="calendar-x" class="w-8 h-8 mx-auto mb-2 text-gray-300"></i>
                                         No active job orders scheduled for this date.
                                     </td>
@@ -288,10 +289,14 @@ try {
                                 <?php foreach ($jobs as $job): ?>
                                     <tr class="hover:bg-gray-50/80 transition">
                                         <td class="py-3.5 px-4 font-bold text-gray-800 whitespace-nowrap">
-                                            <?= htmlspecialchars($job['service_window']) ?>
+                                            <?= htmlspecialchars($job['scheduled_date']) ?>
+                                        </td>
+                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                            <div class="font-bold text-gray-800"><?= htmlspecialchars($job['service_window']) ?></div>
                                         </td>
                                         <td class="py-3.5 px-4">
                                             <div class="font-bold text-gray-900"><?= htmlspecialchars($job['client_name']) ?></div>
+                                            <div class="text-[10px] font-mono text-emerald-700">Contract #CON-<?= htmlspecialchars($job['contract_id'] ?? 'N/A') ?></div>
                                             <div class="text-gray-400 text-[10px] truncate max-w-[220px]"><?= htmlspecialchars($job['location']) ?></div>
                                         </td>
                                         <td class="py-3.5 px-4 text-gray-700 font-medium">
@@ -343,7 +348,7 @@ try {
                 <button type="button" onclick="closeModal()" class="text-gray-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
-            <form method="POST" class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+            <form method="POST" id="jobOrderForm" class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
                 <input type="hidden" name="action" value="save_job_order">
                 <input type="hidden" name="job_id" id="modal_job_id">
                 <input type="hidden" name="client_id" id="modal_client_id">
@@ -390,7 +395,11 @@ try {
                             </div>
                             <div>
                                 <label class="block font-bold text-gray-700 mb-1">Service Window</label>
-                                <input type="text" name="service_window" id="modal_service_window" placeholder="08:00–09:30" class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600" required>
+                                <div class="grid grid-cols-2 gap-1 items-center">
+                                    <input type="time" id="modal_window_start" class="border border-gray-300 rounded-lg p-1.5 bg-white text-xs focus:outline-none focus:border-emerald-600" required>
+                                    <input type="time" id="modal_window_end" class="border border-gray-300 rounded-lg p-1.5 bg-white text-xs focus:outline-none focus:border-emerald-600" required>
+                                </div>
+                                <input type="hidden" name="service_window" id="modal_service_window">
                             </div>
                         </div>
                         <div>
@@ -410,8 +419,8 @@ try {
                     <div class="md:col-span-1">
                         <label class="block font-bold text-gray-700 mb-1">Time In / Time Out</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="text" name="time_in" id="modal_time_in" placeholder="08:10 AM" class="border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600">
-                            <input type="text" name="time_out" id="modal_time_out" placeholder="10:15 AM" class="border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600">
+                            <input type="time" name="time_in" id="modal_time_in" class="border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600">
+                            <input type="time" name="time_out" id="modal_time_out" class="border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600">
                         </div>
                     </div>
                     <div class="md:col-span-1">
@@ -506,6 +515,37 @@ try {
                 });
         }
 
+        // Helper to convert 12-hour format strings (e.g. "08:10 AM") to 24-hour time picker format ("08:10")
+        function to24Hour(timeStr) {
+            if (!timeStr) return '';
+            const cleaned = timeStr.trim();
+            if (!cleaned.toLowerCase().includes('am') && !cleaned.toLowerCase().includes('pm')) {
+                // If it's already HH:MM or has seconds, take the first 5 chars
+                return cleaned.substring(0, 5);
+            }
+            const [time, modifier] = cleaned.split(' ');
+            let [hours, minutes] = time.split(':');
+            if (!hours || !minutes) return '';
+            
+            hours = hours.padStart(2, '0');
+            if (hours === '12') {
+                hours = modifier.toLowerCase() === 'pm' ? '12' : '00';
+            } else {
+                hours = modifier.toLowerCase() === 'pm' ? String(parseInt(hours, 10) + 12) : hours;
+            }
+            return `${hours.padStart(2, '0')}:${minutes}`;
+        }
+
+        // Helper to parse service window like "08:00–09:30" or "08:00 AM - 09:30 AM"
+        function parseServiceWindow(windowStr) {
+            if (!windowStr) return { start: '08:00', end: '09:30' };
+            const parts = windowStr.split(/–|-/).map(s => s.trim());
+            return {
+                start: to24Hour(parts[0] || '08:00'),
+                end: to24Hour(parts[1] || '09:30')
+            };
+        }
+
         function openScheduleModal(prefillName = '', prefillAddress = '', prefillClientId = '') {
             document.getElementById('modal_job_id').value = '';
             document.getElementById('modal_client_id').value = prefillClientId;
@@ -514,7 +554,6 @@ try {
             const clientSelect = document.getElementById('modal_client_name');
             clientSelect.value = prefillName;
             
-            // If option exists, update client address data
             if (prefillName && clientSelect.selectedIndex >= 0) {
                 updateClientData(clientSelect);
             }
@@ -527,7 +566,11 @@ try {
 
             document.getElementById('modal_service_type').value = '';
             document.getElementById('modal_scheduled_date').value = '<?= htmlspecialchars($filterDate) ?>';
-            document.getElementById('modal_service_window').value = '09:00–10:30';
+            
+            const defWindow = parseServiceWindow('09:00–10:30');
+            document.getElementById('modal_window_start').value = defWindow.start;
+            document.getElementById('modal_window_end').value = defWindow.end;
+
             document.getElementById('modal_time_in').value = '';
             document.getElementById('modal_time_out').value = '';
             document.getElementById('modal_priority').value = 'Standard';
@@ -550,11 +593,15 @@ try {
             document.getElementById('modal_location').value = job.location || '';
             document.getElementById('modal_service_type').value = job.service_type || '';
             document.getElementById('modal_scheduled_date').value = job.scheduled_date || '<?= date('Y-m-d') ?>';
-            document.getElementById('modal_service_window').value = job.service_window || '';
+            
+            const windowTimes = parseServiceWindow(job.service_window);
+            document.getElementById('modal_window_start').value = windowTimes.start;
+            document.getElementById('modal_window_end').value = windowTimes.end;
+
             document.getElementById('modal_priority').value = job.priority || 'Standard';
             document.getElementById('modal_route_status').value = job.route_status || 'Scheduled';
-            document.getElementById('modal_time_in').value = job.time_in || '';
-            document.getElementById('modal_time_out').value = job.time_out || '';
+            document.getElementById('modal_time_in').value = to24Hour(job.time_in || '');
+            document.getElementById('modal_time_out').value = to24Hour(job.time_out || '');
             document.getElementById('modal_comments').value = job.comments || '';
             
             populateAreaRows(job.area_findings);
@@ -624,6 +671,15 @@ try {
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
+
+        // Before submitting form, combine start and end time inputs into the service_window format
+        document.getElementById('jobOrderForm').addEventListener('submit', function(e) {
+            const start = document.getElementById('modal_window_start').value;
+            const end = document.getElementById('modal_window_end').value;
+            if (start && end) {
+                document.getElementById('modal_service_window').value = `${start}–${end}`;
+            }
+        });
 
         // Auto-open schedule modal if client parameters are passed in the URL
         document.addEventListener('DOMContentLoaded', () => {

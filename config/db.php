@@ -107,11 +107,15 @@ $pdo->exec("
             service_window VARCHAR(50) NOT NULL,
             priority ENUM('Standard', 'High', 'Urgent') DEFAULT 'Standard',
             route_status ENUM('Scheduled', 'En route', 'On site', 'Completed', 'Delayed') DEFAULT 'Scheduled',
+            time_in VARCHAR(50) NULL,
+            time_out VARCHAR(50) NULL,
+            comments TEXT NULL,
+            area_findings TEXT NULL,
             payment_cleared TINYINT(1) DEFAULT 0,
             scheduled_date DATE NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE SET NULL,
-            FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
+            FOREIGN KEY (contract_id) REFERENCES contracts(contract_id) ON DELETE SET NULL,
+            FOREIGN KEY (client_id) REFERENCES clients(client_id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
