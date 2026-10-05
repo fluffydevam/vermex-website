@@ -73,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inspection'])) {
     // Determine Status based on Pest Findings
     $inspectionStatus = $hasPests ? 'Inspection Complete (Pests Found)' : 'Inspection Complete';
 
-    // Update Query
-    $stmt = $pdo->prepare("UPDATE site_inspections SET contract_id = ?, technician_name = ?, inspection_date = ?, time_in = ?, time_out = ?, ilt_qty = ?, ilt_remarks = ?, rat_cage_qty = ?, rat_cage_remarks = ?, rat_bait_qty = ?, rat_bait_remarks = ?, glue_trap_qty = ?, glue_trap_remarks = ?, vermex_representative = ?, client_representative = ?, conditions_json = ?, findings_json = ?, inspection_status = ? WHERE client_name = ?");
-    $stmt->execute([$contractId, $techName, $date, $timeIn, $timeOut, $iltQty, $iltRemarks, $ratCage, $ratCageRemarks, $ratBait, $ratBaitRemarks, $glueTrap, $glueTrapRemarks, $vermexRep, $clientRep, $conditionsJson, $findingsJson, $inspectionStatus, $clientName]);
+    // Update Query - keyed strictly by contract_id to prevent cross-contract interference
+    $stmt = $pdo->prepare("UPDATE site_inspections SET technician_name = ?, inspection_date = ?, time_in = ?, time_out = ?, ilt_qty = ?, ilt_remarks = ?, rat_cage_qty = ?, rat_cage_remarks = ?, rat_bait_qty = ?, rat_bait_remarks = ?, glue_trap_qty = ?, glue_trap_remarks = ?, vermex_representative = ?, client_representative = ?, conditions_json = ?, findings_json = ?, inspection_status = ? WHERE contract_id = ?");
+    $stmt->execute([$techName, $date, $timeIn, $timeOut, $iltQty, $iltRemarks, $ratCage, $ratCageRemarks, $ratBait, $ratBaitRemarks, $glueTrap, $glueTrapRemarks, $vermexRep, $clientRep, $conditionsJson, $findingsJson, $inspectionStatus, $contractId]);
 
     header("Location: inspections.php?success=1");
     exit;
@@ -84,15 +84,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_inspection'])) {
 // Handle Auto-Opening Modal & Contract/Address Sync if redirected from Contracts table (`clients.php`)
 $autoOpenInspection = null;
 if (isset($_GET['client_id'])) {
-    $clientId =$_GET['client_id'];
-    $passedContractId =$_GET['contract_id'] ?? null;
+    $clientId = $_GET['client_id'];
+    $passedContractId = $_GET['contract_id'] ?? null;
     
     // 1. Get client details from the clients table
-    $clientStmt =$pdo->prepare("SELECT * FROM clients WHERE id = ? LIMIT 1");
+    $clientStmt = $pdo->prepare("SELECT * FROM clients WHERE id = ? LIMIT 1");
     $clientStmt->execute([$clientId]);
-    $clientData =$clientStmt->fetch(PDO::FETCH_ASSOC);
+    $clientData = $clientStmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($clientData) {$clientName = $clientData['client_name'] ?? $clientData['name'] ?? '';
+    if ($clientData) {
+        $clientName = $clientData['client_name'] ?? $clientData['name'] ?? '';
         
         // Flexible address matching checking multiple potential column names in your database
         $clientAddress = trim(
@@ -103,59 +104,45 @@ if (isset($_GET['client_id'])) {
             ($clientData['street'] ?? '')
         );
 
-        $clientEmail =$clientData['email'] ?? $clientData['client_email'] ?? '';$accountType = $clientData['client_type'] ?? $clientData['account_type'] ?? 'Commercial';
+        $clientEmail = $clientData['email'] ?? $clientData['client_email'] ?? '';
+        $accountType = $clientData['client_type'] ?? $clientData['account_type'] ?? 'Commercial';
 
         // Verify if passed contract ID exists in contracts table
         $contractIdNum = null;
         if (!empty($passedContractId)) {
-            $verifyContract =$pdo->prepare("SELECT id FROM contracts WHERE id = ? LIMIT 1");
+            $verifyContract = $pdo->prepare("SELECT id FROM contracts WHERE id = ? LIMIT 1");
             $verifyContract->execute([$passedContractId]);
             if ($verifyContract->fetch()) {
-                $contractIdNum =$passedContractId;
+                $contractIdNum = $passedContractId;
             }
         }
 
         if (!$contractIdNum) {
-            $contractStmt =$pdo->prepare("SELECT id FROM contracts WHERE client_id = ? LIMIT 1");
+            $contractStmt = $pdo->prepare("SELECT id FROM contracts WHERE client_id = ? LIMIT 1");
             $contractStmt->execute([$clientId]);
-            $contractData =$contractStmt->fetch(PDO::FETCH_ASSOC);
+            $contractData = $contractStmt->fetch(PDO::FETCH_ASSOC);
             if ($contractData) {
-                $contractIdNum =$contractData['id'];
+                $contractIdNum = $contractData['id'];
             }
         }
 
-        // 2. Check if a site inspection record already exists for this client
-        $checkStmt =$pdo->prepare("SELECT * FROM site_inspections WHERE client_name = ? LIMIT 1");
-        $checkStmt->execute([$clientName]);
-        $autoOpenInspection =$checkStmt->fetch(PDO::FETCH_ASSOC);
+        // 2. Check if a site inspection record already exists specifically for THIS contract ID
+        if (!empty($contractIdNum)) {
+            $checkStmt = $pdo->prepare("SELECT * FROM site_inspections WHERE contract_id = ? LIMIT 1");
+            $checkStmt->execute([$contractIdNum]);
+            $autoOpenInspection = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-        // 3. Insert or Update row with the correct address and contract ID
-        if (!$autoOpenInspection) {
-            $insertStmt =$pdo->prepare("
+        // 3. Insert fresh row linked to this contract ID if it doesn't exist yet
+        if (!$autoOpenInspection && !empty($contractIdNum)) {
+            $insertStmt = $pdo->prepare("
                 INSERT INTO site_inspections (contract_id, client_name, client_email, service_address, account_type, inspection_status) 
                 VALUES (?, ?, ?, ?, ?, 'Pending Visit')
             ");
-            $insertStmt->execute([$contractIdNum, $clientName,$clientEmail, $clientAddress,$accountType]);
+            $insertStmt->execute([$contractIdNum, $clientName, $clientEmail, $clientAddress, $accountType]);
             
-            $checkStmt->execute([$clientName]);
-            $autoOpenInspection =$checkStmt->fetch(PDO::FETCH_ASSOC);
-        } else {
-            // Update service address and contract_id if they were previously blank
-            $updateFields = [];$updateParams = [];
-
-            if (!empty($clientAddress)) {$updateFields[] = "service_address = ?";
-                $updateParams[] =$clientAddress;
-                $autoOpenInspection['service_address'] =$clientAddress;
-            }
-            if (!empty($contractIdNum) && empty($autoOpenInspection['contract_id'])) {$updateFields[] = "contract_id = ?";
-                $updateParams[] =$contractIdNum;
-                $autoOpenInspection['contract_id'] =$contractIdNum;
-            }
-
-            if (!empty($updateFields)) {$updateParams[] = $autoOpenInspection['id'];$updateSql = "UPDATE site_inspections SET " . implode(', ', $updateFields) . " WHERE id = ?";
-                $updateStmt = $pdo->prepare($updateSql);
-                $updateStmt->execute($updateParams);
-            }
+            $checkStmt->execute([$contractIdNum]);
+            $autoOpenInspection = $checkStmt->fetch(PDO::FETCH_ASSOC);
         }
     }
 }
@@ -188,7 +175,7 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $inspections = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Metrics Counts (Restricted to the 2 requested KPI cards)
+// Metrics Counts
 $pendingCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status = 'Pending Visit'")->fetchColumn();
 $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspection_status LIKE 'Inspection Complete%'")->fetchColumn();
 ?>
@@ -227,7 +214,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                 </div>
             </div>
 
-            <!-- KPI Cards (Strictly 2 Cards as requested) -->
+            <!-- KPI Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="bg-white p-5 rounded-xl border border-slate-200/85 shadow-sm flex items-center justify-between">
                     <div>
@@ -414,7 +401,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                         <div class="p-3 space-y-2">
                             <div class="flex items-center gap-2 mb-2">
                                 <span class="font-semibold text-slate-500 w-24">CONTRACT ID:</span>
-                                <input type="text" id="modalContractId" name="contract_id" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 font-medium text-slate-800 text-xs" placeholder="e.g. CNT-001">
+                                <input type="text" id="modalContractId" name="contract_id" readonly class="flex-1 bg-slate-100 border border-slate-200 rounded px-2 py-1 font-medium text-slate-800 text-xs">
                             </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div class="flex items-center gap-1">
@@ -710,21 +697,20 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
         }
 
         function downloadFormPdf() {
-    const element = document.getElementById('inspectionReportContent');
-    
-    const clientNameInput = document.getElementById('modalClientName');
-    const clientName = clientNameInput && clientNameInput.value ? clientNameInput.value.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'client';
-    
-    const options = {
-        margin:       10,
-        filename:     `inspection-report-${clientName}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+            const element = document.getElementById('inspectionReportContent');
+            const clientNameInput = document.getElementById('modalClientName');
+            const clientName = clientNameInput && clientNameInput.value ? clientNameInput.value.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'client';
+            
+            const options = {
+                margin:       10,
+                filename:     `inspection-report-${clientName}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
-    html2pdf().from(element).set(options).save();
-}
+            html2pdf().from(element).set(options).save();
+        }
 
         function addFindingRow() {
             let tbody = document.getElementById('findingsTableBody');
@@ -742,7 +728,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
             lucide.createIcons();
         }
 
-        // Auto-open modal on load if redirected with client_id parameter
+        // Auto-open modal on load if redirected with parameters
         <?php if ($autoOpenInspection): ?>
         <?php 
         $autoFindings = !empty($autoOpenInspection['findings_json']) ? json_decode($autoOpenInspection['findings_json'], true) : [];$autoConditions = !empty($autoOpenInspection['conditions_json']) ? json_decode($autoOpenInspection['conditions_json'], true) : [];
