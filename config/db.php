@@ -5,8 +5,7 @@ $pass = "";
 $dbname = "vermex_pest_solutions";
 
 try {
-    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbname`");
@@ -49,19 +48,19 @@ try {
 
     // 3. Contracts Table
     $pdo->exec("
-    CREATE TABLE IF NOT EXISTS contracts (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        client_id INT NOT NULL,
-        contract_name VARCHAR(150) NOT NULL,
-        contract_status ENUM('active', 'to_be_contracted', 'expiring_soon', 'cancelled', 'expired') DEFAULT 'to_be_contracted',
-        contract_start_date DATE NULL,
-        contract_end_date DATE NULL,
-        contract_value DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-        final_balance DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-        final_balance_notes TEXT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        CREATE TABLE IF NOT EXISTS contracts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            client_id INT NOT NULL,
+            contract_name VARCHAR(150) NOT NULL,
+            contract_status ENUM('active', 'to_be_contracted', 'expiring_soon', 'cancelled', 'expired') DEFAULT 'to_be_contracted',
+            contract_start_date DATE NULL,
+            contract_end_date DATE NULL,
+            contract_value DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            final_balance DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+            final_balance_notes TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
     // 4. Site Inspections Table (Linked with contract_id)
@@ -95,7 +94,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 5. Job Orders / Dispatch Table (Linked with contract_id and client_id)
+    // 5. Job Orders / Dispatch Table (Fixed foreign keys to reference `id`)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS job_orders (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -115,8 +114,8 @@ try {
             payment_cleared TINYINT(1) DEFAULT 0,
             scheduled_date DATE NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (contract_id) REFERENCES contracts(contract_id) ON DELETE SET NULL,
-            FOREIGN KEY (client_id) REFERENCES clients(client_id) ON DELETE SET NULL
+            FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE SET NULL,
+            FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
@@ -158,19 +157,19 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    //Inventory Logs Table
-     $pdo->exec(" 
-     CREATE TABLE IF NOT EXISTS inventory_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    material_id INT NOT NULL,
-    job_order_id INT DEFAULT NULL,
-    action_type VARCHAR(50) DEFAULT 'Job Order Deduction',
-    quantity_changed DECIMAL(10,2) NOT NULL,
-    remarks TEXT,
-    performed_by VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-");
+    // Inventory Logs Table
+    $pdo->exec(" 
+        CREATE TABLE IF NOT EXISTS inventory_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            material_id INT NOT NULL,
+            job_order_id INT DEFAULT NULL,
+            action_type VARCHAR(50) DEFAULT 'Job Order Deduction',
+            quantity_changed DECIMAL(10,2) NOT NULL,
+            remarks TEXT,
+            performed_by VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ");
 
     // 8. Job Order Materials Junction Table
     $pdo->exec("
@@ -187,10 +186,9 @@ try {
     ");
 
     // Seed default Admin user if none exists
-    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    if ($stmt->fetchColumn() == 0) {
-        $defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
-        $insertAdmin = $pdo->prepare("
+    $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
+    if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
+        $insertAdmin =$pdo->prepare("
             INSERT INTO users (username, email, password, first_name, last_name, phone, role, sector_region, status)
             VALUES (:username, :email, :password, :first_name, :last_name, :phone, :role, :sector_region, 'active')
         ");
