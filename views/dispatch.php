@@ -54,40 +54,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     $areaFindingsJson = json_encode($areaFindings);
 
-    if ($jobId) {
-        $stmt = $pdo->prepare("UPDATE job_orders SET 
-            client_id = ?, 
-            contract_id = ?, 
-            client_name = ?, 
-            location = ?, 
-            service_type = ?, 
-            assigned_tech = ?, 
-            scheduled_date = ?, 
-            service_window = ?, 
-            priority = ?, 
-            route_status = ?, 
-            time_in = ?, 
-            time_out = ?, 
-            comments = ?, 
-            area_findings = ? 
-            WHERE id = ?");
-        $stmt->execute([
-            $clientId, $contractId, $clientName, $location, $serviceType, 
-            $assignedTech, $scheduledDate, $serviceWindow, $priority, 
-            $routeStatus, $timeIn, $timeOut, $comments, $areaFindingsJson, $jobId
-        ]);
-    } else {
-        $stmt = $pdo->prepare("INSERT INTO job_orders (
-            client_id, contract_id, client_name, location, service_type, 
-            assigned_tech, scheduled_date, service_window, priority, 
-            route_status, time_in, time_out, comments, area_findings
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([
-            $clientId, $contractId, $clientName, $location, $serviceType, 
-            $assignedTech, $scheduledDate, $serviceWindow, $priority, 
-            $routeStatus, $timeIn, $timeOut, $comments, $areaFindingsJson
-        ]);
+    // Process Materials / Chemicals Used inputs
+    $materialIds  = $_POST['material_id'] ?? [];
+    $quantities   = $_POST['material_quantity'] ?? [];
+
+    try {
+        $pdo->beginTransaction();
+
+        if ($jobId) {
+            // If editing, first return previously used materials back to inventory to avoid double deduction
+            $oldMatsStmt = $pdo->prepare("SELECT inventory_id, quantity_used FROM job_order_materials WHERE job_order_id = ?");
+            $oldMatsStmt->execute([$jobId]);
+            $oldMaterials = $oldMatsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($oldMaterials as $om) {
+                $restoreStmt = $pdo->prepare("UPDATE inventory SET quantity_in_stock = quantity_in_stock + ? WHERE id = ?");
+                $restoreStmt->execute([$om['quantity_used'], $om['inventory_id']]);
+            }
+
+            // Clear old junction records
+            $delStmt = $pdo->prepare("DELETE FROM job_order_materials WHERE job_order_id = ?");
+            $delStmt->execute([$jobId]);
+
+            // Update main job order record
+            $stmt = $pdo->prepare("UPDATE job_orders SET 
+                client_id = ?, 
+                contract_id = ?, 
+                client_name = ?, 
+                location = ?, 
+                service_type = ?, 
+                assigned_tech = ?, 
+                scheduled_date = ?, 
+                service_window = ?, 
+                priority = ?, 
+                route_status = ?, 
+                time_in = ?, 
+                time_out = ?, 
+                comments = ?, 
+                area_findings = ? 
+                WHERE id = ?");
+            $stmt->execute([
+                $clientId, $contractId, $clientName, $location, $serviceType, 
+                $assignedTech, $scheduledDate, $serviceWindow, $priority, 
+                $routeStatus, $timeIn, $timeOut, $comments, $areaFindingsJson, $jobId
+            ]);
+            $targetJobId = $jobId;
+        } else {
+            // Insert new job order record
+            $stmt = $pdo->prepare("INSERT INTO job_orders (
+                client_id, contract_id, client_name, location, service_type, 
+                assigned_tech, scheduled_date, service_window, priority, 
+                route_status, time_in, time_out, comments, area_findings
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $clientId, $contractId, $clientName, $location, $serviceType, 
+                $assignedTech, $scheduledDate, $serviceWindow, $priority, 
+                $routeStatus, $timeIn, $timeOut, $comments, $areaFindingsJson
+            ]);
+            $targetJobId = $pdo->lastInsertId();
+        }
+
+        // Loop through and insert/deduct materials used & log history
+        for ($j = 0; $j < count($materialIds); $j++) {
+            $matId = intval($materialIds[$j] ?? 0);
+            $qty   = floatval($quantities[$j] ?? 0);
+
+            if ($matId > 0 && $qty > 0) {
+                // 1. Insert into job order junction table (using inventory_id)
+                $matInsertStmt = $pdo->prepare("INSERT INTO job_order_materials (job_order_id, inventory_id, quantity_used) VALUES (?, ?, ?)");
+                $matInsertStmt->execute([$targetJobId, $matId, $qty]);
+
+                // 2. Deduct from inventory table
+                $invDeductStmt = $pdo->prepare("UPDATE inventory SET quantity_in_stock = quantity_in_stock - ? WHERE id = ?");
+                $invDeductStmt->execute([$qty, $matId]);
+
+                // 3. Insert into inventory audit log
+                try {
+                    $logStmt = $pdo->prepare("INSERT INTO inventory_logs (material_id, job_order_id, action_type, quantity_changed, remarks, performed_by) VALUES (?, ?, 'Job Order Deduction', ?, ?, ?)");
+                    $logStmt->execute([
+                        $matId, 
+                        $targetJobId, 
+                        -$qty, 
+                        "Deducted for Job Order #{$targetJobId} ({$clientName} - {$serviceType})", 
+                        $userFullName
+                    ]);
+                } catch (Exception $logEx) {
+                    // Non-blocking log failure
+                }
+            }
+        }
+        
+        $pdo->commit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        // Handle error appropriately or log
     }
+
     header("Location: dispatch.php?date=" . urlencode($scheduledDate));
     exit();
 }
@@ -125,6 +187,14 @@ foreach ($jobs as $j) {
     } else {
         $scheduledCount++;
     }
+}
+
+// Fetch Inventory items for the materials dropdown selection
+try {
+    $invStmt = $pdo->query("SELECT id, item_name, unit, quantity_in_stock AS stock_quantity FROM inventory ORDER BY item_name ASC");
+    $inventoryItems = $invStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $inventoryItems = [];
 }
 
 // Check for incoming prefill parameters from clients redirect
@@ -269,7 +339,7 @@ try {
             </div>
 
             <!-- Job Orders Table -->
-           <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -472,10 +542,32 @@ try {
                     </table>
                 </div>
 
+                <!-- DYNAMIC MATERIALS / CHEMICALS USED TABLE -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="font-bold text-gray-700">Materials / Chemicals Used (Inventory Deduction)</label>
+                        <button type="button" onclick="addMaterialRow()" class="text-emerald-700 font-bold hover:underline text-[11px] flex items-center gap-1">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Material Row
+                        </button>
+                    </div>
+                    <table class="w-full border border-gray-200 rounded-lg overflow-hidden" id="materialTable">
+                        <thead class="bg-gray-50 text-[10px] text-gray-500 uppercase">
+                            <tr>
+                                <th class="p-2 border-b text-left">Inventory Item / Chemical</th>
+                                <th class="p-2 border-b text-left w-36">Quantity Consumed</th>
+                                <th class="p-2 border-b w-10"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <!-- Dynamic rows appended via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Chemicals & Dilution Rate</label>
-                        <textarea name="comments" id="modal_comments" rows="3" placeholder="Chemicals applied, dilution rates, dosage, water volume..." class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600"></textarea>
+                        <label class="block font-bold text-gray-700 mb-1">Notes / Dilution Rate Comments</label>
+                        <textarea name="comments" id="modal_comments" rows="3" placeholder="Dilution rates, dosage, water volume..." class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600"></textarea>
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Client Acknowledgment</label>
@@ -496,6 +588,9 @@ try {
 
     <script>
         lucide.createIcons();
+
+        // Pass PHP Inventory items list to JS safely
+        const inventoryOptionsJson = <?= json_encode($inventoryItems) ?>;
 
         function fetchTechnicians(selectedTech = '') {
             const select = document.getElementById('modal_assigned_tech');
@@ -522,12 +617,11 @@ try {
                 });
         }
 
-        // Helper to convert 12-hour format strings (e.g. "08:10 AM") to 24-hour time picker format ("08:10")
+        // Helper to convert 12-hour format strings to 24-hour time picker format
         function to24Hour(timeStr) {
             if (!timeStr) return '';
             const cleaned = timeStr.trim();
             if (!cleaned.toLowerCase().includes('am') && !cleaned.toLowerCase().includes('pm')) {
-                // If it's already HH:MM or has seconds, take the first 5 chars
                 return cleaned.substring(0, 5);
             }
             const [time, modifier] = cleaned.split(' ');
@@ -543,7 +637,6 @@ try {
             return `${hours.padStart(2, '0')}:${minutes}`;
         }
 
-        // Helper to parse service window like "08:00–09:30" or "08:00 AM - 09:30 AM"
         function parseServiceWindow(windowStr) {
             if (!windowStr) return { start: '08:00', end: '09:30' };
             const parts = windowStr.split(/–|-/).map(s => s.trim());
@@ -585,6 +678,7 @@ try {
             document.getElementById('modal_comments').value = '';
             
             populateAreaRows([]);
+            populateMaterialRows([]);
             fetchTechnicians();
             document.getElementById('jobModal').classList.remove('hidden');
         }
@@ -612,6 +706,18 @@ try {
             document.getElementById('modal_comments').value = job.comments || '';
             
             populateAreaRows(job.area_findings);
+
+            if (job.id) {
+                fetch(`../controllers/getJobMaterials.php?job_order_id=${job.id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        populateMaterialRows(data.success ? data.materials : []);
+                    })
+                    .catch(() => populateMaterialRows([]));
+            } else {
+                populateMaterialRows([]);
+            }
+
             fetchTechnicians(job.assigned_tech);
             document.getElementById('jobModal').classList.remove('hidden');
         }
@@ -645,6 +751,33 @@ try {
             lucide.createIcons();
         }
 
+        function addMaterialRow(materialId = '', quantity = '') {
+            const tbody = document.querySelector('#materialTable tbody');
+            const row   = document.createElement('tr');
+
+            let optionsHtml = '<option value="">Select Inventory Item</option>';
+            inventoryOptionsJson.forEach(item => {
+                const selected = (String(item.id) === String(materialId)) ? 'selected' : '';
+                optionsHtml += `<option value="${item.id}" ${selected}>${escapeHtml(item.item_name)} (${escapeHtml(item.unit || 'units')} available: ${item.stock_quantity})</option>`;
+            });
+
+            row.innerHTML = `
+                <td class="p-2">
+                    <select name="material_id[]" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white focus:outline-none focus:border-emerald-600" required>
+                        ${optionsHtml}
+                    </select>
+                </td>
+                <td class="p-2">
+                    <input type="number" step="0.01" name="material_quantity[]" value="${escapeHtml(quantity)}" placeholder="Qty" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white focus:outline-none focus:border-emerald-600" required>
+                </td>
+                <td class="p-2 text-center">
+                    <button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            lucide.createIcons();
+        }
+
         function populateAreaRows(areaFindingsData) {
             const tbody = document.querySelector('#areaTable tbody');
             tbody.innerHTML = '';
@@ -669,6 +802,19 @@ try {
             }
         }
 
+        function populateMaterialRows(materialsData) {
+            const tbody = document.querySelector('#materialTable tbody');
+            tbody.innerHTML = '';
+
+            if (!materialsData || materialsData.length === 0) {
+                // leave empty
+            } else {
+                materialsData.forEach(mat => {
+                    addMaterialRow(mat.inventory_id || mat.material_id || mat.id, mat.quantity_used || mat.quantity);
+                });
+            }
+        }
+
         function escapeHtml(text) {
             if (!text) return '';
             return text.toString()
@@ -679,7 +825,6 @@ try {
                 .replace(/'/g, "&#039;");
         }
 
-        // Before submitting form, combine start and end time inputs into the service_window format
         document.getElementById('jobOrderForm').addEventListener('submit', function(e) {
             const start = document.getElementById('modal_window_start').value;
             const end = document.getElementById('modal_window_end').value;
@@ -688,7 +833,6 @@ try {
             }
         });
 
-        // Auto-open schedule modal if client parameters are passed in the URL
         document.addEventListener('DOMContentLoaded', () => {
             const prefilledClient = "<?= addslashes(htmlspecialchars($prefilledClient)) ?>";
             const prefilledAddress = "<?= addslashes(htmlspecialchars($prefilledAddress)) ?>";

@@ -14,9 +14,8 @@ $currentPage = 'dashboard.php';
 $successMessage = '';
 $errorMessage = '';
 
-// Get current logged-in user's name robustly based on your users table structure (first_name + last_name)
+// Get current logged-in user's name robustly
 $currentUserName = 'System / Admin';
-
 if (!empty($_SESSION['user_name'])) {
     $currentUserName = $_SESSION['user_name'];
 } elseif (!empty($_SESSION['first_name']) && !empty($_SESSION['last_name'])) {
@@ -28,62 +27,7 @@ if (!empty($_SESSION['user_name'])) {
 }
 
 // -----------------------------------------------------------------------------
-// 1. HANDLE FORM SUBMISSION: ADD NEW STOCK ITEM
-// -----------------------------------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_item') {
-    $item_name        = trim($_POST['item_name'] ?? '');
-    $category         = trim($_POST['category'] ?? 'Chemical');
-    $quantity_in_stock = floatval($_POST['quantity_in_stock'] ?? 0);
-    $unit             = trim($_POST['unit'] ?? 'Pcs');
-    $min_threshold    = floatval($_POST['min_threshold'] ?? 10);
-    $unit_cost        = floatval($_POST['unit_cost'] ?? 0);
-    $batch_number     = trim($_POST['batch_number'] ?? '');
-    $storage_location = trim($_POST['storage_location'] ?? '');
-
-    // Determine initial status based on threshold
-    if ($quantity_in_stock <= 0) {
-        $status = 'Out of Stock';
-    } elseif ($quantity_in_stock <= $min_threshold) {
-        $status = 'Low Stock';
-    } else {
-        $status = 'In Stock';
-    }
-
-    if (!empty($item_name)) {
-        try {
-            $stmt = $pdo->prepare("
-                INSERT INTO inventory 
-                (item_name, category, quantity_in_stock, unit, min_threshold, unit_cost, batch_number, storage_location, status, updated_by) 
-                VALUES 
-                (:item_name, :category, :quantity_in_stock, :unit, :min_threshold, :unit_cost, :batch_number, :storage_location, :status, :updated_by)
-            ");
-            
-            $stmt->execute([
-                ':item_name'         => $item_name,
-                ':category'          => $category,
-                ':quantity_in_stock' => $quantity_in_stock,
-                ':unit'              => $unit,
-                ':min_threshold'     => $min_threshold,
-                ':unit_cost'         => $unit_cost,
-                ':batch_number'      => $batch_number,
-                ':storage_location'  => $storage_location,
-                ':status'            => $status,
-                ':updated_by'        => $currentUserName
-            ]);
-
-            $_SESSION['success_msg'] = "New item '$item_name' added successfully!";
-            header("Location: dashboard.php");
-            exit;
-        } catch (PDOException $e) {
-            $errorMessage = "Database Error: " . $e->getMessage();
-        }
-    } else {
-        $errorMessage = "Item Name is required.";
-    }
-}
-
-// -----------------------------------------------------------------------------
-// 2. FETCH DASHBOARD METRICS
+// FETCH DASHBOARD METRICS & INVENTORY LOGS ACTIVITY
 // -----------------------------------------------------------------------------
 try {
     $stmtTotalSKUs = $pdo->query("SELECT COUNT(*) FROM inventory");
@@ -95,9 +39,48 @@ try {
     $stmtChemVol = $pdo->query("SELECT SUM(quantity_in_stock) FROM inventory WHERE category = 'Chemical'");
     $totalChemicalVolume = $stmtChemVol->fetchColumn() ?: 0;
 
-    // Fetch recent warehouse activity (sorted by latest update/creation)
-    $stmtActivity = $pdo->query("SELECT * FROM inventory ORDER BY updated_at DESC, id DESC LIMIT 10");
-    $recentActivity = $stmtActivity->fetchAll(PDO::FETCH_ASSOC);
+    // Fetch unified activity logs from inventory_logs joined with inventory
+    $recentActivity = [];
+    
+    $checkLogs = $pdo->query("SHOW TABLES LIKE 'inventory_logs'")->fetch();
+
+    if ($checkLogs) {
+        $stmtActivity = $pdo->query("
+            SELECT 
+                COALESCE(i.item_name, 'Unknown Item') AS item_name, 
+                COALESCE(i.category, 'General') AS category, 
+                l.quantity_changed AS stock_level, 
+                COALESCE(i.unit, 'Pcs') AS unit, 
+                COALESCE(l.remarks, CONCAT('Job Order #', l.job_order_id)) AS reference_info,
+                COALESCE(l.performed_by, 'System / Admin') AS performed_by,
+                COALESCE(l.action_type, 'Stock Adjustment') AS status_type,
+                l.created_at AS log_date
+            FROM inventory_logs l
+            LEFT JOIN inventory i ON l.material_id = i.id
+            ORDER BY l.created_at DESC 
+            LIMIT 10
+        ");
+        $recentActivity = $stmtActivity->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // If inventory_logs table is empty, fallback to inventory updates
+    if (empty($recentActivity)) {
+        $stmtActivity = $pdo->query("
+            SELECT 
+                item_name, 
+                category, 
+                quantity_in_stock AS stock_level, 
+                unit, 
+                COALESCE(batch_number, 'Direct Adjustment') AS reference_info,
+                COALESCE(updated_by, 'System / Admin') AS performed_by,
+                status AS status_type,
+                updated_at AS log_date
+            FROM inventory 
+            ORDER BY updated_at DESC, id DESC 
+            LIMIT 10
+        ");
+        $recentActivity = $stmtActivity->fetchAll(PDO::FETCH_ASSOC);
+    }
 
 } catch (PDOException $e) {
     $totalSKUs = 0;
@@ -162,11 +145,13 @@ if (isset($_SESSION['success_msg'])) {
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-slate-900">Chemical Custodian Dashboard</h1>
-                    <p class="text-xs text-slate-500 mt-1">Manage stock allocations, batch numbers, and warehouse safety thresholds.</p>
+                    <p class="text-xs text-slate-500 mt-1">Manage stock allocations, batch numbers, and job order stock deductions.</p>
                 </div>
-                <a href="inventory.php" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm">
-                    <i data-lucide="layers" class="w-4 h-4 text-emerald-200"></i> Manage Full Inventory
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="inventory.php" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm">
+                        <i data-lucide="layers" class="w-4 h-4 text-emerald-200"></i> Manage Full Inventory
+                    </a>
+                </div>
             </div>
 
             <!-- KPI Cards -->
@@ -188,11 +173,14 @@ if (isset($_SESSION['success_msg'])) {
                 </div>
             </div>
 
-            <!-- Recent Warehouse Stock Activity Table -->
+            <!-- Recent Warehouse Stock & Job Order Deductions Table -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-5 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h2 class="text-base font-semibold text-slate-900">Recent Warehouse Stock Activity</h2>
-                    <span class="text-xs text-slate-400 font-medium">Latest updates and logs</span>
+                    <div>
+                        <h2 class="text-base font-semibold text-slate-900">Job Order Deductions</h2>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Live log showing items deducted for job orders</p>
+                    </div>
+                    <span class="text-xs text-slate-400 font-medium">Real-time audit log</span>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -201,16 +189,16 @@ if (isset($_SESSION['success_msg'])) {
                             <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100 font-semibold">
                                 <th class="pb-2.5">Item Name</th>
                                 <th class="pb-2.5">Category</th>
-                                <th class="pb-2.5">Stock Level</th>
-                                <th class="pb-2.5">Batch Number</th>
+                                <th class="pb-2.5">Quantity Changed</th>
+                                <th class="pb-2.5">Remarks / Job Order Ref</th>
                                 <th class="pb-2.5">Performed By</th>
-                                <th class="pb-2.5">Status</th>
+                                <th class="pb-2.5">Activity Type</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                             <?php if (empty($recentActivity)): ?>
                                 <tr>
-                                    <td colspan="6" class="py-8 text-center text-slate-400 italic">No recent warehouse activity recorded.</td>
+                                    <td colspan="6" class="py-8 text-center text-slate-400 italic">No job order deductions or warehouse movements recorded yet.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($recentActivity as $act): ?>
@@ -218,30 +206,31 @@ if (isset($_SESSION['success_msg'])) {
                                         <td class="py-3 font-bold text-slate-900"><?= htmlspecialchars($act['item_name']) ?></td>
                                         <td class="py-3">
                                             <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[10px] text-slate-700">
-                                                <?= htmlspecialchars($act['category']) ?>
+                                                <?= htmlspecialchars($act['category'] ?? 'Chemical') ?>
                                             </span>
                                         </td>
-                                        <td class="py-3 font-mono font-bold text-slate-900">
-                                            <?= number_format($act['quantity_in_stock'], 2) ?> <?= htmlspecialchars($act['unit']) ?>
+                                        <td class="py-3 font-mono font-bold <?= $act['stock_level'] < 0 ? 'text-rose-600' : 'text-emerald-600' ?>">
+                                            <?= ($act['stock_level'] > 0 ? '+' : '') . number_format($act['stock_level'], 2) ?> <?= htmlspecialchars($act['unit'] ?? 'Pcs') ?>
                                         </td>
-                                        <td class="py-3 font-mono text-slate-500">
-                                            <?= !empty($act['batch_number']) ? htmlspecialchars($act['batch_number']) : 'N/A' ?>
+                                        <td class="py-3 text-slate-800">
+                                            <?= htmlspecialchars($act['reference_info']) ?>
                                         </td>
                                         <td class="py-3 text-slate-700 font-semibold">
                                             <div class="flex items-center gap-1.5">
-                                                <i data-lucide="user" class="w-3.5 h-3.5 text-[#007a55]"></i>
-                                                <span><?= htmlspecialchars($act['updated_by'] ?? 'System / Admin') ?></span>
+                                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-[#007a55]"></i>
+                                                <span><?= htmlspecialchars($act['performed_by']) ?></span>
                                             </div>
                                         </td>
                                         <td class="py-3">
                                             <?php 
-                                                $status = $act['status'];
-                                                $badgeColor = ($status === 'Low Stock' || $act['quantity_in_stock'] <= $act['min_threshold']) 
-                                                    ? 'bg-amber-50 text-amber-700 border-amber-200' 
-                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                                                $type = $act['status_type'];
+                                                $badgeColor = 'bg-rose-50 text-rose-700 border-rose-200';
+                                                if (strpos($type, 'Add') !== false || strpos($type, 'Restock') !== false) {
+                                                    $badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                                                }
                                             ?>
                                             <span class="border px-2 py-0.5 rounded text-[10px] font-semibold <?= $badgeColor ?>">
-                                                <?= htmlspecialchars($status) ?>
+                                                <?= htmlspecialchars($type) ?>
                                             </span>
                                         </td>
                                     </tr>

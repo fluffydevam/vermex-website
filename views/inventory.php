@@ -61,6 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 ':updated_by'        => $currentAdmin
             ]);
 
+            // Log initial stock creation if quantity > 0
+            if ($quantity_in_stock > 0) {
+                $lastId = $pdo->lastInsertId();
+                $logStmt = $pdo->prepare("INSERT INTO inventory_logs (material_id, action_type, quantity_changed, remarks, performed_by) VALUES (?, 'Initial Stock', ?, 'New item added to inventory', ?)");
+                $logStmt->execute([$lastId, $quantity_in_stock, $currentAdmin]);
+            }
+
             $_SESSION['success_msg'] = "New item '$item_name' added successfully!";
             header("Location: inventory.php");
             exit;
@@ -79,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $itemId     = (int)($_POST['item_id'] ?? 0);
     $adjustType = $_POST['adjustment_type'] ?? 'add';
     $amount     = floatval($_POST['adjust_amount'] ?? 0);
+    $remarks    = trim($_POST['remarks'] ?? 'Manual Stock Adjustment');
 
     if ($itemId > 0 && $amount >= 0) {
         try {
@@ -91,13 +99,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $currentQty   = (float)$item['quantity_in_stock'];
                 $minThreshold = (float)$item['min_threshold'];
 
-                // Calculate updated quantity
+                // Calculate updated quantity and delta
                 if ($adjustType === 'add') {
                     $newQty = $currentQty + $amount;
+                    $qtyChange = $amount;
+                    $actionLabel = 'Stock Added';
                 } elseif ($adjustType === 'subtract') {
                     $newQty = max(0, $currentQty - $amount);
+                    $qtyChange = -$amount;
+                    $actionLabel = 'Stock Deducted';
                 } else { // 'set'
+                    $qtyChange = $amount - $currentQty;
                     $newQty = max(0, $amount);
+                    $actionLabel = 'Stock Audit Set';
                 }
 
                 // Recalculate status
@@ -112,6 +126,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 // Update MySQL record including updated_by
                 $updateStmt = $pdo->prepare("UPDATE inventory SET quantity_in_stock = ?, status = ?, updated_by = ? WHERE id = ?");
                 $updateStmt->execute([$newQty, $status, $currentAdmin, $itemId]);
+
+                // Insert into inventory audit log
+                try {
+                    $logStmt = $pdo->prepare("INSERT INTO inventory_logs (material_id, action_type, quantity_changed, remarks, performed_by) VALUES (?, ?, ?, ?, ?)");
+                    $logStmt->execute([$itemId, $actionLabel, $qtyChange, $remarks, $currentAdmin]);
+                } catch (Exception $logEx) {
+                    // Non-blocking log exception catch
+                }
 
                 $_SESSION['success_msg'] = "Stock level adjusted for '{$item['item_name']}'. New Total: " . number_format($newQty, 2);
                 header("Location: inventory.php");
@@ -210,6 +232,22 @@ try {
 } catch (PDOException $e) {
     $inventoryItems = [];
 }
+
+// -----------------------------------------------------------------------------
+// 6. FETCH INVENTORY AUDIT / DEDUCTION LOGS
+// -----------------------------------------------------------------------------
+try {
+    $logsStmt = $pdo->query("
+        SELECT l.*, i.item_name, i.unit 
+        FROM inventory_logs l 
+        LEFT JOIN inventory i ON l.material_id = i.id 
+        ORDER BY l.created_at DESC 
+        LIMIT 100
+    ");
+    $inventoryLogs = $logsStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $inventoryLogs = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -285,6 +323,10 @@ try {
                 </div>
                 
                 <div class="flex items-center gap-3">
+                    <button onclick="openHistoryModal()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
+                        <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
+                        <span>Deduction History</span>
+                    </button>
                     <button onclick="openModal()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         <span>Add Stock Item</span>
@@ -488,6 +530,89 @@ try {
     </main>
 
     <!-- =====================================================================
+         DEDUCTION HISTORY MODAL DIALOG
+         ===================================================================== -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-4xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-emerald-50 text-[#007a55] rounded-lg">
+                        <i data-lucide="history" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Inventory Movement & Deduction History</h3>
+                        <p class="text-[11px] text-slate-500">Chronological audit trail of all job order deductions, manual adjustments, and restocks.</p>
+                    </div>
+                </div>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 text-xs">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-slate-50 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                            <th class="p-3">Timestamp</th>
+                            <th class="p-3">Item Name</th>
+                            <th class="p-3">Action Type</th>
+                            <th class="p-3">Qty Changed</th>
+                            <th class="p-3">Remarks / Details</th>
+                            <th class="p-3">Performed By</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <?php if (empty($inventoryLogs)): ?>
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-slate-400">
+                                    <i data-lucide="file-text" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                                    No deduction or inventory history logs recorded yet.
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($inventoryLogs as $log): ?>
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="p-3 font-mono text-slate-600 whitespace-nowrap">
+                                        <?= htmlspecialchars($log['created_at']) ?>
+                                    </td>
+                                    <td class="p-3 font-bold text-slate-800">
+                                        <?= htmlspecialchars($log['item_name'] ?? 'Deleted/Unknown Item') ?>
+                                    </td>
+                                    <td class="p-3 whitespace-nowrap">
+                                        <?php 
+                                            $act = $log['action_type'];
+                                            $badgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                                            if (stripos($act, 'Deduction') !== false || stripos($act, 'Deducted') !== false) {
+                                                $badgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                                            } elseif (stripos($act, 'Add') !== false || stripos($act, 'Restock') !== false) {
+                                                $badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                                            }
+                                        ?>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border <?= $badgeClass ?>">
+                                            <?= htmlspecialchars($act) ?>
+                                        </span>
+                                    </td>
+                                    <td class="p-3 font-mono font-bold whitespace-nowrap <?= floatval($log['quantity_changed']) < 0 ? 'text-rose-600' : 'text-emerald-600' ?>">
+                                        <?= floatval($log['quantity_changed']) > 0 ? '+' . number_format($log['quantity_changed'], 2) : number_format($log['quantity_changed'], 2) ?>
+                                    </td>
+                                    <td class="p-3 text-slate-600 max-w-xs truncate">
+                                        <?= htmlspecialchars($log['remarks'] ?? '-') ?>
+                                    </td>
+                                    <td class="p-3 text-slate-700 font-medium whitespace-nowrap">
+                                        <?= htmlspecialchars($log['performed_by'] ?? 'System') ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <button type="button" onclick="closeHistoryModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-semibold text-xs transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
          ADD ITEM MODAL DIALOG
          ===================================================================== -->
     <div id="addItemModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -626,6 +751,14 @@ try {
 
         function closeModal() {
             document.getElementById('addItemModal').classList.add('hidden');
+        }
+
+        function openHistoryModal() {
+            document.getElementById('historyModal').classList.remove('hidden');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.add('hidden');
         }
 
         function openAdjustModal(id, name, unit) {

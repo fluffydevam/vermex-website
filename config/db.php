@@ -158,6 +158,20 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
+    //Inventory Logs Table
+     $pdo->exec(" 
+     CREATE TABLE IF NOT EXISTS inventory_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    material_id INT NOT NULL,
+    job_order_id INT DEFAULT NULL,
+    action_type VARCHAR(50) DEFAULT 'Job Order Deduction',
+    quantity_changed DECIMAL(10,2) NOT NULL,
+    remarks TEXT,
+    performed_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+");
+
     // 8. Job Order Materials Junction Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS job_order_materials (
