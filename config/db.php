@@ -5,7 +5,8 @@ $pass = "";
 $dbname = "vermex_pest_solutions";
 
 try {
-    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbname`");
@@ -47,7 +48,7 @@ try {
     ");
 
     // 3. Contracts Table
-$pdo->exec("
+    $pdo->exec("
     CREATE TABLE IF NOT EXISTS contracts (
         id INT AUTO_INCREMENT PRIMARY KEY,
         client_id INT NOT NULL,
@@ -61,7 +62,7 @@ $pdo->exec("
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-");
+    ");
 
     // 4. Site Inspections Table (Linked with contract_id)
     $pdo->exec("
@@ -152,7 +153,8 @@ $pdo->exec("
             storage_location VARCHAR(100) NULL,
             status ENUM('In Stock', 'Low Stock', 'Out of Stock') NOT NULL DEFAULT 'In Stock',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+            updated_by VARCHAR(100) NULL DEFAULT 'System / Admin'
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
@@ -171,9 +173,10 @@ $pdo->exec("
     ");
 
     // Seed default Admin user if none exists
-    $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
-    if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
-        $insertAdmin =$pdo->prepare("
+    $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
+    if ($stmt->fetchColumn() == 0) {
+        $defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
+        $insertAdmin = $pdo->prepare("
             INSERT INTO users (username, email, password, first_name, last_name, phone, role, sector_region, status)
             VALUES (:username, :email, :password, :first_name, :last_name, :phone, :role, :sector_region, 'active')
         ");
@@ -188,7 +191,6 @@ $pdo->exec("
             'sector_region' => 'Davao Head Office'
         ]);
     }
-
 } catch (PDOException $e) {
     die("Database Initialization Failed: " . $e->getMessage());
 }

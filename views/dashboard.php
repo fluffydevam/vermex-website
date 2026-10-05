@@ -7,7 +7,15 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-require_once '../config/db.php';
+// 1. Load database connection first
+require_once __DIR__ . '/../config/db.php';
+
+// 2. Load auth middleware
+require_once __DIR__ . '/../middleware/auth.php';
+
+// 3. Restrict access strictly to Admin role
+requireRole(['Admin']);
+
 
 // Fetch dynamic operational counts (Fallback defaults if database tables are empty)
 $todayJobsCount = 6;            // Daily transaction average (4 to 9 daily)

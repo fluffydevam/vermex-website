@@ -1,5 +1,15 @@
 <?php
 session_start();
+
+// 1. Load database connection first
+require_once __DIR__ . '/../config/db.php';
+
+// 2. Load auth middleware
+require_once __DIR__ . '/../middleware/auth.php';
+
+// 3. Restrict access strictly to Admin role
+requireRole(['Admin']);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

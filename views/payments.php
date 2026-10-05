@@ -1,6 +1,13 @@
 <?php
 session_start();
-require_once '../config/db.php';
+// 1. Load database connection first
+require_once __DIR__ . '/../config/db.php';
+
+// 2. Load auth middleware
+require_once __DIR__ . '/../middleware/auth.php';
+
+// 3. Restrict access strictly to Admin role
+requireRole(['Admin']);
 
 // Ensure final_balance column exists in contracts table
 try {

@@ -2,20 +2,30 @@
 session_start();
 
 // 1. Load database connection first
-require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../../config/db.php';
 
 // 2. Load auth middleware
-require_once __DIR__ . '/../middleware/auth.php';
+require_once __DIR__ . '/../../middleware/auth.php';
 
-// 3. Restrict access strictly to Admin role
-requireRole(['Admin']);
+// 3. Restrict access strictly to Chemical Custodians and Admins
+requireRole(['Chemical Custodian', 'Admin']);
 
-// Initialize Alert Messages
+$currentPage = 'inventory.php';
 $successMessage = '';
 $errorMessage = '';
 
-// Get current logged-in user name dynamically (matches dashboard style)
-$currentAdmin = $_SESSION['username'] ?? $_SESSION['user_name'] ?? $_SESSION['name'] ?? 'System / Admin';
+// Get current logged-in user's name robustly based on your users table structure (first_name + last_name)
+$currentUserName = 'System / Admin';
+
+if (!empty($_SESSION['user_name'])) {
+    $currentUserName = $_SESSION['user_name'];
+} elseif (!empty($_SESSION['first_name']) && !empty($_SESSION['last_name'])) {
+    $currentUserName = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+} elseif (!empty($_SESSION['username'])) {
+    $currentUserName = $_SESSION['username'];
+} elseif (!empty($_SESSION['user']['first_name'])) {
+    $currentUserName = $_SESSION['user']['first_name'] . ' ' . $_SESSION['user']['last_name'];
+}
 
 // -----------------------------------------------------------------------------
 // 1. HANDLE FORM SUBMISSION: ADD NEW STOCK ITEM
@@ -58,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 ':batch_number'      => $batch_number,
                 ':storage_location'  => $storage_location,
                 ':status'            => $status,
-                ':updated_by'        => $currentAdmin
+                ':updated_by'        => $currentUserName
             ]);
 
             $_SESSION['success_msg'] = "New item '$item_name' added successfully!";
@@ -82,7 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     if ($itemId > 0 && $amount >= 0) {
         try {
-            // Fetch current stock and threshold
             $stmt = $pdo->prepare("SELECT quantity_in_stock, min_threshold, item_name FROM inventory WHERE id = ?");
             $stmt->execute([$itemId]);
             $item = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -91,16 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $currentQty   = (float)$item['quantity_in_stock'];
                 $minThreshold = (float)$item['min_threshold'];
 
-                // Calculate updated quantity
                 if ($adjustType === 'add') {
                     $newQty = $currentQty + $amount;
                 } elseif ($adjustType === 'subtract') {
                     $newQty = max(0, $currentQty - $amount);
-                } else { // 'set'
+                } else { 
                     $newQty = max(0, $amount);
                 }
 
-                // Recalculate status
                 if ($newQty <= 0) {
                     $status = 'Out of Stock';
                 } elseif ($newQty <= $minThreshold) {
@@ -109,9 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $status = 'In Stock';
                 }
 
-                // Update MySQL record including updated_by
+                // Update stock and track who made the adjustment
                 $updateStmt = $pdo->prepare("UPDATE inventory SET quantity_in_stock = ?, status = ?, updated_by = ? WHERE id = ?");
-                $updateStmt->execute([$newQty, $status, $currentAdmin, $itemId]);
+                $updateStmt->execute([$newQty, $status, $currentUserName, $itemId]);
 
                 $_SESSION['success_msg'] = "Stock level adjusted for '{$item['item_name']}'. New Total: " . number_format($newQty, 2);
                 header("Location: inventory.php");
@@ -125,7 +132,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Session message alerts
 if (isset($_SESSION['success_msg'])) {
     $successMessage = $_SESSION['success_msg'];
     unset($_SESSION['success_msg']);
@@ -135,21 +141,17 @@ if (isset($_SESSION['success_msg'])) {
 // 3. FETCH KPI METRICS FROM DATABASE
 // -----------------------------------------------------------------------------
 try {
-    // Total Chemical Stock
     $stmtChem = $pdo->query("SELECT SUM(quantity_in_stock) as total_chem, COUNT(*) as chem_count FROM inventory WHERE category = 'Chemical'");
     $chemData = $stmtChem->fetch(PDO::FETCH_ASSOC);
     $totalChemicalStock = $chemData['total_chem'] ?? 0;
     $activeChemCount    = $chemData['chem_count'] ?? 0;
 
-    // Deployed Field Traps / Devices
     $stmtTraps = $pdo->query("SELECT SUM(quantity_in_stock) as total_traps FROM inventory WHERE category IN ('Device/Trap', 'Traps & Devices')");
     $totalTraps = $stmtTraps->fetchColumn() ?: 0;
 
-    // Low Stock Alerts
     $stmtLow = $pdo->query("SELECT COUNT(*) FROM inventory WHERE quantity_in_stock <= min_threshold OR status = 'Low Stock'");
     $lowStockCount = $stmtLow->fetchColumn() ?: 0;
 
-    // Total Inventory Items
     $stmtTotal = $pdo->query("SELECT COUNT(*) FROM inventory");
     $totalItemCount = $stmtTotal->fetchColumn() ?: 0;
 
@@ -162,7 +164,7 @@ try {
 }
 
 // -----------------------------------------------------------------------------
-// 4. FETCH DISTINCT STORAGE LOCATIONS FOR FILTER DROPDOWN
+// 4. FETCH DISTINCT STORAGE LOCATIONS
 // -----------------------------------------------------------------------------
 try {
     $stmtLocations = $pdo->query("
@@ -216,42 +218,34 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vermex - Inventory Management</title>
-    
-    <!-- Tailwind CSS (CDN) -->
+    <title>Master Inventory - Chemical Custodian</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
 </head>
 <body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased overflow-hidden">
 
-    <!-- 1. Shared Sidebar Component -->
+    <!-- Include Custodian Sidebar -->
     <?php include 'components/sidebar.php'; ?>
 
-    <!-- 2. Main Content Area -->
-    <main class="flex-1 flex flex-col overflow-y-auto bg-[#f8faf9]">
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         
-        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto">
+        <!-- Top Bar -->
+        <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between text-xs text-slate-500">
+            <div>Custodian Workspace / <span class="font-semibold text-slate-800">Master Inventory</span></div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Active Role: Chemical Custodian (<?= htmlspecialchars($currentUserName) ?>)
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Content Container -->
+        <div class="p-8 space-y-6 max-w-7xl w-full mx-auto">
             
-            <!-- Alert Notifications -->
+            <!-- Notifications -->
             <?php if (!empty($successMessage)): ?>
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-2">
@@ -273,23 +267,14 @@ try {
             <?php endif; ?>
 
             <!-- Header Section -->
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
+            <div class="flex items-center justify-between">
                 <div>
-                    <div class="flex items-center gap-2 text-[11px] text-[#007a55] font-semibold tracking-wider uppercase mb-1">
-                        <span>Operations</span>
-                        <span>•</span>
-                        <span>Warehouse & Stock Control</span>
-                    </div>
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Inventory Management</h1>
-                    <p class="text-xs text-slate-500 mt-1">Track chemical volumes, trap deployment counts, PPE stock, and technician van allocations.</p>
+                    <h1 class="text-2xl font-bold text-slate-900">Master Inventory Directory</h1>
+                    <p class="text-xs text-slate-500 mt-1">Complete catalog of all chemical stock, PPE, safety equipment, and batch tracking.</p>
                 </div>
-                
-                <div class="flex items-center gap-3">
-                    <button onclick="openModal()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>Add Stock Item</span>
-                    </button>
-                </div>
+                <button onclick="openModal()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm">
+                    <i data-lucide="plus" class="w-4 h-4 text-emerald-200"></i> Add New Stock Item
+                </button>
             </div>
 
             <!-- Dynamic KPI Summary Cards -->
@@ -354,7 +339,6 @@ try {
                         <option value="Equipment" <?= $categoryFilter === 'Equipment' ? 'selected' : '' ?>>Sprayers & Applicators</option>
                     </select>
                     
-                    <!-- Dynamic Database Locations Filter -->
                     <select name="location" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
                         <option value="">All Locations</option>
                         <?php foreach ($locationsList as $loc): ?>
@@ -377,12 +361,12 @@ try {
                 </div>
             </form>
 
-            <!-- Main Inventory Data Table -->
-            <div class="bg-white border border-slate-200/80 rounded-xl p-5 space-y-4 shadow-sm">
+            <!-- Inventory Data Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-5 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
                         <h2 class="text-base font-semibold text-slate-900">Stock Items & Device Inventory</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Live stock counts synced with database records and field Job Orders.</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Live stock counts synced with database records and field operations.</p>
                     </div>
                     <span class="bg-emerald-50 text-[#007a55] text-[10px] font-semibold px-2.5 py-1 rounded-full border border-emerald-100"><?= count($inventoryItems) ?> items listed</span>
                 </div>
@@ -390,30 +374,34 @@ try {
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead>
-                            <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100">
-                                <th class="pb-2.5 font-semibold">Item Name</th>
-                                <th class="pb-2.5 font-semibold">Category</th>
-                                <th class="pb-2.5 font-semibold">Available Stock</th>
-                                <th class="pb-2.5 font-semibold">Min Threshold</th>
-                                <th class="pb-2.5 font-semibold">Unit Cost</th>
-                                <th class="pb-2.5 font-semibold">Status</th>
-                                <th class="pb-2.5 font-semibold">Storage Location</th>
-                                <th class="pb-2.5 font-semibold text-right">Action</th>
+                            <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100 font-semibold">
+                                <th class="pb-2.5">Item Name</th>
+                                <th class="pb-2.5">Category</th>
+                                <th class="pb-2.5">Available Stock</th>
+                                <th class="pb-2.5">Min Threshold</th>
+                                <th class="pb-2.5">Unit Cost</th>
+                                <th class="pb-2.5">Status</th>
+                                <th class="pb-2.5">Storage Location</th>
+                                <th class="pb-2.5 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <?php if (!empty($inventoryItems)): ?>
+                        <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                            <?php if (empty($inventoryItems)): ?>
+                                <tr>
+                                    <td colspan="8" class="px-6 py-10 text-center text-slate-400">
+                                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                                        <p class="text-xs">No inventory records found matching your criteria.</p>
+                                    </td>
+                                </tr>
+                            <?php else: ?>
                                 <?php foreach ($inventoryItems as $item): ?>
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="py-3">
-                                            <p class="font-bold text-slate-800"><?= htmlspecialchars($item['item_name']) ?></p>
-                                            <p class="text-[10px] text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
-                                                <span>ID: #<?= $item['id'] ?></span>
+                                            <div class="font-bold text-slate-900"><?= htmlspecialchars($item['item_name']) ?></div>
+                                            <div class="text-[10px] text-slate-400 font-mono">
+                                                ID: #<?= $item['id'] ?> 
                                                 <?= !empty($item['batch_number']) ? '• Batch #' . htmlspecialchars($item['batch_number']) : '' ?>
-                                                <span class="inline-flex items-center gap-1 text-slate-500 font-sans">
-                                                    • <i data-lucide="user" class="w-3 h-3 text-slate-400"></i> By: <?= htmlspecialchars($item['updated_by'] ?? 'System / Admin') ?>
-                                                </span>
-                                            </p>
+                                            </div>
                                         </td>
                                         <td class="py-3">
                                             <?php 
@@ -430,11 +418,9 @@ try {
                                                 <?= htmlspecialchars($item['category']) ?>
                                             </span>
                                         </td>
-                                        <td class="py-3">
-                                            <p class="font-bold font-mono text-slate-800">
-                                                <?= number_format($item['quantity_in_stock'], 2) ?> 
-                                                <span class="text-[10px] font-normal text-slate-400"><?= htmlspecialchars($item['unit']) ?></span>
-                                            </p>
+                                        <td class="py-3 font-bold font-mono text-slate-900">
+                                            <?= number_format($item['quantity_in_stock'], 2) ?> 
+                                            <span class="text-[10px] font-normal text-slate-400"><?= htmlspecialchars($item['unit']) ?></span>
                                         </td>
                                         <td class="py-3 text-slate-600 font-mono">
                                             <?= number_format($item['min_threshold'], 2) ?> <?= htmlspecialchars($item['unit']) ?>
@@ -470,109 +456,84 @@ try {
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="8" class="text-center py-8 text-slate-400">
-                                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
-                                        <p class="text-xs">No inventory items found matching your filter criteria.</p>
-                                    </td>
-                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-
             </div>
-
         </div>
     </main>
 
-    <!-- =====================================================================
-         ADD ITEM MODAL DIALOG
-         ===================================================================== -->
-    <div id="addItemModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
-            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <i data-lucide="plus-circle" class="w-4 h-4 text-[#007a55]"></i>
-                    Add New Inventory Item
+    <!-- Add Item Modal -->
+    <div id="addItemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-[#007a55]"></i> Add New Warehouse Stock Item
                 </h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
             </div>
-            
-            <form method="POST" action="inventory.php" class="p-5 space-y-4 text-xs">
+            <form method="POST" action="inventory.php" class="space-y-3 text-xs">
                 <input type="hidden" name="action" value="add_item">
-
                 <div>
-                    <label class="block font-medium text-slate-700 mb-1">Item Name *</label>
-                    <input type="text" name="item_name" required placeholder="e.g. Termidor HE Termiticide" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                    <label class="block font-semibold text-slate-700 mb-1">Item Name *</label>
+                    <input type="text" name="item_name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#007a55]" placeholder="e.g. Termidor HE Termiticide">
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Category</label>
-                        <select name="category" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <label class="block font-semibold text-slate-700 mb-1">Category</label>
+                        <select name="category" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#007a55]">
                             <option value="Chemical">Chemical</option>
-                            <option value="Device/Trap">Device / Trap</option>
+                            <option value="Device/Trap">Device/Trap</option>
                             <option value="Equipment">Equipment</option>
                             <option value="PPE">PPE</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Unit of Measure</label>
-                        <select name="unit" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <label class="block font-semibold text-slate-700 mb-1">Unit of Measure</label>
+                        <select name="unit" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#007a55]">
                             <option value="Pcs">Pcs (Pieces)</option>
-                            <option value="Units">Units</option>
                             <option value="mL">mL (Milliliters)</option>
-                            <option value="L">L (Liters)</option>
-                            <option value="Grams">Grams (g)</option>
-                            <option value="Kg">Kg (Kilograms)</option>
+                            <option value="Liters">Liters</option>
+                            <option value="Units">Units</option>
                             <option value="Boxes">Boxes</option>
-                            <option value="Packs">Packs</option>
-                            <option value="Tubes">Tubes</option>
                             <option value="Sets">Sets</option>
-                            <option value="Rolls">Rolls</option>
                         </select>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-3 gap-3">
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Initial Stock</label>
-                        <input type="number" step="0.01" name="quantity_in_stock" required value="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <label class="block font-semibold text-slate-700 mb-1">Initial Stock</label>
+                        <input type="number" step="0.01" name="quantity_in_stock" value="0.00" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#007a55]">
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Min Threshold</label>
-                        <input type="number" step="0.01" name="min_threshold" required value="10.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <label class="block font-semibold text-slate-700 mb-1">Min Threshold</label>
+                        <input type="number" step="0.01" name="min_threshold" value="10.00" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#007a55]">
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Unit Cost (₱)</label>
-                        <input type="number" step="0.01" name="unit_cost" value="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <label class="block font-semibold text-slate-700 mb-1">Unit Cost (₱)</label>
+                        <input type="number" step="0.01" name="unit_cost" value="0.00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#007a55]">
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Batch / Lot #</label>
-                        <input type="text" name="batch_number" placeholder="e.g. TH-2026-A" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <label class="block font-semibold text-slate-700 mb-1">Batch / Lot #</label>
+                        <input type="text" name="batch_number" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#007a55]" placeholder="e.g. TM-2026-04B">
                     </div>
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Storage Location</label>
-                        <input type="text" name="storage_location" placeholder="e.g. Chemical Cage A" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <label class="block font-semibold text-slate-700 mb-1">Storage Location</label>
+                        <input type="text" name="storage_location" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#007a55]" placeholder="e.g. Chemical Cage A">
                     </div>
                 </div>
-
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button type="button" onclick="closeModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium transition">Cancel</button>
-                    <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">Save Stock Item</button>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 text-slate-600 font-semibold rounded-lg hover:bg-slate-200">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#007a55] text-white font-semibold rounded-lg hover:bg-[#006344]">Save Item</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- =====================================================================
-         STOCK ADJUSTMENT MODAL DIALOG
-         ===================================================================== -->
+    <!-- Stock Adjustment Modal -->
     <div id="adjustModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
         <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -616,15 +577,15 @@ try {
         </div>
     </div>
 
-    <!-- 3. Initialize Lucide Icons & Modal Controls -->
     <script>
         lucide.createIcons();
 
         function openModal() {
             document.getElementById('addItemModal').classList.remove('hidden');
+            document.getElementById('addItemModal').classList.add('flex');
         }
-
         function closeModal() {
+            document.getElementById('addItemModal').classList.remove('flex');
             document.getElementById('addItemModal').classList.add('hidden');
         }
 
@@ -633,9 +594,11 @@ try {
             document.getElementById('adjustItemName').innerText = name;
             document.getElementById('adjustUnitLabel').innerText = unit;
             document.getElementById('adjustModal').classList.remove('hidden');
+            document.getElementById('adjustModal').classList.add('flex');
         }
 
         function closeAdjustModal() {
+            document.getElementById('adjustModal').classList.remove('flex');
             document.getElementById('adjustModal').classList.add('hidden');
         }
     </script>

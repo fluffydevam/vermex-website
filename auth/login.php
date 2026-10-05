@@ -4,8 +4,22 @@ require_once '../config/db.php';
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
-    header("Location: ../views/dashboard.php");
-    exit();
+    // Route based on existing session role if already logged in
+    switch ($_SESSION['role'] ?? '') {
+        case 'Chemical Custodian':
+            header("Location: ../views/chemical-custodian/dashboard.php");
+            exit();
+        case 'Field Technician':
+            header("Location: ../views/field-technician/dashboard.php");
+            exit();
+        case 'Billing Officer':
+            header("Location: ../views/billing-officer/dashboard.php");
+            exit();
+        case 'Admin':
+        default:
+            header("Location: ../views/dashboard.php");
+            exit();
+    }
 }
 
 $error = '';
@@ -40,7 +54,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $updateStmt = $pdo->prepare("UPDATE users SET last_active = NOW() WHERE id = ?");
                 $updateStmt->execute([$user['id']]);
 
-                header("Location: ../views/dashboard.php");
+                // Role-based redirection upon successful login
+                switch ($user['role']) {
+                    case 'Chemical Custodian':
+                        header("Location: ../views/chemical-custodian/dashboard.php");
+                        break;
+                    case 'Field Technician':
+                        header("Location: ../views/field-technician/dashboard.php");
+                        break;
+                    case 'Billing Officer':
+                        header("Location: ../views/billing-officer/dashboard.php");
+                        break;
+                    case 'Admin':
+                    default:
+                        header("Location: ../views/dashboard.php");
+                        break;
+                }
                 exit();
             }
         } else {
