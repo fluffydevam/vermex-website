@@ -1,16 +1,30 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$dbname = "vermex_pest_solutions";
+// Retrieve database configuration from environment variables (falling back to local XAMPP/Dev defaults)
+$host = getenv('DB_HOST') ?: 'localhost';
+$user = getenv('DB_USER') ?: 'root';$pass = getenv('DB_PASS') ?: '';
+$dbname = getenv('DB_NAME') ?: 'vermex_pest_solutions';$port = getenv('DB_PORT') ?: '4000'; // TiDB typically runs on port 4000
 
 try {
-    $pdo = new PDO("mysql:host=$host;charset=utf8", $user, $pass);$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // DSN including host, port, and UTF-8 encoding required by TiDB
+    $dsn = "mysql:host=$host;port=$port;charset=utf8mb4";
+    
+    $options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ];
 
+    // Enable SSL for secure connection required by TiDB Cloud / Render deployment
+    if (getenv('DB_SSL') === 'true' || getenv('RENDER')) {
+        $options[PDO::MYSQL_ATTR_SSL_CA] = true;
+    }
+
+    $pdo = new PDO($dsn,$user, $pass,$options);
+
+    // Create database if it doesn't already exist
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbname`");
 
-    // 1. Users Table
+    // 1. Users Table[cite: 1]
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -28,7 +42,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 2. Clients Table
+    // 2. Clients Table[cite: 1]
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS clients (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -46,7 +60,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 3. Contracts Table
+    // 3. Contracts Table[cite: 1]
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS contracts (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -63,7 +77,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 4. Site Inspections Table (Linked with contract_id)
+    // 4. Site Inspections Table (Linked with contract_id)[cite: 1]
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS site_inspections (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -94,7 +108,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 5. Job Orders / Dispatch Table (Fixed foreign keys to reference `id`)
+    // 5. Job Orders / Dispatch Table (Includes dispatch updates)[cite: 1]
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS job_orders (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -119,7 +133,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 6. Payments Audit & Transaction Table
+    // 6. Payments Audit & Transaction Table[cite: 1]
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS payments (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -138,7 +152,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 7. Inventory Table
+    // 7. Inventory Table[cite: 1]
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS inventory (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -157,7 +171,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // Inventory Logs Table
+    // Inventory Logs Table[cite: 1]
     $pdo->exec(" 
         CREATE TABLE IF NOT EXISTS inventory_logs (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -171,7 +185,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 8. Job Order Materials Junction Table
+    // 8. Job Order Materials Junction Table[cite: 1]
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS job_order_materials (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -185,7 +199,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // Seed default Admin user if none exists
+    // Seed default Admin user if none exists[cite: 1]
     $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
     if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
         $insertAdmin =$pdo->prepare("
@@ -203,6 +217,8 @@ try {
             'sector_region' => 'Davao Head Office'
         ]);
     }
+
 } catch (PDOException $e) {
     die("Database Initialization Failed: " . $e->getMessage());
 }
+?>
