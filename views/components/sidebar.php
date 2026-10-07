@@ -18,15 +18,15 @@ $navItems = [
     ['label' => 'Inventory', 'file' => 'inventory.php', 'icon' => 'flask-conical'],
     ['label' => 'Reports & Analytics', 'file' => 'reports.php', 'icon' => 'bar-chart-3'],
     ['label' => 'User Management', 'file' => 'users.php', 'icon' => 'shield-check'],
-    ['label' => 'Settings', 'file' => 'settings.php', 'icon' => 'settings'],
+    
 ];
 ?>
 
 <!-- LINK EXTERNAL MASTER CSS (Going up 2 levels from views/components to root) -->
 <link rel="stylesheet" href="../../assets/css/style.css">
 
-<!-- FIXED-WIDTH SIDEBAR CONTAINER -->
-<aside class="w-64 min-w-[16rem] max-w-[16rem] bg-[#2b110d] text-white flex flex-col justify-between p-4 flex-shrink-0 h-screen select-none">
+<!-- FIXED-WIDTH SIDEBAR CONTAINER (off-canvas drawer on mobile, static on lg+) -->
+<aside id="appSidebar" class="w-64 min-w-[16rem] max-w-[16rem] bg-[#2b110d] text-white flex flex-col justify-between p-4 flex-shrink-0 h-screen select-none fixed inset-y-0 left-0 z-40 -translate-x-full transition-transform duration-200 ease-in-out overflow-y-auto lg:static lg:translate-x-0 lg:transition-none lg:overflow-visible">
 
     <div>
         <!-- Brand Header -->
@@ -38,6 +38,10 @@ $navItems = [
                 <h1 class="font-bold text-sm tracking-wider uppercase text-white leading-none">VERMEX</h1>
                 <p class="text-[10px] text-[#e0a89e] font-medium tracking-tight mt-1">PEST SOLUTIONS</p>
             </div>
+            <!-- Mobile close button -->
+            <button type="button" onclick="closeAppSidebar()" class="lg:hidden ml-auto text-[#b08d87] hover:text-white p-1.5 flex-shrink-0" aria-label="Close menu">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
         </div>
 
         <!-- Navigation Menu -->
@@ -79,3 +83,40 @@ $navItems = [
     </div>
 
 </aside>
+
+<!-- Mobile backdrop overlay (tap to close the drawer) -->
+<div id="appSidebarOverlay" onclick="closeAppSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
+
+<!-- Mobile drawer toggle logic (shared by all pages via the hamburger button) -->
+<script>
+    function openAppSidebar() {
+        var sidebar = document.getElementById('appSidebar');
+        var overlay = document.getElementById('appSidebarOverlay');
+        if (sidebar) sidebar.classList.remove('-translate-x-full');
+        if (overlay) overlay.classList.remove('hidden');
+    }
+    function closeAppSidebar() {
+        var sidebar = document.getElementById('appSidebar');
+        var overlay = document.getElementById('appSidebarOverlay');
+        if (sidebar) sidebar.classList.add('-translate-x-full');
+        if (overlay) overlay.classList.add('hidden');
+    }
+    function toggleAppSidebar() {
+        var sidebar = document.getElementById('appSidebar');
+        if (sidebar && sidebar.classList.contains('-translate-x-full')) {
+            openAppSidebar();
+        } else {
+            closeAppSidebar();
+        }
+    }
+    // Auto-close the drawer after tapping a navigation link on mobile
+    document.addEventListener('DOMContentLoaded', function () {
+        var sidebar = document.getElementById('appSidebar');
+        if (!sidebar) return;
+        sidebar.querySelectorAll('nav a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                if (window.innerWidth < 1024) closeAppSidebar();
+            });
+        });
+    });
+</script>

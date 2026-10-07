@@ -176,8 +176,17 @@ foreach ($contracts as $con) {
     <!-- Shared Sidebar Component -->
     <?php include 'components/sidebar.php'; ?>
 
-    <main class="flex-1 flex flex-col overflow-y-auto bg-[#f8faf9]">
-        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto">
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#f8faf9]">
+
+        <!-- Mobile top bar with menu button -->
+        <div class="lg:hidden sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
+            <button type="button" onclick="toggleAppSidebar()" class="p-2 -ml-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100" aria-label="Open menu">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+            <span class="text-sm font-bold text-slate-900 tracking-tight">Clients & Contracts</span>
+        </div>
+
+        <div class="p-4 sm:p-6 space-y-6 w-full max-w-7xl mx-auto">
 
             <!-- Notifications -->
             <?php if (isset($_SESSION['success'])): ?>
@@ -211,7 +220,7 @@ foreach ($contracts as $con) {
                 </div>
 
                 <!-- Dashboard Switcher Buttons -->
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <div class="bg-slate-200/80 p-1 rounded-xl flex items-center text-xs font-medium">
                         <a href="clients.php?tab=clients" class="px-4 py-2 rounded-lg transition <?= $currentTab === 'clients' ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600 hover:text-slate-900' ?>">
                             Clients Dashboard

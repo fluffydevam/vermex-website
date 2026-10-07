@@ -45,10 +45,20 @@ try {
     <?php include 'components/sidebar.php'; ?>
 
     <!-- Main Content -->
-    <main class="flex-1 p-8 overflow-y-auto">
+    <main class="flex-1 min-w-0 overflow-y-auto">
+
+        <!-- Mobile top bar with menu button -->
+        <div class="lg:hidden sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
+            <button type="button" onclick="toggleAppSidebar()" class="p-2 -ml-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100" aria-label="Open menu">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+            <span class="text-sm font-bold text-slate-900 tracking-tight">Archived Clients</span>
+        </div>
+
+        <div class="p-4 sm:p-6 lg:p-8">
 
         <!-- Header & Breadcrumb -->
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-8">
             <div>
                 <span class="text-xs font-medium text-slate-400">CRM & Operations / Clients / <span class="text-slate-700">Archived Records</span></span>
                 <h1 class="text-2xl font-bold text-slate-900 mt-1">Archived Client Accounts</h1>
@@ -85,6 +95,7 @@ try {
                 <span class="text-xs text-slate-400"><?= count($archivedClients) ?> archived record(s) found</span>
             </div>
 
+            <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-600">
                 <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-100">
                     <tr>
@@ -144,6 +155,9 @@ try {
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
+        </div>
+
         </div>
 
     </main>
@@ -181,7 +195,7 @@ try {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-6 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-xs">
                         <div>
                             <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Company / Name</p>
                             <p id="modalClientName" class="font-bold text-slate-800 text-sm mt-0.5">-</p>

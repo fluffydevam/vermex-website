@@ -260,16 +260,22 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
     <?php include 'components/sidebar.php'; ?>
 
     <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between text-xs text-slate-500">
-            <div>Operations / <span class="font-semibold text-slate-800">Pre-Contract Inspections</span></div>
-            <div class="flex items-center gap-2">
+    <main class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-3 flex items-center justify-between text-xs text-slate-500 sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+                <!-- Mobile menu button -->
+                <button type="button" onclick="toggleAppSidebar()" class="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100" aria-label="Open menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div>Operations / <span class="font-semibold text-slate-800">Pre-Contract Inspections</span></div>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
                 <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
                 <span class="font-medium text-slate-700">Operations Live (MySQL Connected)</span>
             </div>
         </header>
 
-        <div class="p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Pre-Contract Site Inspections</h1>
@@ -438,19 +444,19 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
             <form method="POST" action="inspections.php">
                 <input type="hidden" name="save_inspection" value="1">
 
-                <div class="bg-[#062d1f] text-white px-6 py-4 flex items-center justify-between">
+                <div class="bg-[#062d1f] text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h3 class="font-bold text-base">VERMEX PEST SOLUTIONS</h3>
                         <p class="text-[11px] text-emerald-300">B29 L18 P2, Deca Homes, Brgy. Indangan, Davao City | Tel: (082) 291-7089</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <button type="button" onclick="printForm()" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition"><i data-lucide="printer" class="w-3.5 h-3.5"></i> Print</button>
                         <button type="button" onclick="downloadFormPdf()" class="bg-[#007a55] hover:bg-[#006344] text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download PDF</button>
                         <button type="button" onclick="closeInspectionModal()" class="text-slate-300 hover:text-white p-1 ml-2"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
                 </div>
 
-                <div id="inspectionReportContent" class="p-6 space-y-4 text-xs text-slate-800 bg-white">
+                <div id="inspectionReportContent" class="p-4 sm:p-6 space-y-4 text-xs text-slate-800 bg-white overflow-x-auto">
                     <div class="text-center border-b border-slate-200 pb-2">
                         <h2 class="text-base font-bold uppercase tracking-wider text-slate-900">INSPECTION REPORT FORM</h2>
                     </div>

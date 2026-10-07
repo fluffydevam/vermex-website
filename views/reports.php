@@ -136,9 +136,17 @@ $technicians = $techActivityStmt->fetchAll(PDO::FETCH_ASSOC);
     <?php include 'components/sidebar.php'; ?>
 
     <!-- 2. Main Content Area -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f8faf9]">
-        
-        <div class="p-6 space-y-6 w-full max-w-7xl mx-auto pb-12">
+    <main class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#f8faf9]">
+
+        <!-- Mobile top bar with menu button -->
+        <div class="lg:hidden sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
+            <button type="button" onclick="toggleAppSidebar()" class="p-2 -ml-2 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100" aria-label="Open menu">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+            <span class="text-sm font-bold text-slate-900 tracking-tight">Reports & Analytics</span>
+        </div>
+
+        <div class="p-4 sm:p-6 space-y-6 w-full max-w-7xl mx-auto pb-12">
             
             <!-- Page Header -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">

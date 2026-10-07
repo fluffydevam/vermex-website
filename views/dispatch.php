@@ -265,24 +265,30 @@ try {
     <?php include 'components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 flex flex-col overflow-y-auto">
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
         <!-- Header Bar -->
-        <header class="bg-white border-b border-gray-200 px-8 py-3.5 flex justify-between items-center sticky top-0 z-10">
-            <div class="flex items-center gap-2 text-xs text-gray-500">
-                <span>Operations</span>
-                <span>/</span>
-                <span class="font-medium text-gray-800">Job Order Dispatch</span>
+        <header class="bg-white border-b border-gray-200 px-4 sm:px-8 py-3.5 flex justify-between items-center sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+                <!-- Mobile menu button -->
+                <button type="button" onclick="toggleAppSidebar()" class="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100" aria-label="Open menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                    <span>Operations</span>
+                    <span>/</span>
+                    <span class="font-medium text-gray-800">Job Order Dispatch</span>
+                </div>
             </div>
             <div class="flex items-center gap-4">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
                     <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
                     Live Dispatch Board
                 </span>
             </div>
         </header>
 
-        <div class="p-8 max-w-7xl w-full mx-auto space-y-6">
+        <div class="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
 
             <!-- Title & Action Bar -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -362,7 +368,7 @@ try {
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, tech, or service..." class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 w-48 focus:ring-2 focus:ring-emerald-600 bg-white">
+                        <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, tech, or service..." class="border border-gray-300 rounded-lg text-xs px-3 py-1.5 w-full sm:w-48 focus:ring-2 focus:ring-emerald-600 bg-white">
                         <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-300">Filter</button>
                         
                         <!-- Clear Filters Button -->
