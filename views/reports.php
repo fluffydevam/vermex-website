@@ -89,7 +89,11 @@ $totalChemicalsUsed = $pdo->query($chemUsedQuery)->fetchColumn() ?: 0;
 $topChemsQuery = "SELECT i.item_name, i.unit, i.unit_cost, COALESCE(SUM(jom.quantity_used), 0) as total_qty,
                   (COALESCE(SUM(jom.quantity_used), 0) * i.unit_cost) as estimated_cost
                   FROM inventory i 
-                  LEFT JOIN job_order_materials jom ON i.id = jom.inventory_id AND jom.id IN (SELECT id FROM job_order_materials WHERE $matWhere)
+                  LEFT JOIN (
+                      SELECT inventory_id, quantity_used 
+                      FROM job_order_materials 
+                      WHERE $matWhere
+                  ) jom ON i.id = jom.inventory_id
                   GROUP BY i.id, i.item_name, i.unit, i.unit_cost 
                   ORDER BY total_qty DESC LIMIT 3";
 $topChemsStmt = $pdo->query($topChemsQuery);
