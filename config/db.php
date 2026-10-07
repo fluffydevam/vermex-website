@@ -13,9 +13,9 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ];
 
-    // Enable SSL for TiDB Cloud while bypassing strict certificate path file checks
+    // Force secure SSL/TLS transport required by TiDB Cloud
     if (getenv('DB_SSL') === 'true' || getenv('RENDER')) {
-        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+        $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/ssl/certs/ca-certificates.crt';$options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
     }
 
     $pdo = new PDO($dsn,$user, $pass,$options);
@@ -24,7 +24,7 @@ try {
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `$dbname`");
 
-    // 1. Users Table[cite: 1]
+    // 1. Users Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -42,7 +42,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 2. Clients Table[cite: 1]
+    // 2. Clients Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS clients (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -60,7 +60,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 3. Contracts Table[cite: 1]
+    // 3. Contracts Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS contracts (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -77,7 +77,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 4. Site Inspections Table (Linked with contract_id)[cite: 1]
+    // 4. Site Inspections Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS site_inspections (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -108,7 +108,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 5. Job Orders / Dispatch Table (Includes dispatch updates)[cite: 1]
+    // 5. Job Orders / Dispatch Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS job_orders (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -133,7 +133,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 6. Payments Audit & Transaction Table[cite: 1]
+    // 6. Payments Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS payments (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -152,7 +152,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 7. Inventory Table[cite: 1]
+    // 7. Inventory Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS inventory (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -171,7 +171,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // Inventory Logs Table[cite: 1]
+    // Inventory Logs Table
     $pdo->exec(" 
         CREATE TABLE IF NOT EXISTS inventory_logs (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -185,7 +185,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // 8. Job Order Materials Junction Table[cite: 1]
+    // 8. Job Order Materials Junction Table
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS job_order_materials (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -199,7 +199,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ");
 
-    // Seed default Admin user if none exists[cite: 1]
+    // Seed default Admin user if none exists
     $stmt =$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'");
     if ($stmt->fetchColumn() == 0) {$defaultPassword = password_hash('Admin123!', PASSWORD_BCRYPT);
         $insertAdmin =$pdo->prepare("
