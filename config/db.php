@@ -13,9 +13,9 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ];
 
-    // Enable SSL for secure connection required by TiDB Cloud / Render deployment
+    // Enable SSL for TiDB Cloud while bypassing strict certificate path file checks
     if (getenv('DB_SSL') === 'true' || getenv('RENDER')) {
-        $options[PDO::MYSQL_ATTR_SSL_CA] = true;
+        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
     }
 
     $pdo = new PDO($dsn,$user, $pass,$options);
