@@ -31,7 +31,7 @@ $pdo->exec("
 // Search parameter
 $search = trim($_GET['search'] ?? '');
 
-// Fetch Client Accounts with Contract & Balance Summaries (Using correct phone_number column)
+// Fetch Client Accounts with Contract & Balance Summaries
 $query = "
     SELECT cl.id as client_id, cl.client_name, cl.client_type, cl.email, cl.phone_number, cl.street_address, cl.barangay, cl.city,
            c.id as contract_id, c.contract_name, c.contract_value, c.final_balance, c.contract_status,
@@ -68,37 +68,42 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 flex h-screen overflow-hidden font-sans">
+<body class="bg-slate-100 text-slate-800 flex min-h-screen font-sans">
 
     <!-- SIDEBAR -->
     <?php include __DIR__ . '/components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
 
         <!-- HEADER -->
-        <header class="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Client Accounts & Ledger</h1>
-                <p class="text-xs text-slate-500 mt-1">Monitor active client profiles, contracts, and outstanding balances</p>
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 p-1 rounded-lg focus:outline-none">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight">Client Accounts & Ledger</h1>
+                    <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Monitor active client profiles, contracts, and outstanding balances</p>
+                </div>
             </div>
             <div class="flex items-center gap-3">
-                <a href="payments.php" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
-                    <i data-lucide="credit-card" class="w-4 h-4"></i> Go to Payment Logger
+                <a href="payments.php" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 sm:px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> <span class="hidden sm:inline">Go to </span>Payment Logger
                 </a>
             </div>
         </header>
 
-        <div class="p-8 space-y-6">
+        <div class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
 
             <!-- METRICS / KPI CARDS -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Contract Value</p>
                         <h3 class="text-2xl font-bold text-slate-900 mt-1">₱<?= number_format($totalReceivables, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="briefcase" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -108,7 +113,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Collected Revenue</p>
                         <h3 class="text-2xl font-bold text-emerald-700 mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -118,7 +123,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Outstanding Balances</p>
                         <h3 class="text-2xl font-bold text-rose-600 mt-1">₱<?= number_format($totalBalances, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="alert-circle" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -126,13 +131,13 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
 
             <!-- SEARCH BAR -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                <form method="GET" class="flex gap-3 w-full">
+                <form method="GET" class="flex flex-col sm:flex-row gap-3 w-full">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client name, email, phone number, or contract..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
                     </div>
                     <?php if (!empty($search)): ?>
-                        <a href="accounts.php" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition flex items-center justify-center">Reset</a>
+                        <a href="accounts.php" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition flex items-center justify-center">Reset</a>
                     <?php endif; ?>
                 </form>
             </div>
@@ -140,7 +145,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
             <!-- CLIENT ACCOUNTS TABLE -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
+                    <table class="w-full text-left text-xs whitespace-nowrap sm:whitespace-normal">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                             <tr>
                                 <th class="px-5 py-3.5">Client Information</th>
@@ -208,6 +213,13 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
 
     <script>
         lucide.createIcons();
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
     </script>
 </body>
 </html>

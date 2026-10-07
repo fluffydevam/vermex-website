@@ -105,18 +105,23 @@ if (isset($_SESSION['success_msg'])) {
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased overflow-hidden">
+<body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased">
 
     <!-- Include Custodian Sidebar -->
     <?php include 'components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         
         <!-- Top Bar -->
-        <header class="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between text-xs text-slate-500">
-            <div>Custodian Workspace / <span class="font-semibold text-slate-800">Warehouse Overview</span></div>
-            <div class="flex items-center gap-2">
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-3 flex items-center justify-between text-xs text-slate-500 sticky top-0 z-30">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 p-1 rounded-lg focus:outline-none">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="truncate">Custodian Workspace / <span class="font-semibold text-slate-800">Warehouse Overview</span></div>
+            </div>
+            <div class="hidden sm:flex items-center gap-2">
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                     Active Role: Chemical Custodian (<?= htmlspecialchars($currentUserName) ?>)
                 </span>
@@ -124,7 +129,7 @@ if (isset($_SESSION['success_msg'])) {
         </header>
 
         <!-- Main Content Container -->
-        <div class="p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <div class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
             
             <!-- Notifications -->
             <?php if (!empty($successMessage)): ?>
@@ -142,13 +147,13 @@ if (isset($_SESSION['success_msg'])) {
             <?php endif; ?>
 
             <!-- Header Section -->
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Chemical Custodian Dashboard</h1>
+                    <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Chemical Custodian Dashboard</h1>
                     <p class="text-xs text-slate-500 mt-1">Manage stock allocations, batch numbers, and job order stock deductions.</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <a href="inventory.php" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 transition shadow-sm">
+                <div>
+                    <a href="inventory.php" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2.5 rounded-lg inline-flex items-center justify-center gap-2 transition shadow-sm w-full sm:w-auto">
                         <i data-lucide="layers" class="w-4 h-4 text-emerald-200"></i> Manage Full Inventory
                     </a>
                 </div>
@@ -180,18 +185,18 @@ if (isset($_SESSION['success_msg'])) {
                         <h2 class="text-base font-semibold text-slate-900">Job Order Deductions</h2>
                         <p class="text-[11px] text-slate-400 mt-0.5">Live log showing items deducted for job orders</p>
                     </div>
-                    <span class="text-xs text-slate-400 font-medium">Real-time audit log</span>
+                    <span class="text-xs text-slate-400 font-medium hidden sm:inline">Real-time audit log</span>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
+                    <table class="w-full text-left text-xs whitespace-nowrap sm:whitespace-normal">
                         <thead>
                             <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100 font-semibold">
-                                <th class="pb-2.5">Item Name</th>
-                                <th class="pb-2.5">Category</th>
-                                <th class="pb-2.5">Quantity Changed</th>
-                                <th class="pb-2.5">Remarks / Job Order Ref</th>
-                                <th class="pb-2.5">Performed By</th>
+                                <th class="pb-2.5 pr-4">Item Name</th>
+                                <th class="pb-2.5 pr-4">Category</th>
+                                <th class="pb-2.5 pr-4">Quantity Changed</th>
+                                <th class="pb-2.5 pr-4">Remarks / Job Order Ref</th>
+                                <th class="pb-2.5 pr-4">Performed By</th>
                                 <th class="pb-2.5">Activity Type</th>
                             </tr>
                         </thead>
@@ -203,19 +208,19 @@ if (isset($_SESSION['success_msg'])) {
                             <?php else: ?>
                                 <?php foreach ($recentActivity as $act): ?>
                                     <tr class="hover:bg-slate-50 transition">
-                                        <td class="py-3 font-bold text-slate-900"><?= htmlspecialchars($act['item_name']) ?></td>
-                                        <td class="py-3">
+                                        <td class="py-3 pr-4 font-bold text-slate-900"><?= htmlspecialchars($act['item_name']) ?></td>
+                                        <td class="py-3 pr-4">
                                             <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[10px] text-slate-700">
                                                 <?= htmlspecialchars($act['category'] ?? 'Chemical') ?>
                                             </span>
                                         </td>
-                                        <td class="py-3 font-mono font-bold <?= $act['stock_level'] < 0 ? 'text-rose-600' : 'text-emerald-600' ?>">
+                                        <td class="py-3 pr-4 font-mono font-bold <?= $act['stock_level'] < 0 ? 'text-rose-600' : 'text-emerald-600' ?>">
                                             <?= ($act['stock_level'] > 0 ? '+' : '') . number_format($act['stock_level'], 2) ?> <?= htmlspecialchars($act['unit'] ?? 'Pcs') ?>
                                         </td>
-                                        <td class="py-3 text-slate-800">
+                                        <td class="py-3 pr-4 text-slate-800">
                                             <?= htmlspecialchars($act['reference_info']) ?>
                                         </td>
-                                        <td class="py-3 text-slate-700 font-semibold">
+                                        <td class="py-3 pr-4 text-slate-700 font-semibold">
                                             <div class="flex items-center gap-1.5">
                                                 <i data-lucide="user-check" class="w-3.5 h-3.5 text-[#007a55]"></i>
                                                 <span><?= htmlspecialchars($act['performed_by']) ?></span>
@@ -246,6 +251,14 @@ if (isset($_SESSION['success_msg'])) {
 
     <script>
         lucide.createIcons();
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
     </script>
+
 </body>
 </html>

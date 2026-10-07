@@ -25,7 +25,6 @@ $pdo->exec("
 ");
 
 // Handle Form Submission for Recording New Payment
-$message = '';
 $messageType = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_payment') {
@@ -82,27 +81,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Fetch KPI Metrics
-$totalCollected = $pdo->query("SELECT COALESCE(SUM(amount_paid), 0) FROM payments")->fetchColumn();
-$totalContractValue = $pdo->query("SELECT COALESCE(SUM(contract_value), 0) FROM contracts WHERE contract_status != 'archived'")->fetchColumn();
-$totalOutstanding = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contracts WHERE contract_status != 'archived'")->fetchColumn();
-$totalTransactions = $pdo->query("SELECT COUNT(*) FROM payments")->fetchColumn();
-
 // Search & Filter parameters
-$search = trim($_GET['search'] ?? '');
+$search       = trim($_GET['search'] ?? '');
 $filterMethod = $_GET['method'] ?? '';
-$filterType = $_GET['type'] ?? '';
+$filterType   = $_GET['type'] ?? '';
+$dateFilter   = $_GET['date_filter'] ?? 'all';
+$startDate    = $_GET['start_date'] ?? '';
+$endDate      = $_GET['end_date'] ?? '';
 
-// Fetch Payments Listing
+// Build Date Condition for Payments Table (using payment_date)
+$dateCondition = "1=1";
+$params = [];
+
+if ($dateFilter === 'this-month') {
+    $dateCondition = "MONTH(p.payment_date) = MONTH(CURRENT_DATE()) AND YEAR(p.payment_date) = YEAR(CURRENT_DATE())";
+} elseif ($dateFilter === 'last-month') {
+    $dateCondition = "MONTH(p.payment_date) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)) AND YEAR(p.payment_date) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))";
+} elseif ($dateFilter === 'year-to-date') {
+    $dateCondition = "YEAR(p.payment_date) = YEAR(CURRENT_DATE())";
+} elseif ($dateFilter === 'custom' && !empty($startDate) && !empty($endDate)) {
+    $dateCondition = "DATE(p.payment_date) BETWEEN :start_date AND :end_date";
+    $params['start_date'] = $startDate;
+    $params['end_date']   = $endDate;
+}
+
+// Fetch KPI Metrics (Respecting the active date filter for Total Collected & Transactions)
+$totalCollectedQuery = "SELECT COALESCE(SUM(amount_paid), 0) FROM payments p WHERE $dateCondition";
+$stmtCol = $pdo->prepare($totalCollectedQuery);
+$stmtCol->execute($params);
+$totalCollected = $stmtCol->fetchColumn();
+
+$totalTransQuery = "SELECT COUNT(*) FROM payments p WHERE $dateCondition";
+$stmtTrans = $pdo->prepare($totalTransQuery);
+$stmtTrans->execute($params);
+$totalTransactions = $stmtTrans->fetchColumn();
+
+// Global portfolio metrics remain global for context
+$totalContractValue = $pdo->query("SELECT COALESCE(SUM(contract_value), 0) FROM contracts WHERE contract_status != 'archived'")->fetchColumn();
+$totalOutstanding   = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contracts WHERE contract_status != 'archived'")->fetchColumn();
+
+// Fetch Payments Listing with Filters
 $payQuery = "
     SELECT p.*, c.contract_name, c.contract_value, c.final_balance, cl.client_name, u.first_name as user_fname, u.last_name as user_lname
     FROM payments p
     LEFT JOIN contracts c ON p.contract_id = c.id
     LEFT JOIN clients cl ON p.client_id = cl.id
     LEFT JOIN users u ON p.user_id = u.id
-    WHERE 1=1
+    WHERE $dateCondition
 ";
-$params = [];
 
 if (!empty($search)) {
     $payQuery .= " AND (cl.client_name LIKE :s OR c.contract_name LIKE :s OR p.reference_number LIKE :s OR p.contract_id LIKE :s OR CONCAT('CONTRACT-', p.contract_id) LIKE :s)";
@@ -147,7 +173,7 @@ $eligibleContracts = $pdo->query("
 <body class="bg-slate-100 text-slate-800 flex h-screen overflow-hidden font-sans">
 
     <!-- SIDEBAR -->
-    <?php include 'components/sidebar.php'; ?>
+    <?php include 'components/sidebar.php';?>
 
     <!-- MAIN CONTENT CONTAINER -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto">
@@ -217,13 +243,30 @@ $eligibleContracts = $pdo->query("
             </div>
 
             <!-- FILTERS & SEARCH -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-                <form method="GET" class="flex flex-col md:flex-row gap-3 w-full">
-                    <div class="relative flex-1">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row gap-4 items-center justify-between">
+                <form method="GET" class="flex flex-col lg:flex-row gap-3 w-full items-center">
+                    <div class="relative flex-1 w-full">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client, contract ID, name, or reference no..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
                     </div>
-                    <select name="method" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
+
+                    <!-- Date Filter Dropdown -->
+                    <select name="date_filter" id="dateFilterSelect" onchange="toggleCustomDates(this.value)" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                        <option value="all" <?= $dateFilter === 'all' ? 'selected' : '' ?>>All Time</option>
+                        <option value="this-month" <?= $dateFilter === 'this-month' ? 'selected' : '' ?>>This Month</option>
+                        <option value="last-month" <?= $dateFilter === 'last-month' ? 'selected' : '' ?>>Last Month</option>
+                        <option value="year-to-date" <?= $dateFilter === 'year-to-date' ? 'selected' : '' ?>>Year to Date</option>
+                        <option value="custom" <?= $dateFilter === 'custom' ? 'selected' : '' ?>>Custom Date Range</option>
+                    </select>
+
+                    <!-- Custom Date Inputs -->
+                    <div id="customDateRange" class="flex items-center gap-2 <?= $dateFilter === 'custom' ? 'flex' : 'hidden' ?>">
+                        <input type="date" name="start_date" value="<?= htmlspecialchars($startDate) ?>" class="px-2.5 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                        <span class="text-xs text-slate-400">to</span>
+                        <input type="date" name="end_date" value="<?= htmlspecialchars($endDate) ?>" class="px-2.5 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                    </div>
+
+                    <select name="method" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
                         <option value="">All Payment Methods</option>
                         <option value="Cash" <?= $filterMethod === 'Cash' ? 'selected' : '' ?>>Cash</option>
                         <option value="Bank Transfer" <?= $filterMethod === 'Bank Transfer' ? 'selected' : '' ?>>Bank Transfer</option>
@@ -231,16 +274,21 @@ $eligibleContracts = $pdo->query("
                         <option value="GCash" <?= $filterMethod === 'GCash' ? 'selected' : '' ?>>GCash</option>
                         <option value="Credit Card" <?= $filterMethod === 'Credit Card' ? 'selected' : '' ?>>Credit Card</option>
                     </select>
-                    <select name="type" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
+
+                    <select name="type" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
                         <option value="">All Payment Types</option>
                         <option value="Downpayment" <?= $filterType === 'Downpayment' ? 'selected' : '' ?>>Downpayment</option>
                         <option value="Balance Settlement" <?= $filterType === 'Balance Settlement' ? 'selected' : '' ?>>Balance Settlement</option>
                         <option value="Full Payment" <?= $filterType === 'Full Payment' ? 'selected' : '' ?>>Full Payment</option>
                         <option value="Adjustment" <?= $filterType === 'Adjustment' ? 'selected' : '' ?>>Adjustment</option>
                     </select>
-                    <?php if (!empty($search) || !empty($filterMethod) || !empty($filterType)): ?>
-                        <a href="payments.php" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition flex items-center justify-center">Reset</a>
-                    <?php endif; ?>
+
+                    <div class="flex items-center gap-2">
+                        <button type="submit" class="px-3 py-2 bg-emerald-700 text-white rounded-xl text-xs font-medium hover:bg-emerald-800 transition">Filter</button>
+                        <?php if (!empty($search) || !empty($filterMethod) || !empty($filterType) || $dateFilter !== 'all'): ?>
+                            <a href="payments.php" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition flex items-center justify-center">Reset</a>
+                        <?php endif; ?>
+                    </div>
                 </form>
             </div>
 
@@ -305,7 +353,7 @@ $eligibleContracts = $pdo->query("
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="9" class="text-center py-10 text-slate-400 font-medium">No payment transactions recorded yet.</td>
+                                    <td colspan="9" class="text-center py-10 text-slate-400 font-medium">No payment transactions recorded for this period.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -407,6 +455,19 @@ $eligibleContracts = $pdo->query("
             const selectedOption = select.options[select.selectedIndex];
             const balance = parseFloat(selectedOption.getAttribute('data-balance') || 0);
             document.getElementById('balanceHint').innerText = '₱' + balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function toggleCustomDates(val) {
+            const customDiv = document.getElementById('customDateRange');
+            if (val === 'custom') {
+                customDiv.classList.remove('hidden');
+                customDiv.classList.add('flex');
+            } else {
+                customDiv.classList.add('hidden');
+                customDiv.classList.remove('flex');
+                // Auto submit form on quick preset change for smooth UX
+                document.forms[0].submit();
+            }
         }
 
         // Auto-select contract and trigger payment modal if contract_id is passed in URL

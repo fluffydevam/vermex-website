@@ -83,59 +83,66 @@ $transactions = $transStmt->fetchAll();
     <!-- html2pdf.js for PDF downloads -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body class="bg-[#f8faf9] text-slate-800 flex h-screen overflow-hidden font-sans">
+<body class="bg-[#f8faf9] text-slate-800 flex min-h-screen font-sans">
 
     <!-- SIDEBAR -->
     <?php include __DIR__ . '/components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
 
         <!-- HEADER -->
-        <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-            <div>
-                <h1 class="text-xl font-bold text-slate-900 tracking-tight">Financial & Collection Reports</h1>
-                <p class="text-xs text-slate-500 mt-0.5">Analyze revenue collections, payment channels, and transaction summaries</p>
-            </div>
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
             <div class="flex items-center gap-3">
-                <button onclick="downloadReportPdf()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
-                    <i data-lucide="download" class="w-3.5 h-3.5"></i> Download PDF
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 p-1 rounded-lg focus:outline-none">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
-                <button onclick="window.print()" class="border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
-                    <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print Report
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Financial & Collection Reports</h1>
+                    <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Analyze revenue collections, payment channels, and transaction summaries</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="downloadReportPdf()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Download </span>PDF
+                </button>
+                <button onclick="window.print()" class="border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs px-3 py-2 rounded-lg hidden sm:flex items-center gap-1.5 transition shadow-sm">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print
                 </button>
             </div>
         </header>
 
         <!-- PRINTABLE / PDF WRAPPER AREA -->
-        <div id="reportPrintArea" class="p-8 space-y-6 max-w-7xl w-full mx-auto bg-[#f8faf9]">
+        <div id="reportPrintArea" class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto bg-[#f8faf9]">
 
             <!-- DATE FILTER BAR -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                 <form method="GET" class="flex flex-wrap items-center gap-3 w-full">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-1 sm:flex-none">
                         <label class="text-xs font-semibold text-slate-600">From:</label>
-                        <input type="date" name="start_date" value="<?= htmlspecialchars($startDate) ?>" class="px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#007a55] focus:outline-none">
+                        <input type="date" name="start_date" value="<?= htmlspecialchars($startDate) ?>" class="w-full sm:w-auto px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#007a55] focus:outline-none">
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-1 sm:flex-none">
                         <label class="text-xs font-semibold text-slate-600">To:</label>
-                        <input type="date" name="end_date" value="<?= htmlspecialchars($endDate) ?>" class="px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#007a55] focus:outline-none">
+                        <input type="date" name="end_date" value="<?= htmlspecialchars($endDate) ?>" class="w-full sm:w-auto px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#007a55] focus:outline-none">
                     </div>
-                    <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-xl transition shadow-sm">
-                        Filter Report
-                    </button>
-                    <a href="reports.php" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition">Reset</a>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button type="submit" class="flex-1 sm:flex-none bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-xl transition shadow-sm">
+                            Filter Report
+                        </button>
+                        <a href="reports.php" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition text-center">Reset</a>
+                    </div>
                 </form>
             </div>
 
             <!-- KPI METRICS GRID -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Collected (Selected Range)</p>
                         <h3 class="text-2xl font-bold text-[#007a55] mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#007a55] flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#007a55] flex items-center justify-center flex-shrink-0">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -145,7 +152,7 @@ $transactions = $transStmt->fetchAll();
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Outstanding Balances</p>
                         <h3 class="text-2xl font-bold text-rose-600 mt-1">₱<?= number_format($totalOutstanding, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="clock" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -155,7 +162,7 @@ $transactions = $transStmt->fetchAll();
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Contract Portfolio</p>
                         <h3 class="text-2xl font-bold text-slate-900 mt-1">₱<?= number_format($totalContractValue, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="briefcase" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -165,7 +172,7 @@ $transactions = $transStmt->fetchAll();
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Transactions Count</p>
                         <h3 class="text-2xl font-bold text-slate-900 mt-1"><?= number_format($totalTransactions) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="receipt" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -244,7 +251,7 @@ $transactions = $transStmt->fetchAll();
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
+                    <table class="w-full text-left text-xs whitespace-nowrap sm:whitespace-normal">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                             <tr>
                                 <th class="px-5 py-3">Trans ID</th>
@@ -305,6 +312,13 @@ $transactions = $transStmt->fetchAll();
 
     <script>
         lucide.createIcons();
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
 
         function downloadReportPdf() {
             const element = document.getElementById('reportPrintArea');

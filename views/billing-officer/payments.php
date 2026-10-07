@@ -146,26 +146,31 @@ $eligibleContracts = $pdo->query("
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 flex h-screen overflow-hidden font-sans">
+<body class="bg-slate-100 text-slate-800 flex min-h-screen font-sans">
 
     <!-- SIDEBAR -->
     <?php include __DIR__ . '/components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
 
         <!-- HEADER -->
-        <header class="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Payment Ledger & Collections</h1>
-                <p class="text-xs text-slate-500 mt-1">Manage customer transactions and monitor live contract balances</p>
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 p-1 rounded-lg focus:outline-none">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight">Payment Ledger & Collections</h1>
+                    <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Manage customer transactions and monitor live contract balances</p>
+                </div>
             </div>
-            <button onclick="openModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i> Record New Payment
+            <button onclick="openModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 sm:px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> <span class="hidden sm:inline">Record New </span>Payment
             </button>
         </header>
 
-        <div class="p-8 space-y-6">
+        <div class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
 
             <!-- ALERTS -->
             <?php if (!empty($message)): ?>
@@ -176,13 +181,13 @@ $eligibleContracts = $pdo->query("
             <?php endif; ?>
 
             <!-- METRICS / KPI CARDS -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Collected</p>
                         <h3 class="text-2xl font-bold text-emerald-700 mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -192,7 +197,7 @@ $eligibleContracts = $pdo->query("
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Outstanding Balance</p>
                         <h3 class="text-2xl font-bold text-rose-600 mt-1">₱<?= number_format($totalOutstanding, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="clock" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -202,7 +207,7 @@ $eligibleContracts = $pdo->query("
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Contract Portfolio</p>
                         <h3 class="text-2xl font-bold text-slate-800 mt-1">₱<?= number_format($totalContractValue, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="file-text" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -212,15 +217,15 @@ $eligibleContracts = $pdo->query("
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Transactions</p>
                         <h3 class="text-2xl font-bold text-slate-800 mt-1"><?= number_format($totalTransactions) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="receipt" class="w-5 h-5"></i>
                     </div>
                 </div>
             </div>
 
             <!-- FILTERS & SEARCH -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-                <form method="GET" class="flex flex-col md:flex-row gap-3 w-full">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4 items-center justify-between">
+                <form method="GET" class="flex flex-col lg:flex-row gap-3 w-full">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client, contract ID, name, or reference no..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
@@ -241,7 +246,7 @@ $eligibleContracts = $pdo->query("
                         <option value="Adjustment" <?= $filterType === 'Adjustment' ? 'selected' : '' ?>>Adjustment</option>
                     </select>
                     <?php if (!empty($search) || !empty($filterMethod) || !empty($filterType)): ?>
-                        <a href="payments.php" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition flex items-center justify-center">Reset</a>
+                        <a href="payments.php" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition flex items-center justify-center">Reset</a>
                     <?php endif; ?>
                 </form>
             </div>
@@ -249,7 +254,7 @@ $eligibleContracts = $pdo->query("
             <!-- PAYMENTS TABLE -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
+                    <table class="w-full text-left text-xs whitespace-nowrap sm:whitespace-normal">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
                             <tr>
                                 <th class="px-5 py-3.5">Ref / Trans ID</th>
@@ -320,7 +325,7 @@ $eligibleContracts = $pdo->query("
 
     <!-- RECORD PAYMENT MODAL -->
     <div id="paymentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] overflow-y-auto">
             <div class="bg-[#0b2219] px-6 py-4 text-white flex items-center justify-between">
                 <h3 class="font-bold text-sm tracking-wide">RECORD CONTRACT PAYMENT</h3>
                 <button onclick="closeModal()" class="text-emerald-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -345,7 +350,7 @@ $eligibleContracts = $pdo->query("
                     <span id="balanceHint" class="font-bold text-rose-600">₱0.00</span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Amount Paid (₱) *</label>
                         <input type="number" step="0.01" name="amount_paid" placeholder="0.00" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none font-bold text-emerald-700">
@@ -361,7 +366,7 @@ $eligibleContracts = $pdo->query("
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method *</label>
                         <select name="payment_method" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
@@ -394,6 +399,13 @@ $eligibleContracts = $pdo->query("
     <script>
         lucide.createIcons();
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
+
         function openModal() {
             document.getElementById('paymentModal').classList.remove('hidden');
             document.getElementById('paymentModal').classList.add('flex');
@@ -411,7 +423,6 @@ $eligibleContracts = $pdo->query("
             document.getElementById('balanceHint').innerText = '₱' + balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
-        // Auto-select contract and trigger payment modal if contract_id is passed in URL
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const targetContractId = urlParams.get('contract_id');
