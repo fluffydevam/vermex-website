@@ -18,7 +18,6 @@ $navItems = [
     ['label' => 'Inventory', 'file' => 'inventory.php', 'icon' => 'flask-conical'],
     ['label' => 'Reports & Analytics', 'file' => 'reports.php', 'icon' => 'bar-chart-3'],
     ['label' => 'User Management', 'file' => 'users.php', 'icon' => 'shield-check'],
-    
 ];
 ?>
 
@@ -26,7 +25,7 @@ $navItems = [
 <link rel="stylesheet" href="../../assets/css/style.css">
 
 <!-- FIXED-WIDTH SIDEBAR CONTAINER (off-canvas drawer on mobile, static on lg+) -->
-<aside id="appSidebar" class="w-64 min-w-[16rem] max-w-[16rem] bg-[#2b110d] text-white flex flex-col justify-between p-4 flex-shrink-0 h-screen select-none fixed inset-y-0 left-0 z-40 -translate-x-full transition-transform duration-200 ease-in-out overflow-y-auto lg:static lg:translate-x-0 lg:transition-none lg:overflow-visible">
+<aside id="appSidebar" class="w-64 min-w-[16rem] max-w-[16rem] bg-[#2b110d] text-white flex flex-col justify-between p-4 flex-shrink-0 h-[100dvh] lg:h-screen select-none fixed inset-y-0 left-0 z-40 -translate-x-full transition-transform duration-200 ease-in-out overflow-y-auto lg:static lg:translate-x-0 lg:transition-none">
 
     <div>
         <!-- Brand Header -->
@@ -65,7 +64,7 @@ $navItems = [
     </div>
 
     <!-- Bottom Widget & Profile Footer -->
-    <div class="space-y-4">
+    <div class="space-y-4 pt-4 mt-6">
         <div class="flex items-center justify-between pt-3 border-t border-[#4d1f18]">
             <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-8 h-8 rounded-full bg-[#d32f2f] flex items-center justify-center font-bold text-xs text-white flex-shrink-0">
