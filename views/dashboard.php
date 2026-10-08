@@ -125,10 +125,8 @@ $chemicalAlertsStmt = $pdo->query($chemicalAlertsQuery);
                     <i data-lucide="map-pin" class="w-3.5 h-3.5 text-gray-500"></i>
                     <span>Davao City Coverage Zone</span>
                 </div>
-                <button class="relative p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100">
-                    <i data-lucide="bell" class="w-5 h-5"></i>
-                    <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
-                </button>
+                
+                
             </div>
         </header>
 
