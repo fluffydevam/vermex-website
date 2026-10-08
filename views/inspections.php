@@ -269,10 +269,6 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                 </button>
                 <div>Operations / <span class="font-semibold text-slate-800">Pre-Contract Inspections</span></div>
             </div>
-            <div class="hidden sm:flex items-center gap-2">
-                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span class="font-medium text-slate-700">Operations Live (MySQL Connected)</span>
-            </div>
         </header>
 
         <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">

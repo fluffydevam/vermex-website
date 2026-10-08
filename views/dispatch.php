@@ -280,12 +280,6 @@ try {
                     <span class="font-medium text-gray-800">Job Order Dispatch</span>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-                    Live Dispatch Board
-                </span>
-            </div>
         </header>
 
         <div class="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
