@@ -457,28 +457,36 @@ try {
         </div>
     </main>
 
-    <!-- JOB ORDER EXECUTION & SCHEDULING MODAL -->
-    <div id="jobModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full overflow-hidden max-h-[90vh] flex flex-col">
+    <!-- JOB ORDER EXECUTION & SCHEDULING MODAL (LIGHT WHITE THEME) -->
+    <div id="jobModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden max-h-[90vh] flex flex-col my-auto text-slate-800">
             
-            <div class="bg-emerald-900 text-white px-6 py-4 flex justify-between items-center">
-                <div>
-                    <h3 class="font-bold text-base">Job Order Execution Form</h3>
-                    <p class="text-[11px] text-emerald-200">Vermex Pest Solutions — Field Dispatch & Service Report</p>
+            <!-- Modal Header -->
+            <div class="bg-white border-b border-slate-100 px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200/60">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 tracking-tight">Job Order Execution Form</h3>
+                        <p class="text-xs text-slate-500">Vermex Pest Solutions — Field Dispatch & Service Report</p>
+                    </div>
                 </div>
-                <button type="button" onclick="closeModal()" class="text-gray-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
+            <!-- Modal Form -->
             <form method="POST" id="jobOrderForm" class="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
                 <input type="hidden" name="action" value="save_job_order">
                 <input type="hidden" name="job_id" id="modal_job_id">
                 <input type="hidden" name="client_id" id="modal_client_id">
                 <input type="hidden" name="contract_id" id="modal_contract_id">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <!-- Basic Details Card -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/70 p-4 rounded-xl border border-slate-200/80">
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Contract Client Account</label>
-                        <select name="client_name" id="modal_client_name" onchange="updateClientData(this)" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white focus:outline-none focus:border-emerald-600" required>
+                        <label class="block font-medium text-slate-600 mb-1">Contract Client Account *</label>
+                        <select name="client_name" id="modal_client_name" onchange="updateClientData(this)" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-medium text-slate-800 focus:outline-none focus:border-emerald-600" required>
                             <option value="">Select Active Client Account</option>
                             <?php foreach ($clients as $c): 
                                 $cName      = $c['client_name'] ?? $c['company_name'] ?? $c['name'] ?? 'Client';
@@ -505,56 +513,57 @@ try {
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <input type="text" name="location" id="modal_location" placeholder="Service Address Location" class="w-full mt-2 border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600" required>
+                        <input type="text" name="location" id="modal_location" placeholder="Service Address Location" class="w-full mt-2 bg-white border border-slate-200 text-slate-800 rounded-lg p-2 focus:outline-none focus:border-emerald-600" required>
                     </div>
 
                     <div class="space-y-2">
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Scheduled Date</label>
-                                <input type="date" name="scheduled_date" id="modal_scheduled_date" class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600" required>
+                                <label class="block font-medium text-slate-600 mb-1">Scheduled Date *</label>
+                                <input type="date" name="scheduled_date" id="modal_scheduled_date" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg p-2 focus:outline-none focus:border-emerald-600" required>
                             </div>
                             <div>
-                                <label class="block font-bold text-gray-700 mb-1">Service Window</label>
+                                <label class="block font-medium text-slate-600 mb-1">Service Window *</label>
                                 <div class="grid grid-cols-2 gap-1 items-center">
-                                    <input type="time" id="modal_window_start" class="border border-gray-300 rounded-lg p-1.5 bg-white text-xs focus:outline-none focus:border-emerald-600" required>
-                                    <input type="time" id="modal_window_end" class="border border-gray-300 rounded-lg p-1.5 bg-white text-xs focus:outline-none focus:border-emerald-600" required>
+                                    <input type="time" id="modal_window_start" class="bg-white border border-slate-200 text-slate-800 rounded-lg p-1.5 text-xs focus:outline-none focus:border-emerald-600" required>
+                                    <input type="time" id="modal_window_end" class="bg-white border border-slate-200 text-slate-800 rounded-lg p-1.5 text-xs focus:outline-none focus:border-emerald-600" required>
                                 </div>
                                 <input type="hidden" name="service_window" id="modal_service_window">
                             </div>
                         </div>
                         <div>
-                            <label class="block font-bold text-gray-700 mb-1">Assigned Personnel / Field Tech</label>
-                            <select name="assigned_tech" id="modal_assigned_tech" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white focus:outline-none focus:border-emerald-600" required>
+                            <label class="block font-medium text-slate-600 mb-1">Assigned Personnel / Field Tech *</label>
+                            <select name="assigned_tech" id="modal_assigned_tech" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-medium text-slate-800 focus:outline-none focus:border-emerald-600" required>
                                 <option value="">Loading technicians...</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
+                <!-- Treatment & Route Controls -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="md:col-span-1">
-                        <label class="block font-bold text-gray-700 mb-1">Treatment / Service Type</label>
-                        <input type="text" name="service_type" id="modal_service_type" placeholder="e.g. General Pest Control" class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600" required>
+                        <label class="block font-medium text-slate-600 mb-1">Treatment / Service Type</label>
+                        <input type="text" name="service_type" id="modal_service_type" placeholder="e.g. General Pest Control" class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg p-2 focus:outline-none focus:border-emerald-600" required>
                     </div>
                     <div class="md:col-span-1">
-                        <label class="block font-bold text-gray-700 mb-1">Time In / Time Out</label>
+                        <label class="block font-medium text-slate-600 mb-1">Time In / Time Out</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="time" name="time_in" id="modal_time_in" class="border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600">
-                            <input type="time" name="time_out" id="modal_time_out" class="border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600">
+                            <input type="time" name="time_in" id="modal_time_in" class="bg-white border border-slate-200 text-slate-800 rounded-lg p-2 focus:outline-none focus:border-emerald-600">
+                            <input type="time" name="time_out" id="modal_time_out" class="bg-white border border-slate-200 text-slate-800 rounded-lg p-2 focus:outline-none focus:border-emerald-600">
                         </div>
                     </div>
                     <div class="md:col-span-1">
-                        <label class="block font-bold text-gray-700 mb-1">Priority</label>
-                        <select name="priority" id="modal_priority" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white focus:outline-none focus:border-emerald-600">
+                        <label class="block font-medium text-slate-600 mb-1">Priority</label>
+                        <select name="priority" id="modal_priority" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-medium text-slate-800 focus:outline-none focus:border-emerald-600">
                             <option value="Standard">Standard</option>
                             <option value="High">High</option>
                             <option value="Urgent">Urgent</option>
                         </select>
                     </div>
                     <div class="md:col-span-1">
-                        <label class="block font-bold text-gray-700 mb-1">Route Status</label>
-                        <select name="route_status" id="modal_route_status" class="w-full border border-gray-300 rounded-lg p-2 font-medium bg-white focus:outline-none focus:border-emerald-600">
+                        <label class="block font-medium text-slate-600 mb-1">Route Status</label>
+                        <select name="route_status" id="modal_route_status" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-medium text-slate-800 focus:outline-none focus:border-emerald-600">
                             <option value="Scheduled">Scheduled</option>
                             <option value="En route">En route</option>
                             <option value="On site">On site</option>
@@ -565,66 +574,68 @@ try {
                 </div>
 
                 <!-- DYNAMIC AREA FINDINGS TABLE -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="font-bold text-gray-700">Area Findings & Action Taken</label>
-                        <button type="button" onclick="addAreaRow()" class="text-emerald-700 font-bold hover:underline text-[11px] flex items-center gap-1">
+                <div class="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 space-y-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-200/80">
+                        <label class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Area Findings & Action Taken</label>
+                        <button type="button" onclick="addAreaRow()" class="px-3 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Area Row
                         </button>
                     </div>
-                    <table class="w-full border border-gray-200 rounded-lg overflow-hidden" id="areaTable">
-                        <thead class="bg-gray-50 text-[10px] text-gray-500 uppercase">
+                    <table class="w-full border border-slate-200 rounded-lg overflow-hidden bg-white" id="areaTable">
+                        <thead class="bg-slate-50 text-[10px] text-slate-500 uppercase">
                             <tr>
-                                <th class="p-2 border-b text-left">Area / Target Location</th>
-                                <th class="p-2 border-b text-left">Action Taken / Treatment Remarks</th>
-                                <th class="p-2 border-b w-10"></th>
+                                <th class="p-2 border-b border-slate-200 text-left">Area / Target Location</th>
+                                <th class="p-2 border-b border-slate-200 text-left">Action Taken / Treatment Remarks</th>
+                                <th class="p-2 border-b border-slate-200 w-10"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-100">
                             <!-- Dynamic rows appended via JS -->
                         </tbody>
                     </table>
                 </div>
 
                 <!-- DYNAMIC MATERIALS / CHEMICALS USED TABLE -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="font-bold text-gray-700">Materials / Chemicals Used (Inventory Deduction)</label>
-                        <button type="button" onclick="addMaterialRow()" class="text-emerald-700 font-bold hover:underline text-[11px] flex items-center gap-1">
+                <div class="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 space-y-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-200/80">
+                        <label class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Materials / Chemicals Used (Inventory Deduction)</label>
+                        <button type="button" onclick="addMaterialRow()" class="px-3 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Material Row
                         </button>
                     </div>
-                    <table class="w-full border border-gray-200 rounded-lg overflow-hidden" id="materialTable">
-                        <thead class="bg-gray-50 text-[10px] text-gray-500 uppercase">
+                    <table class="w-full border border-slate-200 rounded-lg overflow-hidden bg-white" id="materialTable">
+                        <thead class="bg-slate-50 text-[10px] text-slate-500 uppercase">
                             <tr>
-                                <th class="p-2 border-b text-left">Inventory Item / Chemical</th>
-                                <th class="p-2 border-b text-left w-36">Quantity Consumed</th>
-                                <th class="p-2 border-b w-10"></th>
+                                <th class="p-2 border-b border-slate-200 text-left">Inventory Item / Chemical</th>
+                                <th class="p-2 border-b border-slate-200 text-left w-36">Quantity Consumed</th>
+                                <th class="p-2 border-b border-slate-200 w-10"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-100">
                             <!-- Dynamic rows appended via JS -->
                         </tbody>
                     </table>
                 </div>
 
+                <!-- Comments & On-Site Verification -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Notes / Dilution Rate Comments</label>
-                        <textarea name="comments" id="modal_comments" rows="3" placeholder="Dilution rates, dosage, water volume..." class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:outline-none focus:border-emerald-600"></textarea>
+                        <label class="block font-medium text-slate-600 mb-1">Notes / Dilution Rate Comments</label>
+                        <textarea name="comments" id="modal_comments" rows="3" placeholder="Dilution rates, dosage, water volume..." class="w-full bg-white border border-slate-200 text-slate-800 rounded-lg p-2 focus:outline-none focus:border-emerald-600"></textarea>
                     </div>
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Client Acknowledgment</label>
-                        <div class="border border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-400 bg-gray-50">
+                        <label class="block font-medium text-slate-600 mb-1">Client Acknowledgment</label>
+                        <div class="border border-dashed border-slate-200 rounded-lg p-4 text-center text-slate-400 bg-slate-50">
                             <span class="block text-[11px]">Authorized Signature Line</span>
-                            <span class="font-semibold text-gray-600">Digital verification captured on-site</span>
+                            <span class="font-semibold text-slate-600">Digital verification captured on-site</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="border-t pt-4 flex justify-end gap-2">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-semibold shadow-sm transition">Save Job Order</button>
+                <!-- Modal Actions -->
+                <div class="border-t border-slate-100 pt-4 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-lg font-medium text-xs transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-semibold shadow-sm transition text-xs">Save Job Order</button>
                 </div>
             </form>
         </div>
@@ -786,9 +797,9 @@ try {
             const tbody = document.querySelector('#areaTable tbody');
             const row   = document.createElement('tr');
             row.innerHTML = `
-                <td class="p-2"><input type="text" name="area_name[]" value="${escapeHtml(area)}" placeholder="e.g. Kitchen / Perimeter" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white focus:outline-none focus:border-emerald-600" required></td>
-                <td class="p-2"><input type="text" name="area_action[]" value="${escapeHtml(action)}" placeholder="Residual spraying applied" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white focus:outline-none focus:border-emerald-600"></td>
-                <td class="p-2 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></td>
+                <td class="p-2"><input type="text" name="area_name[]" value="${escapeHtml(area)}" placeholder="e.g. Kitchen / Perimeter" class="w-full bg-white border border-slate-200 rounded p-1.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-600" required></td>
+                <td class="p-2"><input type="text" name="area_action[]" value="${escapeHtml(action)}" placeholder="Residual spraying applied" class="w-full bg-white border border-slate-200 rounded p-1.5 text-xs text-slate-800 focus:outline-none focus:border-emerald-600"></td>
+                <td class="p-2 text-center"><button type="button" onclick="this.closest('tr').remove()" class="text-slate-400 hover:text-rose-600 p-1 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></td>
             `;
             tbody.appendChild(row);
             lucide.createIcons();
@@ -806,15 +817,15 @@ try {
 
             row.innerHTML = `
                 <td class="p-2">
-                    <select name="material_id[]" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white focus:outline-none focus:border-emerald-600" required>
+                    <select name="material_id[]" class="w-full bg-white border border-slate-200 text-slate-800 rounded p-1.5 text-xs focus:outline-none focus:border-emerald-600" required>
                         ${optionsHtml}
                     </select>
                 </td>
                 <td class="p-2">
-                    <input type="number" step="0.01" name="material_quantity[]" value="${escapeHtml(quantity)}" placeholder="Qty" class="w-full border border-gray-200 rounded p-1.5 text-xs bg-white focus:outline-none focus:border-emerald-600" required>
+                    <input type="number" step="0.01" name="material_quantity[]" value="${escapeHtml(quantity)}" placeholder="Qty" class="w-full bg-white border border-slate-200 text-slate-800 rounded p-1.5 text-xs focus:outline-none focus:border-emerald-600" required>
                 </td>
                 <td class="p-2 text-center">
-                    <button type="button" onclick="this.closest('tr').remove()" class="text-rose-500 hover:text-rose-700"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    <button type="button" onclick="this.closest('tr').remove()" class="text-slate-400 hover:text-rose-600 p-1 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                 </td>
             `;
             tbody.appendChild(row);

@@ -370,19 +370,31 @@ $eligibleContracts = $pdo->query("
         </div>
     </main>
 
-    <!-- RECORD PAYMENT MODAL -->
-    <div id="paymentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
-            <div class="bg-emerald-900 px-6 py-4 text-white flex items-center justify-between">
-                <h3 class="font-bold text-sm tracking-wide">RECORD CONTRACT PAYMENT</h3>
-                <button onclick="closeModal()" class="text-emerald-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <!-- RECORD PAYMENT MODAL (RESTYLED WITH CLEAN WHITE THEME) -->
+    <div id="paymentModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden my-auto text-slate-800">
+            
+            <!-- Modal Header -->
+            <div class="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200/60">
+                        <i data-lucide="credit-card" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 tracking-tight">Record Contract Payment</h3>
+                        <p class="text-xs text-slate-500">Log client transaction & adjust remaining balance</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <form method="POST" class="p-6 space-y-4">
+
+            <!-- Modal Form -->
+            <form method="POST" class="p-6 space-y-4 text-xs">
                 <input type="hidden" name="action" value="add_payment">
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Select Contract *</label>
-                    <select name="contract_id" id="contractSelect" onchange="updateBalanceHint()" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                    <label class="block font-medium text-slate-600 mb-1">Select Contract *</label>
+                    <select name="contract_id" id="contractSelect" onchange="updateBalanceHint()" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-emerald-600">
                         <option value="" data-balance="0">-- Select Contract --</option>
                         <?php foreach ($eligibleContracts as $ec): ?>
                             <option value="<?= $ec['id'] ?>" data-balance="<?= $ec['final_balance'] ?>" data-value="<?= $ec['contract_value'] ?>">
@@ -392,19 +404,19 @@ $eligibleContracts = $pdo->query("
                     </select>
                 </div>
 
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex justify-between">
-                    <span>Current Outstanding Balance:</span>
-                    <span id="balanceHint" class="font-bold text-rose-600">₱0.00</span>
+                <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 text-xs text-slate-600 flex justify-between items-center">
+                    <span class="font-medium text-slate-500">Current Outstanding Balance:</span>
+                    <span id="balanceHint" class="font-bold text-rose-600 text-sm">₱0.00</span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Amount Paid (₱) *</label>
-                        <input type="number" step="0.01" name="amount_paid" placeholder="0.00" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none font-bold text-emerald-700">
+                        <label class="block font-medium text-slate-600 mb-1">Amount Paid (₱) *</label>
+                        <input type="number" step="0.01" name="amount_paid" placeholder="0.00" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-700 focus:outline-none focus:border-emerald-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Type *</label>
-                        <select name="payment_type" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <label class="block font-medium text-slate-600 mb-1">Payment Type *</label>
+                        <select name="payment_type" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-emerald-600">
                             <option value="Downpayment">Downpayment</option>
                             <option value="Balance Settlement">Balance Settlement</option>
                             <option value="Full Payment">Full Payment</option>
@@ -415,8 +427,8 @@ $eligibleContracts = $pdo->query("
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method *</label>
-                        <select name="payment_method" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <label class="block font-medium text-slate-600 mb-1">Payment Method *</label>
+                        <select name="payment_method" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-emerald-600">
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
                             <option value="Check">Check</option>
@@ -425,19 +437,19 @@ $eligibleContracts = $pdo->query("
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Reference No. (Optional)</label>
-                        <input type="text" name="reference_number" placeholder="OR# or Ref#" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <label class="block font-medium text-slate-600 mb-1">Reference No. (Optional)</label>
+                        <input type="text" name="reference_number" placeholder="OR# or Ref#" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-emerald-600">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Remarks / Notes</label>
-                    <textarea name="remarks" rows="2" placeholder="Additional details..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none"></textarea>
+                    <label class="block font-medium text-slate-600 mb-1">Remarks / Notes</label>
+                    <textarea name="remarks" rows="2" placeholder="Additional details..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-emerald-600"></textarea>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-medium text-xs rounded-xl hover:bg-slate-300 transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-700 text-white font-medium text-xs rounded-xl hover:bg-emerald-800 transition shadow-sm">Submit Payment</button>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-medium text-xs rounded-xl transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs rounded-xl transition shadow-sm">Submit Payment</button>
                 </div>
             </form>
         </div>
