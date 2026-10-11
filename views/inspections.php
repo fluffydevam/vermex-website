@@ -293,7 +293,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Inspections Completed</p>
                         <p class="text-3xl font-bold text-slate-900 mt-1"><?= $completedCount ?></p>
                     </div>
-                    <div class="bg-emerald-50 p-3 rounded-xl text-[#007a55] border border-emerald-100"><i data-lucide="clipboard-check" class="w-6 h-6"></i></div>
+                    <div class="bg-rose-50 p-3 rounded-xl text-red-600 border border-rose-100"><i data-lucide="clipboard-check" class="w-6 h-6"></i></div>
                 </div>
             </div>
 
@@ -303,14 +303,14 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Pre-Contract Inspections</h2>
 
                     <div class="flex flex-wrap items-center gap-3">
-                        <select name="status" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                        <select name="status" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-red-600">
                             <option value="">All Statuses</option>
                             <option value="<?= STATUS_PENDING ?>" <?= $statusFilter === STATUS_PENDING ? 'selected' : '' ?>>Pending Visit</option>
                             <option value="<?= STATUS_COMPLETE ?>" <?= $statusFilter === STATUS_COMPLETE ? 'selected' : '' ?>>Inspection Complete</option>
                             <option value="<?= STATUS_PESTS ?>" <?= $statusFilter === STATUS_PESTS ? 'selected' : '' ?>>Inspection Complete (Pests Found)</option>
                         </select>
 
-                        <select name="type" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55]">
+                        <select name="type" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-red-600">
                             <option value="">All Account Types</option>
                             <option value="Commercial" <?= $typeFilter === 'Commercial' ? 'selected' : '' ?>>Commercial</option>
                             <option value="Residential" <?= $typeFilter === 'Residential' ? 'selected' : '' ?>>Residential</option>
@@ -318,7 +318,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
 
                         <div class="relative">
                             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
-                            <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, contract ID..." class="bg-slate-50 border border-slate-200 text-xs rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-[#007a55] w-64">
+                            <input type="text" name="search" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search client, contract ID..." class="bg-slate-50 border border-slate-200 text-xs rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-red-600 w-64">
                         </div>
                     </div>
                 </form>
@@ -363,7 +363,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                                             <div class="text-[11px] text-slate-400 font-normal"><?= htmlspecialchars($row['client_email']) ?></div>
                                         </td>
                                         <td class="py-3.5">
-                                            <span class="<?= ($row['account_type'] ?? '') === 'Commercial' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200' ?> border px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
+                                            <span class="<?= ($row['account_type'] ?? '') === 'Commercial' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-rose-50 text-red-700 border-rose-200' ?> border px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
                                                 <?= htmlspecialchars($row['account_type'] ?? 'Commercial') ?>
                                             </span>
                                         </td>
@@ -372,8 +372,8 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                                             <?= !empty($row['technician_name']) ? htmlspecialchars($row['technician_name']) : '<span class="text-slate-400 italic font-normal">Unassigned</span>' ?>
                                         </td>
                                         <td class="py-3.5">
-                                            <span class="inline-flex items-center gap-1.5 <?= !$isCompleted ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-[#007a55] border-emerald-200' ?> border px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
-                                                <span class="w-1.5 h-1.5 rounded-full <?= !$isCompleted ? 'bg-amber-500' : 'bg-emerald-500' ?>"></span>
+                                            <span class="inline-flex items-center gap-1.5 <?= !$isCompleted ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-red-700 border-rose-200' ?> border px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
+                                                <span class="w-1.5 h-1.5 rounded-full <?= !$isCompleted ? 'bg-amber-500' : 'bg-red-600' ?>"></span>
                                                 <?= htmlspecialchars($row['inspection_status']) ?>
                                             </span>
                                         </td>
@@ -382,7 +382,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                                                 <button type="button" onclick="openInspectionFormModal(<?= $rowJson ?>, <?= $findingsJson ?>, <?= $conditionsJson ?>)" class="border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">Edit Report</button>
                                             <?php else: ?>
                                                 <button type="button" onclick="openAssignTechModal(<?= $row['id'] ?>)" class="border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">Assign Tech</button>
-                                                <button type="button" onclick="openInspectionFormModal(<?= $rowJson ?>, <?= $findingsJson ?>, <?= $conditionsJson ?>)" class="bg-[#007a55] hover:bg-[#006344] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">Inspection Form</button>
+                                                <button type="button" onclick="openInspectionFormModal(<?= $rowJson ?>, <?= $findingsJson ?>, <?= $conditionsJson ?>)" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm">Inspection Form</button>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -404,7 +404,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
         <div class="bg-white border border-slate-200 rounded-xl p-5 max-w-sm w-full space-y-4 shadow-xl text-xs">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-semibold text-slate-900 flex items-center gap-2">
-                    <i data-lucide="user-check" class="w-4 h-4 text-[#007a55]"></i> Assign Field Technician
+                    <i data-lucide="user-check" class="w-4 h-4 text-red-600"></i> Assign Field Technician
                 </h3>
                 <button type="button" onclick="closeAssignTechModal()" class="text-slate-400 hover:text-slate-700 text-lg">&times;</button>
             </div>
@@ -415,7 +415,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                 <div>
                     <label class="block text-slate-600 font-medium mb-1">Select Field Technician *</label>
                     <div class="relative">
-                        <button type="button" onclick="toggleTechDropdown()" id="selectedTechButton" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 text-left flex justify-between items-center focus:outline-none focus:border-[#007a55]">
+                        <button type="button" onclick="toggleTechDropdown()" id="selectedTechButton" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 text-left flex justify-between items-center focus:outline-none focus:border-red-600">
                             <span id="selectedTechText">-- Choose Field Technician --</span>
                             <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
                         </button>
@@ -428,153 +428,172 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
 
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                     <button type="button" onclick="closeAssignTechModal()" class="bg-white text-slate-600 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition font-medium">Cancel</button>
-                    <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium px-3 py-1.5 rounded-lg transition shadow-sm">Save Assignment</button>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-3.5 py-1.5 rounded-lg transition shadow-sm">Save Assignment</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- INSPECTION REPORT FORM MODAL -->
-    <div id="inspectionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4 overflow-y-auto">
-        <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full overflow-hidden border border-slate-200 my-8">
+    <div id="inspectionModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-5xl w-full overflow-hidden my-auto text-slate-800">
             <form method="POST" action="inspections.php">
                 <input type="hidden" name="save_inspection" value="1">
 
-                <div class="bg-[#062d1f] text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <h3 class="font-bold text-base">VERMEX PEST SOLUTIONS</h3>
-                        <p class="text-[11px] text-emerald-300">B29 L18 P2, Deca Homes, Brgy. Indangan, Davao City | Tel: (082) 291-7089</p>
+                <!-- Header Bar -->
+                <div class="bg-white border-b border-slate-100 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-red-50 text-red-600 rounded-xl border border-red-100">
+                            <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-base text-slate-900 tracking-tight">VERMEX PEST SOLUTIONS</h3>
+                            <p class="text-xs text-slate-500">B29 L18 P2, Deca Homes, Brgy. Indangan, Davao City | Tel: (082) 291-7089</p>
+                        </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" onclick="printForm()" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition"><i data-lucide="printer" class="w-3.5 h-3.5"></i> Print</button>
-                        <button type="button" onclick="downloadFormPdf()" class="bg-[#007a55] hover:bg-[#006344] text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download PDF</button>
-                        <button type="button" onclick="closeInspectionModal()" class="text-slate-300 hover:text-white p-1 ml-2"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        <button type="button" onclick="printForm()" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition"><i data-lucide="printer" class="w-3.5 h-3.5"></i> Print</button>
+                        <button type="button" onclick="downloadFormPdf()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition shadow-sm"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download PDF</button>
+                        <button type="button" onclick="closeInspectionModal()" class="text-slate-400 hover:text-slate-700 p-1 ml-2 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
                 </div>
 
-                <div id="inspectionReportContent" class="p-4 sm:p-6 space-y-4 text-xs text-slate-800 bg-white overflow-x-auto">
-                    <div class="text-center border-b border-slate-200 pb-2">
-                        <h2 class="text-base font-bold uppercase tracking-wider text-slate-900">INSPECTION REPORT FORM</h2>
+                <!-- Printable Content Section -->
+                <div id="inspectionReportContent" class="p-6 space-y-5 text-xs text-slate-800 bg-white overflow-x-auto max-h-[75vh] overflow-y-auto">
+                    <div class="text-center border-b border-slate-200/80 pb-2">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900">INSPECTION REPORT FORM</h2>
                     </div>
 
-                    <div class="border border-slate-300 rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-300 bg-slate-50/50">
-                        <div class="p-3 space-y-2">
+                    <!-- Client & Account Information -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200 bg-slate-50/70 p-4 gap-4">
+                        <div class="space-y-2.5">
                             <div class="flex items-center gap-2">
-                                <span class="font-semibold text-slate-500 w-24">ACCOUNT NAME:</span>
-                                <input type="text" id="modalClientName" name="client_name" readonly class="flex-1 bg-slate-100 border border-slate-200 rounded px-2 py-1 font-bold text-slate-900 text-xs">
+                                <span class="font-medium text-slate-500 w-28">ACCOUNT NAME:</span>
+                                <input type="text" id="modalClientName" name="client_name" readonly class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-bold text-slate-900 text-xs focus:outline-none">
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="font-semibold text-slate-500 w-24">ADDRESS:</span>
-                                <input type="text" id="modalAddress" name="address" readonly class="flex-1 bg-slate-100 border border-slate-200 rounded px-2 py-1 text-slate-800 text-xs">
+                                <span class="font-medium text-slate-500 w-28">ADDRESS:</span>
+                                <input type="text" id="modalAddress" name="address" readonly class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 text-xs focus:outline-none">
                             </div>
                         </div>
-                        <div class="p-3 space-y-2">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="font-semibold text-slate-500 w-24">CONTRACT ID:</span>
-                                <input type="text" id="modalContractId" name="contract_id" readonly class="flex-1 bg-slate-100 border border-slate-200 rounded px-2 py-1 font-medium text-slate-800 text-xs">
+                        <div class="space-y-2.5 pt-2 md:pt-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-slate-500 w-28">CONTRACT ID:</span>
+                                <input type="text" id="modalContractId" name="contract_id" readonly class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-800 text-xs focus:outline-none">
                             </div>
                             <div class="grid grid-cols-2 gap-2">
-                                <div class="flex items-center gap-1">
-                                    <span class="font-semibold text-slate-500">DATE:</span>
-                                    <input type="date" name="inspection_date" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs" value="<?= date('Y-m-d') ?>">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-medium text-slate-500">DATE:</span>
+                                    <input type="date" name="inspection_date" class="flex-1 bg-white border border-slate-200 text-slate-800 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-red-600" value="<?= date('Y-m-d') ?>">
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="font-semibold text-slate-500">TECH:</span>
-                                    <input type="text" name="technician" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1 font-medium text-slate-800 text-xs" value="Rodel Mamparil">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-medium text-slate-500">TECH:</span>
+                                    <input type="text" name="technician" class="flex-1 bg-white border border-slate-200 text-slate-800 rounded-lg px-2 py-1 font-medium text-xs focus:outline-none focus:border-red-600" value="Rodel Mamparil">
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 pt-1">
-                                <span class="font-semibold text-slate-500 w-16">TIME IN:</span>
-                                <input type="time" name="time_in" class="w-28 bg-white border border-slate-200 rounded px-2 py-1 text-xs" value="09:15">
-                                <span class="font-semibold text-slate-500 ml-2">TIME OUT:</span>
-                                <input type="time" name="time_out" class="w-28 bg-white border border-slate-200 rounded px-2 py-1 text-xs" value="10:10">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-slate-500 w-20">TIME IN:</span>
+                                <input type="time" name="time_in" class="w-28 bg-white border border-slate-200 text-slate-800 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-red-600" value="09:15">
+                                <span class="font-medium text-slate-500 ml-2">TIME OUT:</span>
+                                <input type="time" name="time_out" class="w-28 bg-white border border-slate-200 text-slate-800 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-red-600" value="10:10">
                             </div>
                         </div>
                     </div>
 
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="font-semibold text-slate-700 uppercase">Area Findings & Actions Taken</label>
-                            <button type="button" onclick="addFindingRow()" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-[#007a55] font-semibold px-2.5 py-1 rounded transition flex items-center gap-1">
-                                <i data-lucide="plus" class="w-3 h-3"></i> Add Area Row
+                    <!-- Area Findings Table -->
+                    <div class="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 space-y-3">
+                        <div class="flex justify-between items-center pb-1">
+                            <label class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Area Findings & Actions Taken</label>
+                            <button type="button" onclick="addFindingRow()" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200/60 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Area Row
                             </button>
                         </div>
-                        <table class="w-full border-collapse border border-slate-300 text-center text-xs">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-300 uppercase">
-                                    <th class="border-r border-slate-300 p-2 w-1/4">AREA</th>
-                                    <th class="border-r border-slate-300 p-2 w-2/5">FINDINGS</th>
-                                    <th class="border-r border-slate-300 p-2 w-1/5">ACTION TAKEN</th>
-                                    <th class="p-2 w-1/6">REMARKS</th>
+                        <table class="w-full border border-slate-200 rounded-lg overflow-hidden bg-white text-xs">
+                            <thead class="bg-slate-50 text-[10px] text-slate-500 uppercase">
+                                <tr>
+                                    <th class="p-2 border-b border-r border-slate-200 text-left w-1/4">AREA</th>
+                                    <th class="p-2 border-b border-r border-slate-200 text-left w-2/5">FINDINGS</th>
+                                    <th class="p-2 border-b border-r border-slate-200 text-left w-1/5">ACTION TAKEN</th>
+                                    <th class="p-2 border-b border-slate-200 text-left w-1/6">REMARKS</th>
                                 </tr>
                             </thead>
-                            <tbody id="findingsTableBody" class="divide-y divide-slate-300 text-left"></tbody>
+                            <tbody id="findingsTableBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
 
+                    <!-- Conditions & Devices Layout -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <table class="w-full border-collapse border border-slate-300 text-xs">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-300">
-                                    <th class="border-r border-slate-300 p-2 text-left">CONTRIBUTING CONDITIONS:</th>
-                                    <th class="border-r border-slate-300 p-2 w-10 text-center">YES</th>
-                                    <th class="border-r border-slate-300 p-2 w-10 text-center">NO</th>
-                                    <th class="p-2 w-28 text-center">AREA</th>
-                                </tr>
-                            </thead>
-                            <tbody id="conditionsTableBody" class="divide-y divide-slate-200 text-slate-700"></tbody>
-                        </table>
-
-                        <div class="space-y-4">
-                            <table class="w-full border-collapse border border-slate-300 text-center">
-                                <thead>
-                                    <tr class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-300 uppercase">
-                                        <th class="border-r border-slate-300 p-1.5 text-left pl-2">Devices</th>
-                                        <th class="border-r border-slate-300 p-1.5 w-16">QTY</th>
-                                        <th class="p-1.5">Remarks</th>
+                        <!-- Contributing Conditions -->
+                        <div class="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 space-y-2">
+                            <label class="font-bold text-slate-800 uppercase tracking-wider text-[11px] block pb-1">Contributing Conditions</label>
+                            <table class="w-full border border-slate-200 rounded-lg overflow-hidden bg-white text-xs">
+                                <thead class="bg-slate-50 text-[10px] text-slate-500 uppercase">
+                                    <tr>
+                                        <th class="p-2 border-b border-r border-slate-200 text-left">CONDITION DESCRIPTION</th>
+                                        <th class="p-2 border-b border-r border-slate-200 w-12 text-center">YES</th>
+                                        <th class="p-2 border-b border-r border-slate-200 w-12 text-center">NO</th>
+                                        <th class="p-2 border-b border-slate-200 w-28 text-center">AREA</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-200">
-                                    <tr>
-                                        <td class="border-r border-slate-300 p-1.5 text-left pl-2 font-medium">ILT</td>
-                                        <td class="border-r border-slate-300 p-1"><input type="number" name="ilt_qty" value="0" class="w-12 text-center border rounded text-xs"></td>
-                                        <td class="p-1"><input type="text" name="ilt_remarks" class="w-full border-0 bg-transparent text-xs" placeholder="Remarks"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="border-r border-slate-300 p-1.5 text-left pl-2 font-medium">Rat Cage</td>
-                                        <td class="border-r border-slate-300 p-1"><input type="number" name="rat_cage_qty" value="1" class="w-12 text-center border rounded text-xs"></td>
-                                        <td class="p-1"><input type="text" name="rat_cage_remarks" class="w-full border-0 bg-transparent text-xs" placeholder="Remarks"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="border-r border-slate-300 p-1.5 text-left pl-2 font-medium">Rat Bait Stn</td>
-                                        <td class="border-r border-slate-300 p-1"><input type="number" name="rat_bait_qty" value="0" class="w-12 text-center border rounded text-xs"></td>
-                                        <td class="p-1"><input type="text" name="rat_bait_remarks" class="w-full border-0 bg-transparent text-xs" placeholder="Remarks"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="border-r border-slate-300 p-1.5 text-left pl-2 font-medium">Glue Trap</td>
-                                        <td class="border-r border-slate-300 p-1"><input type="number" name="glue_trap_qty" value="2" class="w-12 text-center border rounded text-xs"></td>
-                                        <td class="p-1"><input type="text" name="glue_trap_remarks" class="w-full border-0 bg-transparent text-xs" placeholder="Remarks"></td>
-                                    </tr>
-                                </tbody>
+                                <tbody id="conditionsTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
                             </table>
+                        </div>
 
-                            <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+                        <!-- Devices & Signatures -->
+                        <div class="space-y-4">
+                            <div class="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 space-y-2">
+                                <label class="font-bold text-slate-800 uppercase tracking-wider text-[11px] block pb-1">Pest Control Devices Installed</label>
+                                <table class="w-full border border-slate-200 rounded-lg overflow-hidden bg-white text-xs">
+                                    <thead class="bg-slate-50 text-[10px] text-slate-500 uppercase">
+                                        <tr>
+                                            <th class="p-2 border-b border-r border-slate-200 text-left pl-3">DEVICES</th>
+                                            <th class="p-2 border-b border-r border-slate-200 w-16 text-center">QTY</th>
+                                            <th class="p-2 border-b border-slate-200 text-left">REMARKS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <tr>
+                                            <td class="p-2 border-r border-slate-200 font-medium pl-3">ILT</td>
+                                            <td class="p-1 border-r border-slate-200 text-center"><input type="number" name="ilt_qty" value="0" class="w-12 text-center bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600"></td>
+                                            <td class="p-1"><input type="text" name="ilt_remarks" class="w-full bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600" placeholder="Remarks"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-2 border-r border-slate-200 font-medium pl-3">Rat Cage</td>
+                                            <td class="p-1 border-r border-slate-200 text-center"><input type="number" name="rat_cage_qty" value="1" class="w-12 text-center bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600"></td>
+                                            <td class="p-1"><input type="text" name="rat_cage_remarks" class="w-full bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600" placeholder="Remarks"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-2 border-r border-slate-200 font-medium pl-3">Rat Bait Stn</td>
+                                            <td class="p-1 border-r border-slate-200 text-center"><input type="number" name="rat_bait_qty" value="0" class="w-12 text-center bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600"></td>
+                                            <td class="p-1"><input type="text" name="rat_bait_remarks" class="w-full bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600" placeholder="Remarks"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-2 border-r border-slate-200 font-medium pl-3">Glue Trap</td>
+                                            <td class="p-1 border-r border-slate-200 text-center"><input type="number" name="glue_trap_qty" value="2" class="w-12 text-center bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600"></td>
+                                            <td class="p-1"><input type="text" name="glue_trap_remarks" class="w-full bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600" placeholder="Remarks"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 pt-1">
                                 <div>
                                     <label class="block text-[10px] font-semibold text-slate-500 uppercase">Vermex Representative:</label>
-                                    <input type="text" name="vermex_representative" class="w-full mt-2 border-b border-slate-300 border-t-0 border-x-0 bg-transparent text-xs pb-1 font-medium text-slate-800 text-center" value="Rodel Mamparil">
+                                    <input type="text" name="vermex_representative" class="w-full mt-1.5 bg-white border border-slate-200 rounded-lg p-2 text-xs font-medium text-slate-800 text-center focus:outline-none focus:border-red-600" value="Rodel Mamparil">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-semibold text-slate-500 uppercase">Client Representative:</label>
-                                    <input type="text" name="client_representative" class="w-full mt-2 border-b border-slate-300 border-t-0 border-x-0 bg-transparent text-xs pb-1 font-medium text-slate-800 text-center" placeholder="Sign over printed name">
+                                    <input type="text" name="client_representative" class="w-full mt-1.5 bg-white border border-slate-200 rounded-lg p-2 text-xs font-medium text-slate-800 text-center focus:outline-none focus:border-red-600" placeholder="Sign over printed name">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-slate-50 border-t border-slate-200 px-6 py-3 flex justify-end gap-3">
-                    <button type="button" onclick="closeInspectionModal()" class="border border-slate-300 hover:bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-xs font-medium transition">Close</button>
-                    <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-1.5">
+                <!-- Footer Actions -->
+                <div class="bg-white border-t border-slate-100 px-6 py-3.5 flex justify-end gap-2">
+                    <button type="button" onclick="closeInspectionModal()" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-xl font-medium text-xs transition">Close</button>
+                    <button type="submit" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold shadow-sm transition text-xs flex items-center gap-1.5">
                         <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Save Inspection Report & Sign-off
                     </button>
                 </div>
@@ -605,7 +624,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
                     if (res.success && res.data.length > 0) {
                         res.data.forEach(tech => {
                             const item = document.createElement('div');
-                            item.className = 'px-3 py-2 text-xs text-slate-800 hover:bg-emerald-50 hover:text-[#007a55] cursor-pointer font-medium border-b border-slate-50 last:border-none';
+                            item.className = 'px-3 py-2 text-xs text-slate-800 hover:bg-red-50 hover:text-red-600 cursor-pointer font-medium border-b border-slate-50 last:border-none';
                             item.innerText = tech.technician_name;
                             item.onclick = () => selectTechnician(tech.technician_name);
                             menu.appendChild(item);
@@ -711,13 +730,13 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
 
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="border-r border-slate-300 p-1.5 text-[11px]">
+                    <td class="p-2 border-r border-slate-200 text-[11px]">
                         <input type="hidden" name="condition_label[]" value="${label.replace(/"/g, '&quot;')}">
                         ${label}
                     </td>
-                    <td class="border-r border-slate-300 text-center"><input type="radio" name="condition_status[${index}]" value="yes" ${yesChecked}></td>
-                    <td class="border-r border-slate-300 text-center"><input type="radio" name="condition_status[${index}]" value="no" ${noChecked}></td>
-                    <td class="p-1"><input type="text" name="condition_area[]" value="${(existing.area || '').replace(/"/g, '&quot;')}" class="w-full border-0 bg-transparent text-xs"></td>
+                    <td class="p-1 border-r border-slate-200 text-center"><input type="radio" name="condition_status[${index}]" value="yes" ${yesChecked}></td>
+                    <td class="p-1 border-r border-slate-200 text-center"><input type="radio" name="condition_status[${index}]" value="no" ${noChecked}></td>
+                    <td class="p-1"><input type="text" name="condition_area[]" value="${(existing.area || '').replace(/"/g, '&quot;')}" class="w-full bg-white border border-slate-200 rounded p-1 text-xs focus:outline-none focus:border-red-600"></td>
                 `;
                 condTbody.appendChild(tr);
             });
@@ -771,12 +790,12 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
             let tbody = document.getElementById('findingsTableBody');
             let row = document.createElement('tr');
             row.innerHTML = `
-                <td class="border-r border-slate-300 p-1"><input type="text" name="area[]" value="${(f.area || '').replace(/"/g, '&quot;')}" placeholder="e.g. Ceiling" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
-                <td class="border-r border-slate-300 p-1"><input type="text" name="findings[]" value="${(f.findings || '').replace(/"/g, '&quot;')}" placeholder="Findings/Pests" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
-                <td class="border-r border-slate-300 p-1"><input type="text" name="action_taken[]" value="${(f.action_taken || '').replace(/"/g, '&quot;')}" placeholder="Action taken" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs"></td>
-                <td class="p-1 flex items-center justify-between">
-                    <input type="text" name="remarks[]" value="${(f.remarks || '').replace(/"/g, '&quot;')}" placeholder="Remarks" class="w-full border-0 bg-transparent p-1 focus:ring-0 text-xs">
-                    <button type="button" onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-600 px-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                <td class="p-1 border-r border-slate-200"><input type="text" name="area[]" value="${(f.area || '').replace(/"/g, '&quot;')}" placeholder="e.g. Ceiling" class="w-full bg-white border border-slate-200 rounded p-1.5 focus:outline-none focus:border-red-600 text-xs"></td>
+                <td class="p-1 border-r border-slate-200"><input type="text" name="findings[]" value="${(f.findings || '').replace(/"/g, '&quot;')}" placeholder="Findings/Pests" class="w-full bg-white border border-slate-200 rounded p-1.5 focus:outline-none focus:border-red-600 text-xs"></td>
+                <td class="p-1 border-r border-slate-200"><input type="text" name="action_taken[]" value="${(f.action_taken || '').replace(/"/g, '&quot;')}" placeholder="Action taken" class="w-full bg-white border border-slate-200 rounded p-1.5 focus:outline-none focus:border-red-600 text-xs"></td>
+                <td class="p-1 flex items-center justify-between gap-1">
+                    <input type="text" name="remarks[]" value="${(f.remarks || '').replace(/"/g, '&quot;')}" placeholder="Remarks" class="w-full bg-white border border-slate-200 rounded p-1.5 focus:outline-none focus:border-red-600 text-xs">
+                    <button type="button" onclick="this.closest('tr').remove()" class="text-slate-400 hover:text-rose-600 p-1 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -791,7 +810,7 @@ $completedCount = $pdo->query("SELECT COUNT(*) FROM site_inspections WHERE inspe
         <?php if ($autoOpenInspection): ?>
         <?php
         $autoFindings = !empty($autoOpenInspection['findings_json']) ? json_decode($autoOpenInspection['findings_json'], true) : [];
-        if (!is_array($autoFindings)) $autoFindings = [];
+        if (!is_array($autoFindings))$autoFindings = [];
         $autoConditions = normalizeConditionsJson($autoOpenInspection['conditions_json'] ?? null);
         ?>
         window.addEventListener('DOMContentLoaded', () => {
