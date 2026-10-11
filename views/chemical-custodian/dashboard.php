@@ -39,9 +39,7 @@ try {
     $stmtChemVol = $pdo->query("SELECT SUM(quantity_in_stock) FROM inventory WHERE category = 'Chemical'");
     $totalChemicalVolume = $stmtChemVol->fetchColumn() ?: 0;
 
-    // Fetch unified activity logs from inventory_logs joined with inventory
     $recentActivity = [];
-    
     $checkLogs = $pdo->query("SHOW TABLES LIKE 'inventory_logs'")->fetch();
 
     if ($checkLogs) {
@@ -63,7 +61,6 @@ try {
         $recentActivity = $stmtActivity->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // If inventory_logs table is empty, fallback to inventory updates
     if (empty($recentActivity)) {
         $stmtActivity = $pdo->query("
             SELECT 
@@ -104,8 +101,9 @@ if (isset($_SESSION['success_msg'])) {
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased">
+<body class="bg-[#f8faf9] text-slate-800 min-h-screen flex font-sans antialiased selection:bg-red-500 selection:text-white">
 
     <!-- Include Custodian Sidebar -->
     <?php include 'components/sidebar.php'; ?>
@@ -114,7 +112,7 @@ if (isset($_SESSION['success_msg'])) {
     <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         
         <!-- Top Bar -->
-        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-3 flex items-center justify-between text-xs text-slate-500 sticky top-0 z-30">
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-3 flex items-center justify-between text-xs text-slate-500 sticky top-0 z-30 shadow-sm">
             <div class="flex items-center gap-3">
                 <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 p-1 rounded-lg focus:outline-none">
                     <i data-lucide="menu" class="w-5 h-5"></i>
@@ -122,7 +120,7 @@ if (isset($_SESSION['success_msg'])) {
                 <div class="truncate">Custodian Workspace / <span class="font-semibold text-slate-800">Warehouse Overview</span></div>
             </div>
             <div class="hidden sm:flex items-center gap-2">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
                     Active Role: Chemical Custodian (<?= htmlspecialchars($currentUserName) ?>)
                 </span>
             </div>
@@ -133,9 +131,9 @@ if (isset($_SESSION['success_msg'])) {
             
             <!-- Notifications -->
             <?php if (!empty($successMessage)): ?>
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs flex items-center justify-between shadow-sm">
+                <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl text-xs flex items-center justify-between shadow-sm">
                     <span><?= htmlspecialchars($successMessage) ?></span>
-                    <button onclick="this.parentElement.remove()" class="text-emerald-600 font-bold">&times;</button>
+                    <button onclick="this.parentElement.remove()" class="text-red-600 font-bold">&times;</button>
                 </div>
             <?php endif; ?>
 
@@ -153,8 +151,8 @@ if (isset($_SESSION['success_msg'])) {
                     <p class="text-xs text-slate-500 mt-1">Manage stock allocations, batch numbers, and job order stock deductions.</p>
                 </div>
                 <div>
-                    <a href="inventory.php" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2.5 rounded-lg inline-flex items-center justify-center gap-2 transition shadow-sm w-full sm:w-auto">
-                        <i data-lucide="layers" class="w-4 h-4 text-emerald-200"></i> Manage Full Inventory
+                    <a href="inventory.php" class="bg-red-600 hover:bg-red-700 text-white font-medium text-xs px-4 py-2.5 rounded-lg inline-flex items-center justify-center gap-2 transition shadow-sm w-full sm:w-auto">
+                        <i data-lucide="layers" class="w-4 h-4 text-red-200"></i> Manage Full Inventory
                     </a>
                 </div>
             </div>
@@ -164,7 +162,7 @@ if (isset($_SESSION['success_msg'])) {
                 <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm">
                     <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total SKUs in Warehouse</p>
                     <p class="text-3xl font-bold text-slate-900 mt-2"><?= number_format($totalSKUs) ?></p>
-                    <p class="text-[11px] text-emerald-600 font-medium mt-1">Active tracking</p>
+                    <p class="text-[11px] text-red-600 font-medium mt-1">Active tracking</p>
                 </div>
                 <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm">
                     <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Low Stock Warnings</p>
@@ -214,7 +212,7 @@ if (isset($_SESSION['success_msg'])) {
                                                 <?= htmlspecialchars($act['category'] ?? 'Chemical') ?>
                                             </span>
                                         </td>
-                                        <td class="py-3 pr-4 font-mono font-bold <?= $act['stock_level'] < 0 ? 'text-rose-600' : 'text-emerald-600' ?>">
+                                        <td class="py-3 pr-4 font-mono font-bold <?= $act['stock_level'] < 0 ? 'text-rose-600' : 'text-red-600' ?>">
                                             <?= ($act['stock_level'] > 0 ? '+' : '') . number_format($act['stock_level'], 2) ?> <?= htmlspecialchars($act['unit'] ?? 'Pcs') ?>
                                         </td>
                                         <td class="py-3 pr-4 text-slate-800">
@@ -222,7 +220,7 @@ if (isset($_SESSION['success_msg'])) {
                                         </td>
                                         <td class="py-3 pr-4 text-slate-700 font-semibold">
                                             <div class="flex items-center gap-1.5">
-                                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-[#007a55]"></i>
+                                                <i data-lucide="user-check" class="w-3.5 h-3.5 text-red-600"></i>
                                                 <span><?= htmlspecialchars($act['performed_by']) ?></span>
                                             </div>
                                         </td>
@@ -231,7 +229,7 @@ if (isset($_SESSION['success_msg'])) {
                                                 $type = $act['status_type'];
                                                 $badgeColor = 'bg-rose-50 text-rose-700 border-rose-200';
                                                 if (strpos($type, 'Add') !== false || strpos($type, 'Restock') !== false) {
-                                                    $badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                                                    $badgeColor = 'bg-red-50 text-red-700 border-red-200';
                                                 }
                                             ?>
                                             <span class="border px-2 py-0.5 rounded text-[10px] font-semibold <?= $badgeColor ?>">

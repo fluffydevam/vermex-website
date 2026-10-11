@@ -20,7 +20,7 @@ try {
     // Column already exists
 }
 
-// AUTO-SYNC: Update final_balance for all contracts based on recorded payments
+// AUTO-SYNC: Update final_balance for all contracts based on recorded payments[cite: 2]
 $pdo->exec("
     UPDATE contracts c
     SET c.final_balance = GREATEST(0.00, c.contract_value - COALESCE(
@@ -67,8 +67,9 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="bg-slate-100 text-slate-800 flex min-h-screen font-sans">
+<body class="bg-slate-100 text-slate-800 flex min-h-screen font-sans selection:bg-red-500 selection:text-white">
 
     <!-- SIDEBAR -->
     <?php include __DIR__ . '/components/sidebar.php'; ?>
@@ -88,7 +89,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <a href="payments.php" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 sm:px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
+                <a href="payments.php" class="bg-red-600 hover:bg-red-700 text-white font-medium text-xs px-3 sm:px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
                     <i data-lucide="credit-card" class="w-4 h-4"></i> <span class="hidden sm:inline">Go to </span>Payment Logger
                 </a>
             </div>
@@ -111,9 +112,9 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Collected Revenue</p>
-                        <h3 class="text-2xl font-bold text-emerald-700 mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
+                        <h3 class="text-2xl font-bold text-red-600 mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -134,7 +135,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                 <form method="GET" class="flex flex-col sm:flex-row gap-3 w-full">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client name, email, phone number, or contract..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client name, email, phone number, or contract..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-red-600 focus:outline-none">
                     </div>
                     <?php if (!empty($search)): ?>
                         <a href="accounts.php" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition flex items-center justify-center">Reset</a>
@@ -173,7 +174,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                                         <td class="px-5 py-4">
                                             <?php if (!empty($acc['contract_id'])): ?>
                                                 <p class="font-semibold text-slate-800"><?= htmlspecialchars($acc['contract_name']) ?></p>
-                                                <span class="text-[10px] font-mono text-emerald-700">#CONTRACT-<?= $acc['contract_id'] ?></span>
+                                                <span class="text-[10px] font-mono text-red-600">#CONTRACT-<?= $acc['contract_id'] ?></span>
                                             <?php else: ?>
                                                 <span class="text-slate-400 italic">No contract assigned</span>
                                             <?php endif; ?>
@@ -181,7 +182,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                                         <td class="px-5 py-4 font-bold text-slate-700">
                                             ₱<?= number_format($acc['contract_value'] ?? 0, 2) ?>
                                         </td>
-                                        <td class="px-5 py-4 font-bold text-emerald-600">
+                                        <td class="px-5 py-4 font-bold text-red-600">
                                             ₱<?= number_format($acc['total_paid'] ?? 0, 2) ?>
                                         </td>
                                         <td class="px-5 py-4 font-bold <?= floatval($acc['final_balance'] ?? 0) > 0 ? 'text-rose-600' : 'text-slate-400' ?>">
@@ -189,7 +190,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                                         </td>
                                         <td class="px-5 py-4 text-right">
                                             <?php if (!empty($acc['contract_id'])): ?>
-                                                <a href="payments.php?contract_id=<?= $acc['contract_id'] ?>" class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-100 transition text-[11px]">
+                                                <a href="payments.php?contract_id=<?= $acc['contract_id'] ?>" class="inline-flex items-center gap-1 bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg font-medium hover:bg-red-100 transition text-[11px]">
                                                     <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Record Payment
                                                 </a>
                                             <?php else: ?>
