@@ -82,14 +82,16 @@ $transactions = $transStmt->fetchAll();
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- html2pdf.js for PDF downloads -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Master CSS Link (Two Levels Up) -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="bg-[#f8faf9] text-slate-800 flex min-h-screen font-sans">
+<body class="bg-[#f8faf9] text-slate-800 flex h-screen font-sans antialiased overflow-hidden">
 
     <!-- SIDEBAR -->
     <?php include __DIR__ . '/components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
 
         <!-- HEADER -->
         <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
@@ -103,7 +105,7 @@ $transactions = $transStmt->fetchAll();
                 </div>
             </div>
             <div class="flex items-center gap-2 sm:gap-3">
-                <button onclick="downloadReportPdf()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+                <button onclick="downloadReportPdf()" class="btn-primary font-medium text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
                     <i data-lucide="download" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Download </span>PDF
                 </button>
                 <button onclick="window.print()" class="border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs px-3 py-2 rounded-lg hidden sm:flex items-center gap-1.5 transition shadow-sm">
@@ -113,21 +115,21 @@ $transactions = $transStmt->fetchAll();
         </header>
 
         <!-- PRINTABLE / PDF WRAPPER AREA -->
-        <div id="reportPrintArea" class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto bg-[#f8faf9]">
+        <div id="reportPrintArea" class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto bg-[#f8faf9] pb-12">
 
             <!-- DATE FILTER BAR -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                 <form method="GET" class="flex flex-wrap items-center gap-3 w-full">
                     <div class="flex items-center gap-2 flex-1 sm:flex-none">
                         <label class="text-xs font-semibold text-slate-600">From:</label>
-                        <input type="date" name="start_date" value="<?= htmlspecialchars($startDate) ?>" class="w-full sm:w-auto px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#007a55] focus:outline-none">
+                        <input type="date" name="start_date" value="<?= htmlspecialchars($startDate) ?>" class="w-full sm:w-auto px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
                     </div>
                     <div class="flex items-center gap-2 flex-1 sm:flex-none">
                         <label class="text-xs font-semibold text-slate-600">To:</label>
-                        <input type="date" name="end_date" value="<?= htmlspecialchars($endDate) ?>" class="w-full sm:w-auto px-3 py-1.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#007a55] focus:outline-none">
+                        <input type="date" name="end_date" value="<?= htmlspecialchars($endDate) ?>" class="w-full sm:w-auto px-3 py-1.5 border border-slate-200 rounded-xl text-xs">
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <button type="submit" class="flex-1 sm:flex-none bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-xl transition shadow-sm">
+                        <button type="submit" class="btn-primary flex-1 sm:flex-none font-medium text-xs px-4 py-2 rounded-xl transition shadow-sm">
                             Filter Report
                         </button>
                         <a href="reports.php" class="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition text-center">Reset</a>
@@ -140,9 +142,9 @@ $transactions = $transStmt->fetchAll();
                 <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Collected (Selected Range)</p>
-                        <h3 class="text-2xl font-bold text-[#007a55] mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
+                        <h3 class="text-2xl font-bold text-emerald-700 mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#007a55] flex items-center justify-center flex-shrink-0">
+                    <div class="stat-card-icon w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -183,7 +185,7 @@ $transactions = $transStmt->fetchAll();
                 <!-- Payment Methods Breakdown -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                     <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                        <i data-lucide="credit-card" class="w-4 h-4 text-[#007a55]"></i> Collections by Payment Method
+                        <i data-lucide="credit-card" class="w-4 h-4 text-emerald-700"></i> Collections by Payment Method
                     </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -200,7 +202,7 @@ $transactions = $transStmt->fetchAll();
                                         <tr class="hover:bg-slate-50/50">
                                             <td class="px-3 py-3 font-semibold text-slate-900"><?= htmlspecialchars($m['payment_method']) ?></td>
                                             <td class="px-3 py-3 text-center"><?= $m['count'] ?></td>
-                                            <td class="px-3 py-3 text-right font-bold text-[#007a55]">₱<?= number_format($m['total'], 2) ?></td>
+                                            <td class="px-3 py-3 text-right font-bold text-emerald-700">₱<?= number_format($m['total'], 2) ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
@@ -214,7 +216,7 @@ $transactions = $transStmt->fetchAll();
                 <!-- Payment Types Breakdown -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                     <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                        <i data-lucide="pie-chart" class="w-4 h-4 text-[#007a55]"></i> Collections by Payment Type
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-700"></i> Collections by Payment Type
                     </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -231,7 +233,7 @@ $transactions = $transStmt->fetchAll();
                                         <tr class="hover:bg-slate-50/50">
                                             <td class="px-3 py-3 font-semibold text-slate-900"><?= htmlspecialchars($t['payment_type']) ?></td>
                                             <td class="px-3 py-3 text-center"><?= $t['count'] ?></td>
-                                            <td class="px-3 py-3 text-right font-bold text-[#007a55]">₱<?= number_format($t['total'], 2) ?></td>
+                                            <td class="px-3 py-3 text-right font-bold text-emerald-700">₱<?= number_format($t['total'], 2) ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
@@ -247,7 +249,7 @@ $transactions = $transStmt->fetchAll();
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden space-y-3">
                 <div class="p-5 border-b border-slate-200 flex items-center justify-between">
                     <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                        <i data-lucide="file-text" class="w-4 h-4 text-[#007a55]"></i> Transaction Ledger (<?= date('M d, Y', strtotime($startDate)) ?> to <?= date('M d, Y', strtotime($endDate)) ?>)
+                        <i data-lucide="file-text" class="w-4 h-4 text-emerald-700"></i> Transaction Ledger (<?= date('M d, Y', strtotime($startDate)) ?> to <?= date('M d, Y', strtotime($endDate)) ?>)
                     </h3>
                 </div>
                 <div class="overflow-x-auto">
@@ -278,12 +280,12 @@ $transactions = $transStmt->fetchAll();
                                             <p class="text-[11px] text-slate-500"><?= htmlspecialchars($tx['contract_name'] ?? 'N/A') ?></p>
                                         </td>
                                         <td class="px-5 py-3.5">
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-[#007a55] border border-emerald-200">
+                                            <span class="badge-active px-2 py-0.5 rounded-full text-[10px] font-semibold">
                                                 <?= htmlspecialchars($tx['payment_type']) ?>
                                             </span>
                                             <span class="block text-[10px] text-slate-500 mt-0.5"><?= htmlspecialchars($tx['payment_method']) ?></span>
                                         </td>
-                                        <td class="px-5 py-3.5 font-bold text-[#007a55]">
+                                        <td class="px-5 py-3.5 font-bold text-emerald-700">
                                             ₱<?= number_format($tx['amount_paid'], 2) ?>
                                         </td>
                                         <td class="px-5 py-3.5 font-bold <?= floatval($tx['final_balance']) > 0 ? 'text-rose-600' : 'text-slate-400' ?>">

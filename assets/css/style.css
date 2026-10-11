@@ -23,8 +23,13 @@
 }
 
 /* ==========================================================================
-   Custom Global Scrollbar
+   Global Layout & Custom Scrollbar
    ========================================================================== */
+body {
+  background-color: #f8fafc;
+  font-family: inherit;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -44,7 +49,7 @@
 }
 
 /* ==========================================================================
-   Sidebar Container & Components (Preserved)
+   Sidebar Container & Components
    ========================================================================== */
 .vermex-sidebar {
   width: 16rem;
@@ -187,8 +192,11 @@
 .btn-primary, 
 .bg-emerald-600, 
 .bg-emerald-700,
+.bg-emerald-800,
 .bg-teal-600,
-.bg-teal-700 {
+.bg-teal-700,
+.bg-indigo-600,
+.bg-blue-600 {
   background-color: var(--vermex-brand-red) !important;
   color: #ffffff !important;
   transition: background-color 150ms ease, box-shadow 150ms ease;
@@ -197,16 +205,27 @@
 .btn-primary:hover, 
 .bg-emerald-600:hover, 
 .bg-emerald-700:hover,
+.bg-emerald-800:hover,
 .bg-teal-600:hover,
-.bg-teal-700:hover {
+.bg-teal-700:hover,
+.bg-indigo-700:hover,
+.bg-blue-700:hover {
   background-color: var(--vermex-brand-red-hover) !important;
+}
+
+/* Modal Headers & Dark Accent Panels */
+.bg-dark-brand {
+  background-color: var(--vermex-sidebar-bg) !important;
+  border-color: var(--vermex-sidebar-border) !important;
 }
 
 /* Text Highlights, Category Labels & Links */
 .text-emerald-600, 
 .text-emerald-700,
+.text-emerald-800,
 .text-teal-600,
-.text-blue-600 {
+.text-blue-600,
+.text-indigo-600 {
   color: var(--vermex-brand-red) !important;
 }
 
@@ -215,46 +234,58 @@
 .bg-emerald-50, 
 .bg-emerald-100,
 .bg-teal-50,
-.bg-blue-50 {
+.bg-blue-50,
+.bg-indigo-50 {
   background-color: var(--vermex-bg-subtle) !important;
   color: var(--vermex-brand-red) !important;
 }
 
-/* Active Tabs (e.g. Clients Dashboard / Contracts Dashboard Toggle) */
+/* Active Tabs & Filters */
 .tab-active,
-button.bg-white.shadow {
-  border-bottom: 2px solid var(--vermex-brand-red) !important;
+button.bg-white.shadow,
+.border-emerald-600,
+.border-teal-600 {
+  border-color: var(--vermex-brand-red) !important;
   color: var(--vermex-brand-red) !important;
-  font-weight: 600 !important;
 }
 
-/* Table Headers */
+/* Focus Rings for Inputs, Selects, Textareas & Date Pickers */
+input:focus, 
+select:focus, 
+textarea:focus,
+input[type="date"]:focus,
+.focus\:ring-emerald-500:focus,
+.focus\:ring-emerald-600:focus,
+.focus\:border-emerald-500:focus {
+  outline: none !important;
+  border-color: var(--vermex-brand-red) !important;
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.25) !important;
+}
+
+/* Status Badges & Pill Overrides */
+.badge-active, 
+.bg-emerald-100.text-emerald-800,
+.bg-teal-100.text-teal-800 {
+  background-color: #fee2e2 !important;
+  color: var(--vermex-text-dark) !important;
+  border: 1px solid var(--vermex-border-subtle) !important;
+}
+
+/* Tables Styling */
 th, 
 .table-header {
   color: #4a5568;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }
 
-/* Form Input Focus Rings */
-input:focus, 
-select:focus, 
-textarea:focus {
-  outline: none !important;
-  border-color: var(--vermex-brand-red) !important;
-  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2) !important;
+tr:hover {
+  background-color: rgba(253, 242, 242, 0.4);
 }
 
-/* Status Badges */
-.badge-active, 
-.bg-emerald-100.text-emerald-800 {
-  background-color: #fee2e2 !important;
-  color: var(--vermex-text-dark) !important;
-  border: 1px solid var(--vermex-border-subtle) !important;
-}
-
-/* Progress Bars & Dividers */
+/* Progress Bars & Active Indicators */
 .bg-emerald-500,
 .bg-teal-500 {
   background-color: var(--vermex-brand-red) !important;

@@ -262,6 +262,9 @@ try {
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Custom Vermex Master CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+
     <style>
         ::-webkit-scrollbar {
             width: 6px;
@@ -285,7 +288,7 @@ try {
     <?php include 'components/sidebar.php'; ?>
 
     <!-- 2. Main Content Area -->
-    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#f8faf9]">
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#f8faf9] h-screen">
 
         <!-- Mobile top bar with menu button -->
         <div class="lg:hidden sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
@@ -295,13 +298,13 @@ try {
             <span class="text-sm font-bold text-slate-900 tracking-tight">Inventory</span>
         </div>
 
-        <div class="p-4 sm:p-6 space-y-6 w-full max-w-7xl mx-auto">
+        <div class="p-4 sm:p-6 space-y-6 w-full max-w-7xl mx-auto pb-12">
             
             <!-- Alert Notifications -->
             <?php if (!empty($successMessage)): ?>
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-[#007a55]"></i>
+                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-700"></i>
                         <span><?= htmlspecialchars($successMessage) ?></span>
                     </div>
                     <button onclick="this.parentElement.remove()" class="text-emerald-600 hover:text-emerald-900 font-bold">&times;</button>
@@ -321,7 +324,7 @@ try {
             <!-- Header Section -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
                 <div>
-                    <div class="flex items-center gap-2 text-[11px] text-[#007a55] font-semibold tracking-wider uppercase mb-1">
+                    <div class="flex items-center gap-2 text-[11px] text-emerald-700 font-semibold tracking-wider uppercase mb-1">
                         <span>Operations</span>
                         <span>•</span>
                         <span>Warehouse & Stock Control</span>
@@ -335,7 +338,7 @@ try {
                         <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
                         <span>Deduction History</span>
                     </button>
-                    <button onclick="openModal()" class="bg-[#007a55] hover:bg-[#006344] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
+                    <button onclick="openModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         <span>Add Stock Item</span>
                     </button>
@@ -348,9 +351,9 @@ try {
                     <div>
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Chemical Stock</p>
                         <p class="text-2xl font-bold text-slate-900 mt-1"><?= number_format($totalChemicalStock) ?> <span class="text-xs font-normal text-slate-500">mL</span></p>
-                        <p class="text-[11px] text-emerald-600 font-medium mt-1"><?= $activeChemCount ?> Active Formulations</p>
+                        <p class="text-[11px] text-emerald-700 font-medium mt-1"><?= $activeChemCount ?> Active Formulations</p>
                     </div>
-                    <div class="bg-emerald-50 p-2.5 rounded-lg text-[#007a55] border border-emerald-100">
+                    <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-700 border border-emerald-100">
                         <i data-lucide="flask-conical" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -394,9 +397,9 @@ try {
                 <div class="flex flex-1 flex-wrap items-center gap-3">
                     <div class="relative flex-1 min-w-[200px] max-w-xs">
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                        <input type="text" name="search" value="<?= htmlspecialchars($searchKeyword) ?>" placeholder="Search item, batch #, or location..." class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 text-xs rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:border-[#007a55] transition">
+                        <input type="text" name="search" value="<?= htmlspecialchars($searchKeyword) ?>" placeholder="Search item, batch #, or location..." class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 text-xs rounded-lg pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                     </div>
-                    <select name="category" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                    <select name="category" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                         <option value="">All Categories</option>
                         <option value="Chemical" <?= $categoryFilter === 'Chemical' ? 'selected' : '' ?>>Chemicals & Concentrates</option>
                         <option value="Device/Trap" <?= $categoryFilter === 'Device/Trap' ? 'selected' : '' ?>>Traps & Devices</option>
@@ -405,7 +408,7 @@ try {
                     </select>
                     
                     <!-- Dynamic Database Locations Filter -->
-                    <select name="location" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#007a55] transition">
+                    <select name="location" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition">
                         <option value="">All Locations</option>
                         <?php foreach ($locationsList as $loc): ?>
                             <option value="<?= htmlspecialchars($loc) ?>" <?= $locationFilter === $loc ? 'selected' : '' ?>>
@@ -421,7 +424,7 @@ try {
                     <?php endif; ?>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="submit" class="bg-[#007a55] text-white text-xs px-3.5 py-2 rounded-lg font-medium hover:bg-[#006344] transition">
+                    <button type="submit" class="bg-emerald-700 text-white text-xs px-3.5 py-2 rounded-lg font-medium hover:bg-emerald-800 transition">
                         Filter
                     </button>
                 </div>
@@ -434,7 +437,7 @@ try {
                         <h2 class="text-base font-semibold text-slate-900">Stock Items & Device Inventory</h2>
                         <p class="text-[11px] text-slate-400 mt-0.5">Live stock counts synced with database records and field Job Orders.</p>
                     </div>
-                    <span class="bg-emerald-50 text-[#007a55] text-[10px] font-semibold px-2.5 py-1 rounded-full border border-emerald-100"><?= count($inventoryItems) ?> items listed</span>
+                    <span class="bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2.5 py-1 rounded-full border border-emerald-100"><?= count($inventoryItems) ?> items listed</span>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -469,7 +472,7 @@ try {
                                             <?php 
                                                 $catColor = 'bg-slate-50 text-slate-700 border-slate-200';
                                                 if ($item['category'] === 'Chemical') {
-                                                    $catColor = 'bg-emerald-50 text-[#007a55] border-emerald-200/60';
+                                                    $catColor = 'bg-emerald-50 text-emerald-700 border-emerald-200/60';
                                                 } elseif ($item['category'] === 'Device/Trap' || $item['category'] === 'Traps & Devices') {
                                                     $catColor = 'bg-blue-50 text-blue-700 border-blue-200/60';
                                                 } elseif ($item['category'] === 'PPE') {
@@ -495,7 +498,7 @@ try {
                                         <td class="py-3">
                                             <?php 
                                                 $status = $item['status'];
-                                                $statusBg = 'bg-emerald-50 text-[#007a55] border-emerald-200/60';
+                                                $statusBg = 'bg-emerald-50 text-emerald-700 border-emerald-200/60';
                                                 if ($status === 'Low Stock' || $item['quantity_in_stock'] <= $item['min_threshold']) {
                                                     $status = 'Low Stock';
                                                     $statusBg = 'bg-amber-50 text-amber-700 border-amber-200/60';
@@ -514,7 +517,7 @@ try {
                                         <td class="py-3 text-right">
                                             <button 
                                                 onclick="openAdjustModal(<?= $item['id']; ?>, '<?= addslashes($item['item_name']); ?>', '<?= addslashes($item['unit']); ?>')" 
-                                                class="text-[#007a55] hover:text-[#006344] bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 px-2.5 py-1 rounded text-[11px] font-semibold transition">
+                                                class="text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 px-2.5 py-1 rounded text-[11px] font-semibold transition">
                                                 Adjust
                                             </button>
                                         </td>
@@ -544,7 +547,7 @@ try {
         <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-4xl overflow-hidden flex flex-col max-h-[85vh]">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <div class="flex items-center gap-2">
-                    <div class="p-2 bg-emerald-50 text-[#007a55] rounded-lg">
+                    <div class="p-2 bg-emerald-50 text-emerald-700 rounded-lg">
                         <i data-lucide="history" class="w-5 h-5"></i>
                     </div>
                     <div>
@@ -598,7 +601,7 @@ try {
                                             <?= htmlspecialchars($act) ?>
                                         </span>
                                     </td>
-                                    <td class="p-3 font-mono font-bold whitespace-nowrap <?= floatval($log['quantity_changed']) < 0 ? 'text-rose-600' : 'text-emerald-600' ?>">
+                                    <td class="p-3 font-mono font-bold whitespace-nowrap <?= floatval($log['quantity_changed']) < 0 ? 'text-rose-600' : 'text-emerald-700' ?>">
                                         <?= floatval($log['quantity_changed']) > 0 ? '+' . number_format($log['quantity_changed'], 2) : number_format($log['quantity_changed'], 2) ?>
                                     </td>
                                     <td class="p-3 text-slate-600 max-w-xs truncate">
@@ -627,7 +630,7 @@ try {
         <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <i data-lucide="plus-circle" class="w-4 h-4 text-[#007a55]"></i>
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-700"></i>
                     Add New Inventory Item
                 </h3>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
@@ -638,13 +641,13 @@ try {
 
                 <div>
                     <label class="block font-medium text-slate-700 mb-1">Item Name *</label>
-                    <input type="text" name="item_name" required placeholder="e.g. Termidor HE Termiticide" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                    <input type="text" name="item_name" required placeholder="e.g. Termidor HE Termiticide" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Category</label>
-                        <select name="category" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <select name="category" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                             <option value="Chemical">Chemical</option>
                             <option value="Device/Trap">Device / Trap</option>
                             <option value="Equipment">Equipment</option>
@@ -653,7 +656,7 @@ try {
                     </div>
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Unit of Measure</label>
-                        <select name="unit" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <select name="unit" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                             <option value="Pcs">Pcs (Pieces)</option>
                             <option value="Units">Units</option>
                             <option value="mL">mL (Milliliters)</option>
@@ -672,32 +675,32 @@ try {
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Initial Stock</label>
-                        <input type="number" step="0.01" name="quantity_in_stock" required value="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <input type="number" step="0.01" name="quantity_in_stock" required value="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                     </div>
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Min Threshold</label>
-                        <input type="number" step="0.01" name="min_threshold" required value="10.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <input type="number" step="0.01" name="min_threshold" required value="10.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                     </div>
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Unit Cost (₱)</label>
-                        <input type="number" step="0.01" name="unit_cost" value="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <input type="number" step="0.01" name="unit_cost" value="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Batch / Lot #</label>
-                        <input type="text" name="batch_number" placeholder="e.g. TH-2026-A" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <input type="text" name="batch_number" placeholder="e.g. TH-2026-A" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                     </div>
                     <div>
                         <label class="block font-medium text-slate-700 mb-1">Storage Location</label>
-                        <input type="text" name="storage_location" placeholder="e.g. Chemical Cage A" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                        <input type="text" name="storage_location" placeholder="e.g. Chemical Cage A" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                     </div>
                 </div>
 
                 <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                     <button type="button" onclick="closeModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium transition">Cancel</button>
-                    <button type="submit" class="bg-[#007a55] hover:bg-[#006344] text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">Save Stock Item</button>
+                    <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">Save Stock Item</button>
                 </div>
             </form>
         </div>
@@ -711,7 +714,7 @@ try {
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div>
                     <h3 class="text-sm font-bold text-slate-900">Adjust Stock Level</h3>
-                    <p id="adjustItemName" class="text-xs text-[#007a55] font-semibold mt-0.5">Item Name</p>
+                    <p id="adjustItemName" class="text-xs text-emerald-700 font-semibold mt-0.5">Item Name</p>
                 </div>
                 <button onclick="closeAdjustModal()" class="text-slate-400 hover:text-slate-600 transition font-bold">&times;</button>
             </div>
@@ -722,7 +725,7 @@ try {
 
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Adjustment Type</label>
-                    <select name="adjustment_type" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                    <select name="adjustment_type" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                         <option value="add">Add Stock (+) (Restock / Received)</option>
                         <option value="subtract">Deduct Stock (-) (Manual Usage / Damaged)</option>
                         <option value="set">Set Exact Count (=) (Physical Inventory Audit)</option>
@@ -733,17 +736,17 @@ try {
                     <label class="block font-semibold text-slate-700 mb-1">
                         Quantity / Amount (<span id="adjustUnitLabel">Units</span>)
                     </label>
-                    <input type="number" step="0.01" min="0.01" name="adjust_amount" required placeholder="e.g. 500" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]">
+                    <input type="number" step="0.01" min="0.01" name="adjust_amount" required placeholder="e.g. 500" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600">
                 </div>
 
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Reason for Adjustment</label>
-                    <textarea name="remarks" rows="2" placeholder="e.g., Supplier Restock, Damaged during transit, Audit correction..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-[#007a55]"></textarea>
+                    <textarea name="remarks" rows="2" placeholder="e.g., Supplier Restock, Damaged during transit, Audit correction..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <button type="button" onclick="closeAdjustModal()" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-[#007a55] hover:bg-[#006344] text-white font-semibold shadow-sm transition">Save Adjustment</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow-sm transition">Save Adjustment</button>
                 </div>
             </form>
         </div>

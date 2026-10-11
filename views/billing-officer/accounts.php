@@ -67,14 +67,16 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Master CSS Link (Two Levels Up) -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="bg-slate-100 text-slate-800 flex min-h-screen font-sans">
+<body class="bg-slate-100 text-slate-800 flex h-screen font-sans antialiased overflow-hidden">
 
     <!-- SIDEBAR -->
     <?php include __DIR__ . '/components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
 
         <!-- HEADER -->
         <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
@@ -88,13 +90,13 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <a href="payments.php" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 sm:px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
+                <a href="payments.php" class="btn-primary font-medium text-xs px-3 sm:px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
                     <i data-lucide="credit-card" class="w-4 h-4"></i> <span class="hidden sm:inline">Go to </span>Payment Logger
                 </a>
             </div>
         </header>
 
-        <div class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <div class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto pb-12">
 
             <!-- METRICS / KPI CARDS -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
@@ -113,7 +115,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Collected Revenue</p>
                         <h3 class="text-2xl font-bold text-emerald-700 mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                    <div class="stat-card-icon w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -134,7 +136,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                 <form method="GET" class="flex flex-col sm:flex-row gap-3 w-full">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client name, email, phone number, or contract..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client name, email, phone number, or contract..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs">
                     </div>
                     <?php if (!empty($search)): ?>
                         <a href="accounts.php" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200 transition flex items-center justify-center">Reset</a>
@@ -181,7 +183,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
                                         <td class="px-5 py-4 font-bold text-slate-700">
                                             ₱<?= number_format($acc['contract_value'] ?? 0, 2) ?>
                                         </td>
-                                        <td class="px-5 py-4 font-bold text-emerald-600">
+                                        <td class="px-5 py-4 font-bold text-emerald-700">
                                             ₱<?= number_format($acc['total_paid'] ?? 0, 2) ?>
                                         </td>
                                         <td class="px-5 py-4 font-bold <?= floatval($acc['final_balance'] ?? 0) > 0 ? 'text-rose-600' : 'text-slate-400' ?>">

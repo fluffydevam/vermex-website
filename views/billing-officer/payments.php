@@ -21,7 +21,7 @@ try {
     // Column already exists
 }
 
-// AUTO-SYNC: Update final_balance for all contracts based on recorded payments[cite: 2]
+// AUTO-SYNC: Update final_balance for all contracts based on recorded payments
 $pdo->exec("
     UPDATE contracts c
     SET c.final_balance = GREATEST(0.00, c.contract_value - COALESCE(
@@ -43,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $paymentDate   = $_POST['payment_date'] ?? date('Y-m-d H:i:s');
 
     if ($contractId && $amountPaid > 0) {
-        // Retrieve client_id for contract
         $stmtC = $pdo->prepare("SELECT client_id FROM contracts WHERE id = :cid");
         $stmtC->execute(['cid' => $contractId]);
         $contractData = $stmtC->fetch();
@@ -51,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         if ($contractData) {
             $clientId = $contractData['client_id'];
 
-            // Insert into payments table
             $insStmt = $pdo->prepare("
                 INSERT INTO payments (contract_id, client_id, user_id, amount_paid, payment_type, payment_method, reference_number, remarks, payment_date)
                 VALUES (:contract_id, :client_id, :user_id, :amount_paid, :payment_type, :payment_method, :reference_number, :remarks, :payment_date)
@@ -68,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 'payment_date'     => $paymentDate
             ]);
 
-            // Immediately Recalculate Final Balance for this contract[cite: 2]
             $pdo->prepare("
                 UPDATE contracts 
                 SET final_balance = GREATEST(0.00, contract_value - (
@@ -145,14 +142,16 @@ $eligibleContracts = $pdo->query("
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Master CSS Link (Two Levels Up) -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="bg-slate-100 text-slate-800 flex min-h-screen font-sans">
+<body class="bg-slate-100 text-slate-800 flex h-screen font-sans antialiased overflow-hidden">
 
     <!-- SIDEBAR -->
     <?php include __DIR__ . '/components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
 
         <!-- HEADER -->
         <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
@@ -165,12 +164,12 @@ $eligibleContracts = $pdo->query("
                     <p class="text-xs text-slate-500 mt-0.5 hidden sm:block">Manage customer transactions and monitor live contract balances</p>
                 </div>
             </div>
-            <button onclick="openModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 sm:px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
+            <button onclick="openModal()" class="btn-primary font-medium text-xs px-3 sm:px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> <span class="hidden sm:inline">Record New </span>Payment
             </button>
         </header>
 
-        <div class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <div class="p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto pb-12">
 
             <!-- ALERTS -->
             <?php if (!empty($message)): ?>
@@ -187,7 +186,7 @@ $eligibleContracts = $pdo->query("
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Collected</p>
                         <h3 class="text-2xl font-bold text-emerald-700 mt-1">₱<?= number_format($totalCollected, 2) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                    <div class="stat-card-icon w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0">
                         <i data-lucide="wallet" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -217,7 +216,7 @@ $eligibleContracts = $pdo->query("
                         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Transactions</p>
                         <h3 class="text-2xl font-bold text-slate-800 mt-1"><?= number_format($totalTransactions) ?></h3>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
                         <i data-lucide="receipt" class="w-5 h-5"></i>
                     </div>
                 </div>
@@ -228,9 +227,9 @@ $eligibleContracts = $pdo->query("
                 <form method="GET" class="flex flex-col lg:flex-row gap-3 w-full">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client, contract ID, name, or reference no..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search client, contract ID, name, or reference no..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs">
                     </div>
-                    <select name="method" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                    <select name="method" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white">
                         <option value="">All Payment Methods</option>
                         <option value="Cash" <?= $filterMethod === 'Cash' ? 'selected' : '' ?>>Cash</option>
                         <option value="Bank Transfer" <?= $filterMethod === 'Bank Transfer' ? 'selected' : '' ?>>Bank Transfer</option>
@@ -238,7 +237,7 @@ $eligibleContracts = $pdo->query("
                         <option value="GCash" <?= $filterMethod === 'GCash' ? 'selected' : '' ?>>GCash</option>
                         <option value="Credit Card" <?= $filterMethod === 'Credit Card' ? 'selected' : '' ?>>Credit Card</option>
                     </select>
-                    <select name="type" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                    <select name="type" onchange="this.form.submit()" class="px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-600 bg-white">
                         <option value="">All Payment Types</option>
                         <option value="Downpayment" <?= $filterType === 'Downpayment' ? 'selected' : '' ?>>Downpayment</option>
                         <option value="Balance Settlement" <?= $filterType === 'Balance Settlement' ? 'selected' : '' ?>>Balance Settlement</option>
@@ -286,7 +285,7 @@ $eligibleContracts = $pdo->query("
                                             </div>
                                         </td>
                                         <td class="px-5 py-4">
-                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                            <span class="badge-active px-2.5 py-1 rounded-full text-[10px] font-semibold">
                                                 <?= htmlspecialchars($p['payment_type']) ?>
                                             </span>
                                         </td>
@@ -296,7 +295,7 @@ $eligibleContracts = $pdo->query("
                                         <td class="px-5 py-4 font-bold text-slate-700">
                                             ₱<?= number_format($p['contract_value'] ?? 0, 2) ?>
                                         </td>
-                                        <td class="px-5 py-4 font-bold text-emerald-600">
+                                        <td class="px-5 py-4 font-bold text-emerald-700">
                                             ₱<?= number_format($p['amount_paid'], 2) ?>
                                         </td>
                                         <td class="px-5 py-4 font-bold <?= floatval($p['final_balance']) > 0 ? 'text-rose-600' : 'text-slate-400' ?>">
@@ -326,16 +325,16 @@ $eligibleContracts = $pdo->query("
     <!-- RECORD PAYMENT MODAL -->
     <div id="paymentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] overflow-y-auto">
-            <div class="bg-[#0b2219] px-6 py-4 text-white flex items-center justify-between">
-                <h3 class="font-bold text-sm tracking-wide">RECORD CONTRACT PAYMENT</h3>
-                <button onclick="closeModal()" class="text-emerald-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="bg-[#2b110d] px-6 py-4 text-white flex items-center justify-between border-b border-[#4d1f18]">
+                <h3 class="font-bold text-sm tracking-wide text-white">RECORD CONTRACT PAYMENT</h3>
+                <button onclick="closeModal()" class="text-slate-300 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <form method="POST" class="p-6 space-y-4">
                 <input type="hidden" name="action" value="add_payment">
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Select Contract *</label>
-                    <select name="contract_id" id="contractSelect" onchange="updateBalanceHint()" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                    <select name="contract_id" id="contractSelect" onchange="updateBalanceHint()" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs">
                         <option value="" data-balance="0">-- Select Contract --</option>
                         <?php foreach ($eligibleContracts as $ec): ?>
                             <option value="<?= $ec['id'] ?>" data-balance="<?= $ec['final_balance'] ?>" data-value="<?= $ec['contract_value'] ?>">
@@ -353,11 +352,11 @@ $eligibleContracts = $pdo->query("
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Amount Paid (₱) *</label>
-                        <input type="number" step="0.01" name="amount_paid" placeholder="0.00" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none font-bold text-emerald-700">
+                        <input type="number" step="0.01" name="amount_paid" placeholder="0.00" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold text-emerald-700">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Type *</label>
-                        <select name="payment_type" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <select name="payment_type" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs">
                             <option value="Downpayment">Downpayment</option>
                             <option value="Balance Settlement">Balance Settlement</option>
                             <option value="Full Payment">Full Payment</option>
@@ -369,7 +368,7 @@ $eligibleContracts = $pdo->query("
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method *</label>
-                        <select name="payment_method" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <select name="payment_method" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs">
                             <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
                             <option value="Check">Check</option>
@@ -379,18 +378,18 @@ $eligibleContracts = $pdo->query("
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Reference No. (Optional)</label>
-                        <input type="text" name="reference_number" placeholder="OR# or Ref#" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+                        <input type="text" name="reference_number" placeholder="OR# or Ref#" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Remarks / Notes</label>
-                    <textarea name="remarks" rows="2" placeholder="Additional details..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none"></textarea>
+                    <textarea name="remarks" rows="2" placeholder="Additional details..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"></textarea>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-medium text-xs rounded-xl hover:bg-slate-300 transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-700 text-white font-medium text-xs rounded-xl hover:bg-emerald-800 transition shadow-sm">Submit Payment</button>
+                    <button type="submit" class="btn-primary px-4 py-2 font-medium text-xs rounded-xl transition shadow-sm">Submit Payment</button>
                 </div>
             </form>
         </div>
