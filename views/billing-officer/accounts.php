@@ -20,7 +20,7 @@ try {
     // Column already exists
 }
 
-// AUTO-SYNC: Update final_balance for all contracts based on recorded payments[cite: 2]
+// AUTO-SYNC: Update final_balance for all contracts based on recorded payments
 $pdo->exec("
     UPDATE contracts c
     SET c.final_balance = GREATEST(0.00, c.contract_value - COALESCE(
@@ -75,7 +75,7 @@ $totalBalances = $pdo->query("SELECT COALESCE(SUM(final_balance), 0) FROM contra
     <?php include __DIR__ . '/components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden md:ml-64">
 
         <!-- HEADER -->
         <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
