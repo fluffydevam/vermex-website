@@ -109,7 +109,7 @@ if (isset($_SESSION['success_msg'])) {
     <?php include 'components/sidebar.php'; ?>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+    <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden md:ml-64">
         
         <!-- Top Bar -->
         <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-3 flex items-center justify-between text-xs text-slate-500 sticky top-0 z-30 shadow-sm">

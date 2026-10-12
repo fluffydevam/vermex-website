@@ -13,7 +13,7 @@ $navItems = [
 <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden"></div>
 
 <!-- Sidebar Drawer -->
-<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#2b110d] text-white flex flex-col justify-between p-4 flex-shrink-0 transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none h-full md:h-screen select-none">
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#2b110d] text-white flex flex-col justify-between p-4 flex-shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none h-full md:h-screen select-none">
     <div>
         <!-- Brand Header -->
         <div class="flex items-center justify-between px-2 py-3 mb-6 border-b border-[#4d1f18] h-14">
